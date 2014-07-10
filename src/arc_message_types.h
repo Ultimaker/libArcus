@@ -5,7 +5,9 @@ namespace arc
 {
 	enum EMessageType
 	{
-		//GENERAL COMMANDS
+		// GENERAL COMMANDS
+		MSG_NO_MESSAGE = 0x00000000;			// VOID
+			// There is no message
 		MSG_REQUEST_ID = 0x00100000;			// VOID
 			// Request the unique identifier of the other side. To identify/verify what we are talking with.
 		MSG_REPLY_ID = 0x00100001;			// UTF8_String identifier
@@ -29,7 +31,17 @@ namespace arc
 		MSG_REPLY_BIT_COLOR = 0x00100021;		// INT24 hex-color
 			// Tell the receiver that the following bits are send in the given color. Verification if the bits are received without color modification lays with the client
 
-	
+		// MESH 
+		MSG_OBJECT_LIST = 0x00200000;			// INT32 numMeshlists
+			// Following data is a list of meshes that belong to the same object
+		MSG_MESH_LIST = 0x00200001;			// INT32 numDataLists
+			// Following data is part of a single mesh
+		MSG_VERTEX_LIST = 0x00200002;			// float32[] vertex
+			// 3D vertex list
+		MSG_NORMAL_LIST = 0x00200003;			// float32[] normal
+			// 3D normal list
+		MSG_INDEX_LIST = 0x00200004;			// INT32[] index
+			// Index list for 3D vertex data (to make triangles / polies)
 		
 
 	
