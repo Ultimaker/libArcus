@@ -12,13 +12,13 @@ namespace arc
 	class Message
 	{
 	private:
-		EMessageType messageType;
+		EMessageType message_type;
 		std::vector<uint8_t> data;
 		std::size_t read_position;
 
 	public:
 		Message();
-		Message(EMessageType messageType);
+		Message(EMessageType message_type);
 		~Message();
 		
 		EMessageType getMessageType();
