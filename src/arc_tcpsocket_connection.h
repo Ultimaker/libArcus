@@ -23,6 +23,7 @@ namespace arc
 	
 	protected:
 		void closeSocket();
+		bool recv(void* data, int length);
 	};
 }
 

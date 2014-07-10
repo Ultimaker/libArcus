@@ -12,16 +12,16 @@ namespace arc
 	class Message
 	{
 	private:
-		ECommand command;
+		EMessageType messageType;
 		std::vector<uint8_t> data;
 		std::size_t read_position;
 
 	public:
 		Message();
-		Message(ECommand command);
+		Message(EMessageType messageType);
 		~Message();
 		
-		ECommand getCommand();
+		EMessageType getMessageType();
 		
 		Message& operator << (bool data);
 		Message& operator << (int8_t data);
@@ -38,6 +38,10 @@ namespace arc
 		Message& operator >> (float& data);
 		Message& operator >> (double& data);
 		Message& operator >> (std::string& data);
+		
+		void reserveRawData(size_t size);
+		void* getRawData();
+		size_t getRawDataSize();
 	};
 }
 

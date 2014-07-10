@@ -49,8 +49,8 @@ TcpSocketConnection::TcpSocketConnection(const char* host, int port_nr);
     
     memset(&serv_addr, '0', sizeof(serv_addr)); 
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(port);
-    serv_addr.sin_addr.s_addr = inet_addr(host.c_str());
+    serv_addr.sin_port = htons(port_nr);
+    serv_addr.sin_addr.s_addr = inet_addr(host);
     // TODO: Check this: C style cast replaced by reinterpret_cast!!
     if (connect(socket_fd, reinterpret_cast<struct sockaddr*>(&serv_addr), sizeof(serv_addr)) < 0)
     {
@@ -66,15 +66,65 @@ TcpSocketConnection::~TcpSocketConnection()
 
 bool sendMessage(Message& message)
 {
+	int32_t command = htonl(message.getCommand());
+	int32_t data_size = htonl(message.getRawDataSize());
+	if (send(socket_fd, &command, sizeof(int32_t), 0) <= 0)
+	{
+		closeSocket();
+		return;
+	}
+	if (send(socket_fd, &data_size, sizeof(int32_t), 0) <= 0)
+	{
+		closeSocket();
+		return;
+	}
+	if (send(socket_fd, message.getRawData(), message.getRawDataSize(), 0) <= 0)
+	{
+		closeSocket();
+		return;
+	}
 }
 
 Message& recieveMessage()
 {
+	int32_t command;
+	int32_t size;
+	if (!recv(&command, sizeof(int32_t)))
+		return Message(MSG_NO_MESSAGE);
+	if (!recv(&size, sizeof(int32_t)))
+		return Message(MSG_NO_MESSAGE);
+	command = ntohl(command);
+	size = ntohl(size);
+	
+	Message message(EMessageType(command));
+	message.reserveRawData(size);
+	if (!recv(&message.getRawData(), size))
+		return Message(MSG_NO_MESSAGE);
+	return message;
 }
 
 bool TcpSocketConnection::isActive()
 {
 	return socket_fd != -1;
+}
+
+bool TcpSocketConnection::recv(void* data, int length)
+{
+    if (socket_fd == -1)
+        return false;
+    char* ptr = static_cast<char*>(data);
+    while(length > 0)
+    {
+        int n = recv(socket_fd, ptr, length, 0);
+        if (n <= 0)
+        {
+            closeSocket();
+            return false;
+        }
+        ptr += n;
+        length -= n;
+    }
+	return true;
 }
 
 TcpSocketConnection::closeSocket()
