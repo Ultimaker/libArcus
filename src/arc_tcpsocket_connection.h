@@ -3,6 +3,8 @@
 
 #include "arc_connection.h"
 
+//Socket connection that sends/recieves messages. See arc_message_types.h and arc_message.h for more details on how to format the data.
+
 namespace arc
 {
 	class TcpSocketConnection : public Connection

@@ -3,6 +3,8 @@
 
 namespace arc
 {
+	// Enum that holds all types of messages. The Types(s) as a comment behind the command indicate which data is sent with it. 
+	// Comment below the messageType gives more info in how the Type is to be used
 	enum EMessageType
 	{
 		// GENERAL COMMANDS

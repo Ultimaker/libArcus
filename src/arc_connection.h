@@ -3,6 +3,8 @@
 
 #include "arc_message.h"
 
+//Pure virtual base class for any connection
+
 namespace arc
 {
 	class Connection

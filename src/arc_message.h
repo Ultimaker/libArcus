@@ -7,6 +7,9 @@
 
 #include "arc_message_types.h"
 
+// Container for a single message. Each message has a type (see arc_message_types.h for more details), a blob of data and a length. 
+// The operators allow the message to be filled and read.
+
 namespace arc
 {
 	class Message
