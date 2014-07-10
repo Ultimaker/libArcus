@@ -36,31 +36,53 @@ EMessageType Message::getMessageType()
 
 Message& Message::operator << (bool data)
 {
-	
+	*this << static_cast<Uint8>(data);
+    	return *this;
 }
 
 Message& Message::operator << (int8_t data)
 {
+	append(&data, sizeof(data));
+    	return *this;
 }
 
 Message& Message::operator << (int16_t data)
 {
+	int16_t to_write = htons(data);
+    	append(&to_write, sizeof(to_write));
+    	return *this;
 }
 
 Message& Message::operator << (int32_t data)
 {
+	int32_t to_write = htonl(data);
+    	append(&to_write, sizeof(to_write));
+    	return *this;
 }
 
 Message& Message::operator << (float data)
 {
+	append(&data, sizeof(data));
+   	return *this;
 }
 
 Message& Message::operator << (double data)
 {
+	append(&data, sizeof(data));
+    	return *this;
 }
 
 Message& Message::operator << (std::string data)
 {
+	// First insert string length
+	uint32_t length = static_cast<uint32_t>(data.size());
+	*this << length;
+
+	// Then insert characters
+	if (length > 0)
+		append(data.c_str(), length * sizeof(std::string::value_type));
+
+	return *this;
 }
 
 Message& Message::operator >> (bool& data)
@@ -71,7 +93,7 @@ Message& Message::operator >> (int8_t& data)
 {
 	if (checkSize(sizeof(data)))
     	{
-		data = *reinterpret_cast<const Int8*>(&this->data[read_position]);
+		data = *reinterpret_cast<const int8_t*>(&this->data[read_position]);
 		read_position += sizeof(data);
 	}
 	return *this;
@@ -81,7 +103,7 @@ Message& Message::operator >> (int16_t& data)
 {
 	if (checkSize(sizeof(data)))
     	{
-		data = *reinterpret_cast<const Int16*>(&this->data[read_position]);
+		data = *reinterpret_cast<const int16_t*>(&this->data[read_position]);
 		read_position += sizeof(data);
 	}
 	return *this;
@@ -91,7 +113,7 @@ Message& Message::operator >> (int32_t& data)
 {
 	if (checkSize(sizeof(data)))
     	{
-		data = *reinterpret_cast<const Int32*>(&this->data[read_position]);
+		data = *reinterpret_cast<const int32_t*>(&this->data[read_position]);
 		read_position += sizeof(data);
 	}
 	return *this;
@@ -119,7 +141,7 @@ Message& Message::operator >> (double& data)
 
 Message& Message::operator >> (std::string& data)
 {
-	Uint32 length = 0; //Extract length.
+	uint32_t length = 0; //Extract length.
 	*this >> length;
 
 	data.clear();
