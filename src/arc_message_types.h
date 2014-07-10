@@ -6,6 +6,8 @@ namespace arc
 	enum EMessageType
 	{
 		//GENERAL COMMANDS
+		MSG_NO_MESSAGE = 0x00000000;			// VOID
+			// There is no message
 		MSG_REQUEST_ID = 0x00100000;			// VOID
 			// Request the unique identifier of the other side. To identify/verify what we are talking with.
 		MSG_REPLY_ID = 0x00100001;			// UTF8_String identifier
