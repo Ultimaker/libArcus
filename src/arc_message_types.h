@@ -26,6 +26,8 @@ namespace arc
 			// Request value of a setting defined by key
 		MSG_REPLY_CONFIGURATION_SETTING = 0x00100008;	// UTF8_String value
 			// Value of setting as requested (response to 0x00100007)
+		MSG_PROGESS = 0x00100009;			// float32 progress_amount
+			// Report processing in float values 0.0 to 1.0
 		MSG_REQUEST_BIT_COLOR = 0x00100020; 		// VOID
 			// As what current bit color is. Client will reply with a 0x00100021 to indicate of which color the bits are now. Or will reply with 0xEEE00000 "I am a tea pot"; as only tea-potsdo not support bit color.
 		MSG_REPLY_BIT_COLOR = 0x00100021;		// INT24 hex-color
@@ -33,18 +35,33 @@ namespace arc
 
 		// MESH 
 		MSG_OBJECT_LIST = 0x00200000;			// INT32 numMeshlists
-			// Following data is a list of meshes that belong to the same object
+			// Following data is a list of meshes that belong to the same object.
 		MSG_MESH_LIST = 0x00200001;			// INT32 numDataLists
-			// Following data is part of a single mesh
+			// Following data is part of a single mesh.
 		MSG_VERTEX_LIST = 0x00200002;			// float32[] vertex
-			// 3D vertex list
+			// 3D vertex list.
 		MSG_NORMAL_LIST = 0x00200003;			// float32[] normal
-			// 3D normal list
+			// 3D normal list.
 		MSG_INDEX_LIST = 0x00200004;			// INT32[] index
-			// Index list for 3D vertex data (to make triangles / polies)
-		
+			// Index list for 3D vertex data (to make triangles / polies).
 
-	
+		// ERROR
+		MSG_ERROR_UNDEFINED = 0xEEE00000; 		// UTF8_STRING
+			// I'm a tea pot.
+		MSG_ERROR_UNKNOWN_COMMAND = 0xEEE00001; 	// INT32 command
+			// Previous command was not recognised.
+		
+		// CURA SPECIFIC 
+		MSG_CONV_OBJ_TO_GCODE = 0x00300000;		// VOID	
+			// Start processing the provided objects to g-code.
+		MSG_SET_TRANSFOMATION_MATRIX = 0x00300001;	// float32[3*3] transformation_matrix
+			// Set the 3x3 transformation matrix used by Cura.
+		MSG_SET_OBJECT_COUNT = 0x00300002;		// INT32 count
+			// This amount of [object list](0x00200000) commands will be send.
+		MSG_REPORT_OBJ_PINT_TIME = 0x00300003;		// INT32 object_index, FLOAT32 print_time.
+			// Report the print time in seconds for the object with index [object_index]
+		MSG_REPORT_OBJ_MATERIAL = 0x00300004;		// INT32 object_index, INT32 extruder_nr, FLOAT32 material_amount.
+			// Report the material amount in mm for the object with index [object_index] for [extruder nr]	
 	};
 }
 
