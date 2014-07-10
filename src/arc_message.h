@@ -18,6 +18,8 @@ namespace arc
 		EMessageType message_type;
 		std::vector<uint8_t> data;
 		std::size_t read_position;
+		bool checkSize(std::size_t size)
+		bool is_valid;
 
 	public:
 		Message();
