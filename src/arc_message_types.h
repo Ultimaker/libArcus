@@ -52,6 +52,8 @@ namespace arc
 			// I'm a tea pot.
 		MSG_ERROR_UNKNOWN_COMMAND = 0xEEE00001; 	// INT32 command
 			// Previous command was not recognised.
+		MSG_ERROR_RECV_FAILED = 0xEEE00002;  		// VOID
+			//Failed to receive message. This is set in the message when the sizes of the message fields (type, length, data) are incorrect.
 		
 		// CURA SPECIFIC 
 		MSG_CONV_OBJ_TO_GCODE = 0x00300000;		// VOID	

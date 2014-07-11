@@ -34,29 +34,29 @@ TcpSocketConnection::TcpSocketConnection(int listen_port_nr)
 TcpSocketConnection::TcpSocketConnection(const char* host, int port_nr);
 {
 #ifdef __WIN32
-    if (!wsaStartupDone)
-    {
-        WSADATA wsaData;
-        memset(&wsaData, 0, sizeof(WSADATA));
-        //WSAStartup needs to be called on windows before sockets can be used. Request version 1.1, which is supported on windows 98 and higher.
-        WSAStartup(MAKEWORD(1, 1), &wsaData);
-        wsaStartupDone = true;
-    }
-#endif
+	if (!wsaStartupDone)
+	{
+		WSADATA wsaData;
+		memset(&wsaData, 0, sizeof(WSADATA));
+		//WSAStartup needs to be called on windows before sockets can be used. Request version 1.1, which is supported on windows 98 and higher.
+		WSAStartup(MAKEWORD(1, 1), &wsaData);
+		wsaStartupDone = true;
+	}
+	#endif
 
-    struct sockaddr_in serv_addr;
-    socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-    
-    memset(&serv_addr, '0', sizeof(serv_addr)); 
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(port_nr);
-    serv_addr.sin_addr.s_addr = inet_addr(host);
-    // TODO: Check this: C style cast replaced by reinterpret_cast!!
-    if (connect(socket_fd, reinterpret_cast<struct sockaddr*>(&serv_addr), sizeof(serv_addr)) < 0)
-    {
+	struct sockaddr_in serv_addr;
+	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+
+	memset(&serv_addr, '0', sizeof(serv_addr)); 
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_port = htons(port_nr);
+	serv_addr.sin_addr.s_addr = inet_addr(host);
+	// TODO: Check this: C style cast replaced by reinterpret_cast!!
+	if (connect(socket_fd, reinterpret_cast<struct sockaddr*>(&serv_addr), sizeof(serv_addr)) < 0)
+	{
 		closeSocket();
-        return;
-    }
+		return;
+	}
 }
 
 TcpSocketConnection::~TcpSocketConnection()
@@ -66,23 +66,24 @@ TcpSocketConnection::~TcpSocketConnection()
 
 bool sendMessage(Message& message)
 {
-	int32_t command = htonl(message.getCommand());
-	int32_t data_size = htonl(message.getRawDataSize());
+	int32_t command = htonl(message.getCommand()); //endian conversion
+	int32_t data_size = htonl(message.getRawDataSize()); //endian conversion
 	if (send(socket_fd, &command, sizeof(int32_t), 0) <= 0)
 	{
 		closeSocket();
-		return;
+		return false;
 	}
 	if (send(socket_fd, &data_size, sizeof(int32_t), 0) <= 0)
 	{
 		closeSocket();
-		return;
+		return false;
 	}
 	if (send(socket_fd, message.getRawData(), message.getRawDataSize(), 0) <= 0)
 	{
 		closeSocket();
-		return;
+		return false;
 	}
+	return true;
 }
 
 Message& recieveMessage()
@@ -90,16 +91,16 @@ Message& recieveMessage()
 	int32_t command;
 	int32_t size;
 	if (!recv(&command, sizeof(int32_t)))
-		return Message(MSG_NO_MESSAGE);
+		return Message(MSG_ERROR_RECV_FAILED);
 	if (!recv(&size, sizeof(int32_t)))
-		return Message(MSG_NO_MESSAGE);
-	command = ntohl(command);
-	size = ntohl(size);
+		return Message(MSG_ERROR_RECV_FAILED);
+	command = ntohl(command); //endian conversion
+	size = ntohl(size); //endian conversion
 	
 	Message message(EMessageType(command));
 	message.reserveRawData(size);
 	if (!recv(&message.getRawData(), size))
-		return Message(MSG_NO_MESSAGE);
+		return Message(MSG_ERROR_RECV_FAILED);
 	return message;
 }
 
