@@ -27,6 +27,7 @@ namespace arc
 		~Message();
 		
 		EMessageType getMessageType();
+		void setMessageType(EMesageType type);
 		
 		Message& operator << (bool data);
 		Message& operator << (int8_t data);

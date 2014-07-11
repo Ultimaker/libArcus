@@ -34,6 +34,11 @@ EMessageType Message::getMessageType()
 	return message_type;
 }
 
+void Message::setMessageType(EMessageType type)
+{
+	message_type = type;
+}
+
 Message& Message::operator << (bool data)
 {
 	*this << static_cast<Uint8>(data);
