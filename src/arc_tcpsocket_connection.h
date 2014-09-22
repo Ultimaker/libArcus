@@ -10,7 +10,7 @@ namespace arc
 	class TcpSocketConnection : public Connection
 	{
 	private:
-		static const int default_port_nr 9001; // What does the scouter say?
+		static const int default_port_nr = 9001; // What does the scouter say?
 
 		int socket_fd;
 	public:
@@ -19,7 +19,7 @@ namespace arc
 		virtual ~TcpSocketConnection();
 
 		virtual bool sendMessage(Message& message) = 0;
-		virtual Message& recieveMessage() = 0;
+		virtual Message recieveMessage() = 0;
 		
 		virtual bool isActive() = 0;
 	

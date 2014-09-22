@@ -18,16 +18,17 @@ namespace arc
 		EMessageType message_type;
 		std::vector<uint8_t> data;
 		std::size_t read_position;
-		bool checkSize(std::size_t size)
+		bool checkSize(std::size_t size);
 		bool is_valid;
 
+        void append(const void* data, std::size_t size);
 	public:
 		Message();
 		Message(EMessageType message_type);
 		~Message();
 		
 		EMessageType getMessageType();
-		void setMessageType(EMesageType type);
+		void setMessageType(EMessageType type);
 		
 		Message& operator << (bool data);
 		Message& operator << (int8_t data);

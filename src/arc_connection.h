@@ -11,10 +11,10 @@ namespace arc
 	{
 	private:
 	public:
-		virtual ~Connection();
+		virtual ~Connection() {}
 		
 		virtual bool sendMessage(Message& message) = 0;
-		virtual Message& recieveMessage() = 0;
+		virtual Message recieveMessage() = 0;
 		
 		virtual bool isActive() = 0;
 	};

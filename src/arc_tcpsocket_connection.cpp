@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #endif
+#include <string.h>
 
 #include "arc_tcpsocket_connection.h"
 
@@ -31,7 +32,7 @@ TcpSocketConnection::TcpSocketConnection(int listen_port_nr)
 	socket_fd = -1;
 }
 
-TcpSocketConnection::TcpSocketConnection(const char* host, int port_nr);
+TcpSocketConnection::TcpSocketConnection(const char* host, int port_nr)
 {
 #ifdef __WIN32
 	if (!wsaStartupDone)
@@ -42,7 +43,7 @@ TcpSocketConnection::TcpSocketConnection(const char* host, int port_nr);
 		WSAStartup(MAKEWORD(1, 1), &wsaData);
 		wsaStartupDone = true;
 	}
-	#endif
+#endif
 
 	struct sockaddr_in serv_addr;
 	socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -64,9 +65,9 @@ TcpSocketConnection::~TcpSocketConnection()
 	closeSocket();
 }
 
-bool sendMessage(Message& message)
+bool TcpSocketConnection::sendMessage(Message& message)
 {
-	int32_t command = htonl(message.getCommand()); //endian conversion
+	int32_t command = htonl(message.getMessageType()); //endian conversion
 	int32_t data_size = htonl(message.getRawDataSize()); //endian conversion
 	if (send(socket_fd, &command, sizeof(int32_t), 0) <= 0)
 	{
@@ -86,7 +87,7 @@ bool sendMessage(Message& message)
 	return true;
 }
 
-Message& recieveMessage()
+Message TcpSocketConnection::recieveMessage()
 {
 	int32_t command;
 	int32_t size;
@@ -97,9 +98,10 @@ Message& recieveMessage()
 	command = ntohl(command); //endian conversion
 	size = ntohl(size); //endian conversion
 	
-	Message message(EMessageType(command));
+	EMessageType message_type = EMessageType(command);
+	Message message(message_type);
 	message.reserveRawData(size);
-	if (!recv(&message.getRawData(), size))
+	if (!recv(message.getRawData(), size))
 		return Message(MSG_ERROR_RECV_FAILED);
 	return message;
 }
@@ -116,7 +118,7 @@ bool TcpSocketConnection::recv(void* data, int length)
     char* ptr = static_cast<char*>(data);
     while(length > 0)
     {
-        int n = recv(socket_fd, ptr, length, 0);
+        int n = ::recv(socket_fd, ptr, length, 0);
         if (n <= 0)
         {
             closeSocket();
@@ -128,7 +130,7 @@ bool TcpSocketConnection::recv(void* data, int length)
 	return true;
 }
 
-TcpSocketConnection::closeSocket()
+void TcpSocketConnection::closeSocket()
 {
     if (socket_fd == -1)
         return;
@@ -141,5 +143,3 @@ TcpSocketConnection::closeSocket()
 }
 
 }
-
-#endif//LIB_ARCUS_TCP_SOCKET_CONNECTION_H
