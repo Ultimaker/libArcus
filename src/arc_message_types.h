@@ -66,6 +66,15 @@ namespace arc
 			// Report the print time in seconds for the object with index [object_index]
 		MSG_REPORT_OBJ_MATERIAL = 0x00300004,		// INT32 object_index, INT32 extruder_nr, FLOAT32 material_amount.
 			// Report the material amount in mm for the object with index [object_index] for [extruder nr]	
+        
+        
+        //ULTISCANTASTIC Specific
+        MSG_DISPLAY_PNG = 0x00400003,
+            //Display an image on the beamer. Image send as PNG data.
+        MSG_DISPLAY_GREY = 0x00400004,
+            //Display an a grey pattern on the beamer.
+        MSG_CAPTURE_SEQUENCE = 0x00400005,
+        MSG_CAPTURE_REPLY = 0x00400006,
 	};
 }
 

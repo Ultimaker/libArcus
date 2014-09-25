@@ -21,7 +21,6 @@ namespace arc
 		bool checkSize(std::size_t size);
 		bool is_valid;
 
-        void append(const void* data, std::size_t size);
 	public:
 		Message();
 		Message(EMessageType message_type);
@@ -29,11 +28,16 @@ namespace arc
 		
 		EMessageType getMessageType();
 		void setMessageType(EMessageType type);
+
+        void append(const void* data, std::size_t size);
 		
 		Message& operator << (bool data);
 		Message& operator << (int8_t data);
 		Message& operator << (int16_t data);
 		Message& operator << (int32_t data);
+		Message& operator << (uint8_t data);
+		Message& operator << (uint16_t data);
+		Message& operator << (uint32_t data);
 		Message& operator << (float data);
 		Message& operator << (double data);
 		Message& operator << (std::string data);
@@ -42,6 +46,9 @@ namespace arc
 		Message& operator >> (int8_t& data);
 		Message& operator >> (int16_t& data);
 		Message& operator >> (int32_t& data);
+		Message& operator >> (uint8_t& data);
+		Message& operator >> (uint16_t& data);
+		Message& operator >> (uint32_t& data);
 		Message& operator >> (float& data);
 		Message& operator >> (double& data);
 		Message& operator >> (std::string& data);

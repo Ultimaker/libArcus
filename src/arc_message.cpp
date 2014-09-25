@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #endif
 #include <string.h>
+#include <stdio.h>
 #include "arc_message.h"
 
 namespace arc
@@ -31,7 +32,6 @@ Message::~Message()
 bool Message::checkSize(std::size_t size)
 {
     is_valid = is_valid && (read_position + size <= data.size());
-
     return is_valid;
 }
 
@@ -78,6 +78,26 @@ Message& Message::operator << (int32_t data)
     return *this;
 }
 
+Message& Message::operator << (uint8_t data)
+{
+	append(&data, sizeof(data));
+    return *this;
+}
+
+Message& Message::operator << (uint16_t data)
+{
+	uint16_t to_write = htons(data);
+    append(&to_write, sizeof(to_write));
+    return *this;
+}
+
+Message& Message::operator << (uint32_t data)
+{
+	uint32_t to_write = htonl(data);
+    append(&to_write, sizeof(to_write));
+    return *this;
+}
+
 Message& Message::operator << (float data)
 {
 	append(&data, sizeof(data));
@@ -87,13 +107,13 @@ Message& Message::operator << (float data)
 Message& Message::operator << (double data)
 {
 	append(&data, sizeof(data));
-    	return *this;
+    return *this;
 }
 
 Message& Message::operator << (std::string data)
 {
 	// First insert string length
-	int32_t length = static_cast<int32_t>(data.size());
+	uint32_t length = static_cast<uint32_t>(data.size());
 	*this << length;
 
 	// Then insert characters
@@ -127,7 +147,7 @@ Message& Message::operator >> (int16_t& data)
 {
 	if (checkSize(sizeof(data)))
     {
-		data = *reinterpret_cast<const int16_t*>(&this->data[read_position]);
+		data = htons(*reinterpret_cast<const int16_t*>(&this->data[read_position]));
 		read_position += sizeof(data);
 	}
 	return *this;
@@ -137,7 +157,37 @@ Message& Message::operator >> (int32_t& data)
 {
 	if (checkSize(sizeof(data)))
     {
-		data = *reinterpret_cast<const int32_t*>(&this->data[read_position]);
+		data = htonl(*reinterpret_cast<const int32_t*>(&this->data[read_position]));
+		read_position += sizeof(data);
+	}
+	return *this;
+}
+
+Message& Message::operator >> (uint8_t& data)
+{
+	if (checkSize(sizeof(data)))
+    {
+		data = *reinterpret_cast<const uint8_t*>(&this->data[read_position]);
+		read_position += sizeof(data);
+	}
+	return *this;
+}
+
+Message& Message::operator >> (uint16_t& data)
+{
+	if (checkSize(sizeof(data)))
+    {
+		data = htons(*reinterpret_cast<const uint16_t*>(&this->data[read_position]));
+		read_position += sizeof(data);
+	}
+	return *this;
+}
+
+Message& Message::operator >> (uint32_t& data)
+{
+	if (checkSize(sizeof(data)))
+    {
+		data = htonl(*reinterpret_cast<const uint32_t*>(&this->data[read_position]));
 		read_position += sizeof(data);
 	}
 	return *this;
@@ -180,7 +230,7 @@ Message& Message::operator >> (std::string& data)
 
 void Message::reserveRawData(size_t size)
 {
-	data.reserve(size);
+	data.resize(size);
 }
 
 void* Message::getRawData()
