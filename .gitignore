@@ -25,3 +25,7 @@
 
 # Standard CMake build dir
 build
+
+# Python compile cache files
+*.pyc
+__pycache__
