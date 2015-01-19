@@ -19,3 +19,9 @@
 *.exe
 *.out
 *.app
+
+# KDevelop project files
+*kdev*
+
+# Standard CMake build dir
+build
