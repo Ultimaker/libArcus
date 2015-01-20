@@ -135,6 +135,8 @@ class Socket(threading.Thread):
                         self._sendMessage(message)
 
                     self._receiveNextMessage()
+
+                    self._checkConnectionState()
                 except OSError as e:
                     print(e)
 
@@ -177,7 +179,7 @@ class Socket(threading.Thread):
                 return
 
         self._message_type = self._receiveUInt32()
-        if self._message_type == -1:
+        if self._message_type == -1 or self._message_type == 0:
             return
 
         self._message_size = self._receiveUInt32()
@@ -223,3 +225,6 @@ class Socket(threading.Thread):
             return self._data_socket.recv(maxlen)
         except socket.timeout:
             pass
+
+    def _checkConnectionState(self):
+        self._data_socket.send(struct.pack('!i', 0))
