@@ -140,7 +140,9 @@ class Socket(threading.Thread):
 
             if self._next_state != self._state:
                 self._state = self._next_state
-                self._stateChangedCallback()
+
+                if self._stateChangedCallback:
+                    self._stateChangedCallback(self._state)
 
     ## private:
 
@@ -201,7 +203,8 @@ class Socket(threading.Thread):
         with self._received_queue_lock:
             self._received_queue.append(message)
 
-        self._messageAvailableCallback()
+        if self._messageAvailableCallback:
+            self._messageAvailableCallback()
 
     # Receive an integer from the socket
     def _receiveUInt32(self):
