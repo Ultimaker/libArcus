@@ -79,6 +79,7 @@ class Socket(threading.Thread):
     ##  Close the connection and stop the thread.
     def close(self):
         self._next_state = self.ClosingState
+        self.join()
 
     ##  Queue a message to be sent to the other side.
     def sendMessage(self, message):
