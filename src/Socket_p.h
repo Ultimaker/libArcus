@@ -212,10 +212,8 @@ namespace Arcus
         int size = message->ByteSize();
         sent_size = ::send(socketId, &size, 4, 0);
 
-        unsigned char* buffer = new unsigned char[size];
-        message->SerializeToArray(buffer, size);
-        sent_size = ::send(socketId, buffer, size, 0);
-        delete buffer;
+        std::string data = message->SerializeAsString();
+        sent_size = ::send(socketId, data.data(), data.size(), 0);
     }
 
     void SocketPrivate::receiveNextMessage()
