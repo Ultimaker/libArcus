@@ -31,8 +31,12 @@ Socket::~Socket()
 {
     if(d->thread)
     {
-        d->nextState = SocketState::Closing;
-        d->thread->join();
+        if(d->state != SocketState::Closed || d->state != SocketState::Error)
+        {
+            d->nextState = SocketState::Closing;
+            d->thread->join();
+        }
+        delete d->thread;
     }
 }
 
