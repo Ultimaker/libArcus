@@ -49,7 +49,11 @@ namespace Arcus
             : state(SocketState::Initial)
             , nextState(SocketState::Initial)
             , port(0)
-            , thread(0)
+            , thread(nullptr)
+            , partialMessage(nullptr)
+            , messageType(0)
+            , messageSize(0)
+            , amountReceived(0)
         { }
 
         void run();
@@ -80,11 +84,17 @@ namespace Arcus
         std::deque<MessagePtr> receiveQueue;
         std::mutex receiveQueueMutex;
 
+        char* partialMessage;
+        int messageType;
+        int messageSize;
+        int amountReceived;
+
         std::string errorString;
 
         int socketId;
     };
 
+    // This is run in a thread.
     void SocketPrivate::run()
     {
         while(state != SocketState::Closed && state != SocketState::Error)
@@ -210,24 +220,53 @@ namespace Arcus
 
     void SocketPrivate::receiveNextMessage()
     {
-        //TODO: Handle continuations
-        int type = readInt32();
-        if(type == -1)
+        //Continuation of message receive from previous call.
+        if(partialMessage)
+        {
+            int readSize = readBytes(messageSize - amountReceived, partialMessage + amountReceived);
+            if(readSize == -1)
+            {
+                delete partialMessage;
+                partialMessage = nullptr;
+                amountReceived = 0;
+                return;
+            }
+            else
+            {
+                amountReceived += readSize;
+                if(amountReceived >= messageSize)
+                {
+                    handleMessage(messageType, messageSize, partialMessage);
+                    delete partialMessage;
+                    partialMessage = nullptr;
+                    amountReceived = 0;
+                }
+            }
+        }
+
+        messageType = readInt32();
+        if(messageType == -1 || messageType == 0)
         {
             return;
         }
 
-        int size = readInt32();
-        if(size == -1)
+        messageSize = readInt32();
+        if(messageSize == -1)
         {
             return;
         }
 
-        char* buffer = new char[size];
-        int readSize = readBytes(size, buffer);
-        if(readSize == size)
+        char* buffer = new char[messageSize];
+        int readSize = readBytes(messageSize, buffer);
+        if(readSize == messageSize)
         {
-            handleMessage(type, size, buffer);
+            handleMessage(messageType, messageSize, buffer);
+            delete[] buffer;
+        }
+        else
+        {
+            partialMessage = buffer;
+            amountReceived = readSize;
         }
     }
 
@@ -281,6 +320,7 @@ namespace Arcus
         }
     }
 
+    // Set socket timeout value in milliseconds
     void SocketPrivate::setSocketReceiveTimeout(int socketId, int timeout)
     {
         timeval t;
