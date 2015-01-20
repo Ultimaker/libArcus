@@ -63,12 +63,22 @@ void Socket::registerMessageType(int type, const google::protobuf::Message* mess
 
 void Socket::addListener(SocketListener* listener)
 {
+    if(d->state != SocketState::Initial)
+    {
+        return;
+    }
+
     listener->setSocket(this);
     d->listeners.push_back(listener);
 }
 
 void Socket::removeListener(SocketListener* listener)
 {
+    if(d->state != SocketState::Initial)
+    {
+        return;
+    }
+
     auto itr = std::find(d->listeners.begin(), d->listeners.end(), listener);
     d->listeners.erase(itr);
 }
