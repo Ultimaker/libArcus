@@ -1,5 +1,6 @@
 #include <vector>
 #include <iostream>
+#include <thread>
 
 #include "../src/Socket.h"
 
@@ -14,7 +15,7 @@ public:
     std::string indices;
 };
 
-std::vector<Object*> objects;
+std::vector<Object> objects;
 
 void handleMessage(Arcus::Socket& socket, Arcus::MessagePtr message);
 
@@ -38,6 +39,7 @@ int main(int argc, char** argv)
             {
                 handleMessage(socket, message);
             }
+            std::this_thread::sleep_for(std::chrono::milliseconds(250));
         }
         else if(socket.state() == Arcus::SocketState::Closed)
         {
@@ -50,31 +52,27 @@ int main(int argc, char** argv)
 
 void handleMessage(Arcus::Socket& socket, Arcus::MessagePtr message)
 {
-    auto objectList = dynamic_cast<Example::ObjectList*>(message);
+    auto objectList = dynamic_cast<Example::ObjectList*>(message.get());
     if(objectList)
     {
-        for(auto object : objects)
-        {
-            delete object;
-        }
         objects.clear();
 
         for(auto objectDesc : objectList->objects())
         {
-            Object* obj = new Object();
-            obj->id = objectDesc.id();
-            obj->vertices = objectDesc.vertices();
-            obj->normals = objectDesc.normals();
-            obj->indices = objectDesc.indices();
+            Object obj;
+            obj.id = objectDesc.id();
+            obj.vertices = objectDesc.vertices();
+            obj.normals = objectDesc.normals();
+            obj.indices = objectDesc.indices();
             objects.push_back(obj);
         }
 
-        auto msg = new Example::SlicedObjectList{};
+        auto msg = std::make_shared<Example::SlicedObjectList>();
         int progress = 0;
         for(auto object : objects)
         {
             auto slicedObject = msg->add_objects();
-            slicedObject->set_id(object->id);
+            slicedObject->set_id(object.id);
 
             for(int i = 0; i < 100; ++i)
             {
@@ -82,8 +80,8 @@ void handleMessage(Arcus::Socket& socket, Arcus::MessagePtr message)
                 polygon->set_points("abcdefghijklmnopqrstuvwxyz");
             }
 
-            auto update = new Example::ProgressUpdate{};
-            update->set_objectid(object->id);
+            auto update = std::make_shared<Example::ProgressUpdate>();
+            update->set_objectid(object.id);
             update->set_amount((float(++progress) / float(objects.size())) * 100.f);
             socket.sendMessage(update);
         }
