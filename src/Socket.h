@@ -66,7 +66,7 @@ namespace Arcus
         * \note The `type` parameter should be the same both on the sender and receiver side.
         * It is used to identify the messages when sent across the wire.
         */
-        void registerMessageType(int type, ConstMessagePtr messageType);
+        void registerMessageType(int type, const google::protobuf::Message* messageType);
 
         /**
         * Add a listener object that will be notified of socket events.

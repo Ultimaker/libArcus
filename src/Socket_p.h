@@ -72,7 +72,7 @@ namespace Arcus
 
         std::list<SocketListener*> listeners;
 
-        std::unordered_map<int, ConstMessagePtr> messageTypes;
+        std::unordered_map<int, const google::protobuf::Message*> messageTypes;
         std::unordered_map<const google::protobuf::Descriptor*, int> messageTypeMapping;
 
         std::deque<MessagePtr> sendQueue;
@@ -266,7 +266,7 @@ namespace Arcus
             return;
         }
 
-        MessagePtr message = messageTypes[type]->New();
+        MessagePtr message = MessagePtr(messageTypes[type]->New());
         if(!message->ParseFromArray(buffer, size))
         {
             errorString = "Failed to parse message";

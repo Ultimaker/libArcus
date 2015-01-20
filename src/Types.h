@@ -20,6 +20,7 @@
 #define ARCUS_TYPES_H
 
 #include <string>
+#include <memory>
 
 namespace google
 {
@@ -31,8 +32,7 @@ namespace google
 
 namespace Arcus
 {
-    typedef google::protobuf::Message* MessagePtr;
-    typedef const google::protobuf::Message* ConstMessagePtr;
+    typedef std::shared_ptr<google::protobuf::Message> MessagePtr;
 
     namespace SocketState
     {

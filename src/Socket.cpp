@@ -46,9 +46,9 @@ std::string Socket::errorString() const
     return d->errorString;
 }
 
-void Socket::registerMessageType(int type, ConstMessagePtr messageType)
+void Socket::registerMessageType(int type, const google::protobuf::Message* messageType)
 {
-    if(d->messageTypes.find(type) != d->messageTypes.end())
+    if(d->state != SocketState::Initial)
     {
         return;
     }
