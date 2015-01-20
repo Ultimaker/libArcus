@@ -178,12 +178,10 @@ namespace Arcus
 
                 for(auto listener : listeners)
                 {
-                    listener->stateChanged();
+                    listener->stateChanged(state);
                 }
             }
         }
-
-        delete thread;
     }
 
     sockaddr_in SocketPrivate::createAddress()
