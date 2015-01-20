@@ -289,19 +289,14 @@ namespace Arcus
         ::setsockopt(socketId, SOL_SOCKET, SO_RCVTIMEO, &t, sizeof(t));
     }
 
+    // Send a keepalive packet to check whether we are still connected.
     void SocketPrivate::checkConnectionState()
     {
-        sockaddr_in addr;
-        socklen_t len = sizeof(addr);
-        if(::getpeername(socketId, reinterpret_cast<sockaddr*>(&addr), &len) == -1)
+        int32_t keepalive = 0;
+        if(::send(socketId, &keepalive, 4, MSG_NOSIGNAL) == -1)
         {
-            int error;
-            ::getsockopt(socketId, SOL_SOCKET, SO_ERROR, &error, 0);
-            if(error == ECONNRESET || error == EINTR || error == ENOTCONN || error == EPIPE || error == EIO)
-            {
-                errorString = "Connection reset by peer";
-                nextState = SocketState::Closing;
-            }
+            errorString = "Connection reset by peer";
+            nextState = SocketState::Closing;
         }
     }
 
