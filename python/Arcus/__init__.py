@@ -47,8 +47,7 @@ class Socket(threading.Thread):
         self._state = self.InitialState
         self._next_state = self.InitialState
 
-        self._server_socket = None
-        self._data_socket = None
+        self._socket = None
 
         self._message_type = -1
         self._message_size = 0
@@ -155,29 +154,37 @@ class Socket(threading.Thread):
             if self._state == self.InitialState:
                 time.sleep(0.25) #Prevent uninitialized thread from overloading CPU
             elif self._state == self.ConnectingState:
-                self._data_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self._data_socket.connect(self._address)
-                self._data_socket.settimeout(1.0)
-
-                self._next_state = self.ConnectedState
+                self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                try:
+                    self._socket.connect(self._address)
+                except OSError as e:
+                    pass
+                else:
+                    self._socket.settimeout(0.25)
+                    self._next_state = self.ConnectedState
             elif self._state == self.OpeningState:
-                self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self._server_socket.bind(self._address)
-
-                self._next_state = self.ListeningState
+                self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                try:
+                    self._socket.bind(self._address)
+                except OSError as e:
+                    pass
+                else:
+                    self._next_state = self.ListeningState
             elif self._state == self.ListeningState:
-                print("listening on", self._address)
-                self._server_socket.listen(1)
-                self._data_socket, address = self._server_socket.accept()
-                print("connected on", address)
-                self._data_socket.settimeout(1.0)
+                try:
+                    self._socket.listen(1)
+                    newSocket, address = self._socket.accept()
+                except OSError as e:
+                    self._socket.close()
+                else:
+                    self._socket.close()
+                    self._socket = newSocket
+                    self._socket.settimeout(0.25)
 
                 self._next_state = self.ConnectedState
             elif self._state == self.ClosingState:
-                self._server_socket.close()
-                self._data_socket.close()
-                self._state = self.ClosedState
-                break; # Exit the infinite loop.
+                self._socket.close()
+                self._next_state = self.ClosedState
             elif self._state == self.ConnectedState:
                 self._send_queue_lock.acquire()
                 messages_to_send = []
@@ -212,7 +219,7 @@ class Socket(threading.Thread):
         amount_to_send = len(data)
         while amount_to_send > 0:
             try:
-                n = self._data_socket.send(data)
+                n = self._socket.send(data)
                 amount_to_send -= n
             except socket.timeout:
                 continue
@@ -264,7 +271,7 @@ class Socket(threading.Thread):
     # Receive an integer from the socket
     def _receiveUInt32(self):
         try:
-            data = self._data_socket.recv(4)
+            data = self._socket.recv(4)
             if data:
                 return struct.unpack('@i', data)[0]
         except socket.timeout:
@@ -275,9 +282,9 @@ class Socket(threading.Thread):
     # Receive an amount of bytes from the socket and write it into dest.
     def _receiveBytes(self, maxlen = 0):
         try:
-            return self._data_socket.recv(maxlen)
+            return self._socket.recv(maxlen)
         except socket.timeout:
             pass
 
     def _checkConnectionState(self):
-        self._data_socket.send(struct.pack('!i', 0))
+        self._socket.send(struct.pack('!i', 0))
