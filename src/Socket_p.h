@@ -222,10 +222,10 @@ namespace Arcus
     void SocketPrivate::sendMessage(MessagePtr message)
     {
         //TODO: Improve error handling.
-        int type = messageTypeMapping[message->GetDescriptor()];
+        int type = ::htonl(messageTypeMapping[message->GetDescriptor()]);
         size_t sent_size = ::send(socketId, &type, 4, 0);
 
-        int size = message->ByteSize();
+        int size = ::htonl(message->ByteSize());
         sent_size = ::send(socketId, &size, 4, 0);
 
         std::string data = message->SerializeAsString();

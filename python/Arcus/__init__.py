@@ -286,7 +286,7 @@ class Socket(threading.Thread):
         try:
             data = self._socket.recv(4)
             if data:
-                return struct.unpack('@i', data)[0]
+                return struct.unpack('!i', data)[0]
         except socket.timeout:
             pass
 
