@@ -194,6 +194,7 @@ namespace Arcus
         }
     }
 
+    // Create a sockaddr_in structure from the address and port variables.
     sockaddr_in SocketPrivate::createAddress()
     {
         sockaddr_in a;

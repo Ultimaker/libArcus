@@ -25,7 +25,7 @@ def onMessageAvailable():
                 print('    Polygon(', poly.points, ')')
 
 socket.setStateChangedCallback(onStateChanged)
-socket.setMessageAvailableCallback(onMessageAvailable)
+socket.setMessageReceivedCallback(onMessageAvailable)
 socket.listen('127.0.0.1', 56789)
 
 time.sleep(10)

@@ -9,7 +9,13 @@ class UnknownMessageError(Exception):
 
 ##  Threaded socket communication class.
 #
+#   This class represents a socket and the logic for parsing and handling
+#   protobuf messages that can be sent and received over this socket.
 #
+#   Please see the README in libArcus for more details.
+#
+#   \note This class only handles protobuf messages. This is by design, it is
+#         not meant for dealing with raw data.
 class Socket(threading.Thread):
     InitialState = 1
     ConnectingState = 2
@@ -43,34 +49,57 @@ class Socket(threading.Thread):
         self._message_type_mapping = {}
 
         self._stateChangedCallback = None
-        self._messageAvailableCallback = None
+        self._messageReceivedCallback = None
         self._errorCallback = None
 
     ##  Get the current state of the socket.
     def getState(self):
         return self._state
 
+    ##  Set the function that gets called when the socket's state changes.
+    #
+    #   \param func The callable to call whenever the socket's state changes. It is passed the
+    #               new state as first parameter.
     def setStateChangedCallback(self, func):
         self._stateChangedCallback = func
 
-    def setMessageAvailableCallback(self, func):
-        self._messageAvailableCallback = func
+    ##  Set the callable that gets called when a message has been received.
+    #
+    #   \param func The callable to call whenever a new message has been received.
+    #
+    #   \note The callable gets no parameters, instead use takeNextMessage() to get the next
+    #         message off the received message queue. This is done explicitly to facilitate
+    #         separate threads handling the messages.
+    def setMessageReceivedCallback(self, func):
+        self._messageReceivedCallback = func
 
+    ##  Set the callable that gets called whenever an error occurs.
+    #
+    #   \param func The callable to call whenever an error occurs. It is passed the error string
+    #               as first parameter.
     def setErrorCallback(self, func):
         self._errorCallback = func
 
     ##  Register a message type to handle.
+    #
+    #   \note The id should be the same between server and client.
     def registerMessageType(self, id, type):
         self._message_types[id] = type
         self._message_type_mapping[type] = id;
 
     ##  Listen for connections on a specified address and port.
+    #
+    #   \param address The IP address to listen on.
+    #   \param port The port to listen on.
     def listen(self, address, port):
         self._address = (address, port)
         self._next_state = self.OpeningState
         self.start()
 
     ##  Connect to an address of a specified address and port.
+    #
+    #   \param address The IP address to connect to.
+    #   \param port The port to connect on.
     def connect(self, address, port):
         self._address = (address, port)
         self._next_state = self.ConnectingState
@@ -82,6 +111,12 @@ class Socket(threading.Thread):
         self.join()
 
     ##  Queue a message to be sent to the other side.
+    #
+    #   \param message The message to send.
+    #
+    #   \note Messages will be put on a queue and processed at a later point in time by
+    #         a separate thread. No guarantees are given about when and in which order this
+    #         happens.
     def sendMessage(self, message):
         with self._send_queue_lock:
             self._send_queue.append(message)
@@ -95,7 +130,10 @@ class Socket(threading.Thread):
                 return False
             return self._received_queue.pop(0)
 
-    ##  Reimplemented from threading.Thread.run()
+    ## private:
+
+    # Reimplemented from threading.Thread.run(), implements the actual connection and message
+    # handling logic.
     def run(self):
         while True:
             if self._state == self.InitialState:
@@ -147,9 +185,7 @@ class Socket(threading.Thread):
                 if self._stateChangedCallback:
                     self._stateChangedCallback(self._state)
 
-    ## private:
-
-    #
+    # Send a message to the connected peer.
     def _sendMessage(self, message):
         self._sendBytes(struct.pack('!i', self._message_type_mapping[type(message)]))
         self._sendBytes(struct.pack('!i', message.ByteSize()))
@@ -206,8 +242,8 @@ class Socket(threading.Thread):
         with self._received_queue_lock:
             self._received_queue.append(message)
 
-        if self._messageAvailableCallback:
-            self._messageAvailableCallback()
+        if self._messageReceivedCallback:
+            self._messageReceivedCallback()
 
     # Receive an integer from the socket
     def _receiveUInt32(self):

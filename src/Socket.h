@@ -31,7 +31,10 @@ namespace Arcus
     /**
     * \brief Threaded socket class.
     *
+    * This class represents a socket and the logic for parsing and handling
+    * protobuf messages that can be sent and received over this socket.
     *
+    * Please see the README in libArcus for more details.
     */
     class Socket
     {
@@ -53,12 +56,14 @@ namespace Arcus
         /**
          * Get the last error string.
          *
-         * \return 
+         * \return The last error string.
          */
         std::string errorString() const;
 
         /**
         * Register a new type of Message to handle.
+        *
+        * If the socket state is not SocketState::Initial, this method will do nothing.
         *
         * \param type An integer ID to use to identify the message.
         * \param messageType An instance of the Message that will be used as factory object.
@@ -71,11 +76,15 @@ namespace Arcus
         /**
         * Add a listener object that will be notified of socket events.
         *
+        * If the socket state is not SocketState::Initial, this method will do nothing.
+        *
         * \param listener The listener to add.
         */
         void addListener(SocketListener* listener);
         /**
         * Remove a listener from the list of listeners.
+        *
+        * If the socket state is not SocketState::Initial, this method will do nothing.
         *
         * \param listener The listener to remove.
         */
