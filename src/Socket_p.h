@@ -109,6 +109,11 @@ namespace Arcus
                     {
                         errorString = "Could not connect to the given address";
                         nextState = SocketState::Error;
+
+                        for(auto listener : listeners)
+                        {
+                            listener->error(errorString);
+                        }
                     }
                     else
                     {
@@ -125,6 +130,11 @@ namespace Arcus
                     {
                         errorString =  "Could not bind to the given address";
                         nextState = SocketState::Error;
+
+                        for(auto listener : listeners)
+                        {
+                            listener->error(errorString);
+                        }
                     }
                     else
                     {
@@ -141,6 +151,11 @@ namespace Arcus
                     {
                         errorString = "Could not accept connection";
                         nextState = SocketState::Error;
+
+                        for(auto listener : listeners)
+                        {
+                            listener->error(errorString);
+                        }
                     }
 
                     ::close(socketId);
@@ -336,6 +351,11 @@ namespace Arcus
         {
             errorString = "Connection reset by peer";
             nextState = SocketState::Closing;
+
+            for(auto listener : listeners)
+            {
+                listener->error(errorString);
+            }
         }
     }
 
