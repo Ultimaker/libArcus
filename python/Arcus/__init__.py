@@ -249,15 +249,18 @@ class Socket(threading.Thread):
             else:
                 return
 
-        self._message_type = self._receiveUInt32()
-        if self._message_type == -1 or self._message_type == 0:
+        self._message_type = self._receiveInt32()
+        if not self._message_type:
             return
 
-        self._message_size = self._receiveUInt32()
-        if self._message_size == -1:
+        self._message_size = self._receiveInt32()
+        if not self._message_size:
             return
 
         data = self._receiveBytes(self._message_size)
+        if not data:
+            return
+
         if len(data) != self._message_size:
             self._partial_message = data
             self._amount_received = len(data)
@@ -282,7 +285,7 @@ class Socket(threading.Thread):
             self._messageReceivedCallback()
 
     # Receive an integer from the socket
-    def _receiveUInt32(self):
+    def _receiveInt32(self):
         try:
             data = self._socket.recv(4)
             if data:
@@ -290,7 +293,7 @@ class Socket(threading.Thread):
         except socket.timeout:
             pass
 
-        return -1
+        return False
 
     # Receive an amount of bytes from the socket and write it into dest.
     def _receiveBytes(self, maxlen = 0):
@@ -298,6 +301,8 @@ class Socket(threading.Thread):
             return self._socket.recv(maxlen)
         except socket.timeout:
             pass
+
+        return False
 
     def _checkConnectionState(self):
         self._socket.send(struct.pack('!i', 0))
