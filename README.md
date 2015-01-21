@@ -1,7 +1,7 @@
 Arcus
 =====
 
-This library contains a C++ and Python class for creating a socket in a thread
+This library contains a C++ and Python3 class for creating a socket in a thread
 and using this socket to send and receive messages based on the Protocol Buffers
 library. It is designed to facilitate the communication between Cura and its
 backend and similar code.
