@@ -40,6 +40,7 @@ class Socket(threading.Thread):
     ListeningState = 5
     ClosingState = 6
     ClosedState = 7
+    ErrorState = 8
 
     def __init__(self):
         super().__init__()
@@ -150,7 +151,7 @@ class Socket(threading.Thread):
     # Reimplemented from threading.Thread.run(), implements the actual connection and message
     # handling logic.
     def run(self):
-        while True:
+        while self._state != self.ClosedState and self._state != self.ErrorState:
             if self._state == self.InitialState:
                 time.sleep(0.25) #Prevent uninitialized thread from overloading CPU
             elif self._state == self.ConnectingState:
@@ -158,7 +159,9 @@ class Socket(threading.Thread):
                 try:
                     self._socket.connect(self._address)
                 except OSError as e:
-                    pass
+                    self._next_state = self.ErrorState
+                    if self._errorCallback:
+                        self._errorCallback(e)
                 else:
                     self._socket.settimeout(0.25)
                     self._next_state = self.ConnectedState
@@ -167,7 +170,9 @@ class Socket(threading.Thread):
                 try:
                     self._socket.bind(self._address)
                 except OSError as e:
-                    pass
+                    self._next_state = self.ErrorState
+                    if self._errorCallback:
+                        self._errorCallback(e)
                 else:
                     self._next_state = self.ListeningState
             elif self._state == self.ListeningState:
@@ -176,6 +181,9 @@ class Socket(threading.Thread):
                     newSocket, address = self._socket.accept()
                 except OSError as e:
                     self._socket.close()
+                    self._next_state = self.ErrorState
+                    if self._errorCallback:
+                        self._errorCallback(e)
                 else:
                     self._socket.close()
                     self._socket = newSocket
@@ -200,7 +208,10 @@ class Socket(threading.Thread):
 
                     self._checkConnectionState()
                 except OSError as e:
-                    print(e)
+                    if self._errorCallback:
+                        self._errorCallback(e)
+                    # Receiving an OSError here is considered a fatal error
+                    self._next_state = self.ClosingState
 
             if self._next_state != self._state:
                 self._state = self._next_state
@@ -257,7 +268,9 @@ class Socket(threading.Thread):
     # Parse message from a bytearray and put it onto the received messages queue.
     def _handleMessage(self, data):
         if not self._message_type in self._message_types:
-            raise UnknownMessageError("Unknown message type {0}".format(self._message_type))
+            if self._errorCallback:
+                self._errorCallback(UnknownMessageError("Unknown message type {0}".format(self._message_type)))
+            return
 
         message = self._message_types[self._message_type]()
         message.ParseFromString(bytes(data))
