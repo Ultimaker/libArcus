@@ -41,7 +41,8 @@ To send or receive messages, the message first needs to be registered on both si
 with `registerMessageType()`. Most importantly, the ID passed to this method is
 needed since it is part of the wire protocol. This ID should be the same both on the
 sender and on the receiver side, otherwise the message type cannot be properly
-determined.
+determined. The message type ID can be freely chosen, except that `0` is reserved as
+it is used for keep alive messages.
 
 Origin of the Name
 ------------------

@@ -12,6 +12,9 @@ socket.registerMessageType(6, example_pb2.SlicedObjectList)
 def onStateChanged(newState):
     print('State Changed:', newState)
 
+def onError(error):
+    print('An error occured:', error)
+
 def onMessageAvailable():
     message = socket.takeNextMessage()
     if type(message) is example_pb2.ProgressUpdate:
@@ -26,9 +29,10 @@ def onMessageAvailable():
 
 socket.setStateChangedCallback(onStateChanged)
 socket.setMessageReceivedCallback(onMessageAvailable)
+socket.setErrorCallback(onError)
 socket.listen('127.0.0.1', 56789)
 
-time.sleep(10)
+time.sleep(5) #Sleep for a bit so the other side can connect
 
 for i in range(10):
     msg = example_pb2.ObjectList()
@@ -39,6 +43,8 @@ for i in range(10):
         obj.normals = b'abcdefghijklmnopqrstuvwxyz'
         obj.indices = b'abcdefghijklmnopqrstuvwxyz'
     socket.sendMessage(msg)
-    time.sleep(5)
+    time.sleep(1)
+
+time.sleep(5) #Sleep for a bit more so we can receive replies to what we just sent.
 
 socket.close()
