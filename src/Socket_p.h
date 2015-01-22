@@ -240,10 +240,9 @@ namespace Arcus
             int readSize = readBytes(messageSize - amountReceived, partialMessage + amountReceived);
             if(readSize == -1)
             {
-                delete partialMessage;
+                delete[] partialMessage;
                 partialMessage = nullptr;
                 amountReceived = 0;
-                return;
             }
             else
             {
@@ -251,21 +250,23 @@ namespace Arcus
                 if(amountReceived >= messageSize)
                 {
                     handleMessage(messageType, messageSize, partialMessage);
-                    delete partialMessage;
+                    delete[] partialMessage;
                     partialMessage = nullptr;
                     amountReceived = 0;
                 }
             }
+
+            return;
         }
 
         messageType = readInt32();
-        if(messageType == -1 || messageType == 0)
+        if(messageType <= 0)
         {
             return;
         }
 
         messageSize = readInt32();
-        if(messageSize == -1)
+        if(messageSize <= 0)
         {
             return;
         }
