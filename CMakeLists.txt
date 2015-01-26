@@ -1,5 +1,5 @@
 project(arcus)
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 2.8.12)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -43,11 +43,12 @@ set_target_properties(Arcus PROPERTIES
     VERSION ${ARCUS_VERSION}
     SOVERSION ${ARCUS_SOVERSION}
     PUBLIC_HEADER "${arcus_HDRS}"
+    COMPILE_FLAGS "-std=c++11"
 )
-target_compile_features(Arcus PRIVATE cxx_auto_type)
-target_compile_features(Arcus PRIVATE cxx_range_for)
-target_compile_features(Arcus PRIVATE cxx_nullptr)
-target_compile_features(Arcus PUBLIC cxx_deleted_functions)
+#target_compile_features(Arcus PRIVATE cxx_auto_type)
+#target_compile_features(Arcus PRIVATE cxx_range_for)
+#target_compile_features(Arcus PRIVATE cxx_nullptr)
+#target_compile_features(Arcus PUBLIC cxx_deleted_functions)
 
 add_subdirectory(examples)
 

@@ -56,7 +56,8 @@ int main(int argc, char** argv)
 
 void handleMessage(Arcus::Socket& socket, Arcus::MessagePtr message)
 {
-    auto objectList = dynamic_cast<Example::ObjectList*>(message.get());
+    // (Dynamicly) cast the message to one of our types. If this works (does not return a nullptr), we've found the right type.
+    auto objectList = dynamic_cast<Example::ObjectList*>(message.get()); 
     if(objectList)
     {
         objects.clear();
