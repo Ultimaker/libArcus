@@ -266,7 +266,7 @@ namespace Arcus
         }
 
         messageSize = readInt32();
-        if(messageSize <= 0)
+        if(messageSize < 0)
         {
             return;
         }

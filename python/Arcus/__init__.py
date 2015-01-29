@@ -254,7 +254,8 @@ class Socket(threading.Thread):
             return
 
         self._message_size = self._receiveInt32()
-        if not self._message_size:
+        if self._message_size == 0:
+            self._handleMessage(None)
             return
 
         data = self._receiveBytes(self._message_size)
@@ -276,7 +277,8 @@ class Socket(threading.Thread):
             return
 
         message = self._message_types[self._message_type]()
-        message.ParseFromString(bytes(data))
+        if data:
+            message.ParseFromString(bytes(data))
 
         with self._received_queue_lock:
             self._received_queue.append(message)
