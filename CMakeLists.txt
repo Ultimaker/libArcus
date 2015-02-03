@@ -15,6 +15,12 @@ if(INSTALL_PYTHON_PACKAGE)
     set(PYTHON_SITE_PACKAGES_DIR ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages CACHE PATH "Install location of Python package")
 endif()
 
+if(NOT ${CMAKE_VERSION} VERSION_LESS 3.1)
+    set(CMAKE_CXX_STANDARD 11)
+else()
+    set(CMAKE_CXX_FLAGS "-std=c++11")
+endif()
+
 set(arcus_SRCS
     src/Socket.cpp
     src/SocketListener.cpp
@@ -43,12 +49,7 @@ set_target_properties(Arcus PROPERTIES
     VERSION ${ARCUS_VERSION}
     SOVERSION ${ARCUS_SOVERSION}
     PUBLIC_HEADER "${arcus_HDRS}"
-    COMPILE_FLAGS "-std=c++11"
 )
-#target_compile_features(Arcus PRIVATE cxx_auto_type)
-#target_compile_features(Arcus PRIVATE cxx_range_for)
-#target_compile_features(Arcus PRIVATE cxx_nullptr)
-#target_compile_features(Arcus PUBLIC cxx_deleted_functions)
 
 add_subdirectory(examples)
 
