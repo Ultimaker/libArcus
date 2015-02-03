@@ -49,6 +49,7 @@ set_target_properties(Arcus PROPERTIES
     VERSION ${ARCUS_VERSION}
     SOVERSION ${ARCUS_SOVERSION}
     PUBLIC_HEADER "${arcus_HDRS}"
+    DEFINE_SYMBOL MAKE_ARCUS_LIB
 )
 
 add_subdirectory(examples)
