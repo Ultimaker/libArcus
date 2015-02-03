@@ -44,6 +44,12 @@ target_include_directories(Arcus PUBLIC
 target_link_libraries(Arcus PUBLIC
     ${PROTOBUF_LIBRARY}
 )
+
+if(WIN32)
+    add_definitions(-D_WIN32_WINNT=0x0600) # Declare we require Vista or higher, this allows us to use IPv6 functions.
+    target_link_libraries(Arcus PUBLIC Ws2_32)
+endif()
+
 set_target_properties(Arcus PROPERTIES
     FRAMEWORK TRUE
     VERSION ${ARCUS_VERSION}

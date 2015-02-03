@@ -24,6 +24,8 @@
 #include <deque>
 
 #ifdef _WIN32
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
 #else
     #include <sys/socket.h>
     #include <sys/time.h>
@@ -54,7 +56,11 @@ namespace Arcus
             , messageType(0)
             , messageSize(0)
             , amountReceived(0)
-        { }
+        {
+        #ifdef _WIN32
+            initializeWSA();
+        #endif
+        }
 
         void run();
         sockaddr_in createAddress();
@@ -92,7 +98,14 @@ namespace Arcus
         std::string errorString;
 
         int socketId;
+
+    #ifdef _WIN32
+        static bool wsaInitialized;
+        static void initializeWSA();
+    #endif
     };
+
+    bool SocketPrivate::wsaInitialized = false;
 
     // This is run in a thread.
     void SocketPrivate::run()
@@ -158,7 +171,11 @@ namespace Arcus
                         }
                     }
 
+                #ifdef _WIN32
+                    ::closesocket(socketId);
+                #else
                     ::close(socketId);
+                #endif
                     socketId = newSocket;
                     setSocketReceiveTimeout(socketId, 250);
                     nextState = SocketState::Connected;
@@ -189,7 +206,11 @@ namespace Arcus
                 }
                 case SocketState::Closing:
                 {
+                #ifdef _WIN32
+                    ::closesocket(socketId);
+                #else
                     ::close(socketId);
+                #endif
                     nextState = SocketState::Closed;
                     break;
                 }
@@ -214,7 +235,11 @@ namespace Arcus
     {
         sockaddr_in a;
         a.sin_family = AF_INET;
+    #ifdef _WIN32
+        InetPton(AF_INET, address.c_str(), &(a.sin_addr)); //Note: Vista and higher only.
+    #else
         ::inet_pton(AF_INET, address.c_str(), &(a.sin_addr));
+    #endif
         a.sin_port = ::htons(port);
         return a;
     }
@@ -223,10 +248,10 @@ namespace Arcus
     {
         //TODO: Improve error handling.
         int type = ::htonl(messageTypeMapping[message->GetDescriptor()]);
-        size_t sent_size = ::send(socketId, &type, 4, 0);
+        size_t sent_size = ::send(socketId, reinterpret_cast<const char*>(&type), 4, 0);
 
         int size = ::htonl(message->ByteSize());
-        sent_size = ::send(socketId, &size, 4, 0);
+        sent_size = ::send(socketId, reinterpret_cast<const char*>(&size), 4, 0);
 
         std::string data = message->SerializeAsString();
         sent_size = ::send(socketId, data.data(), data.size(), 0);
@@ -288,7 +313,7 @@ namespace Arcus
     int32_t SocketPrivate::readInt32()
     {
         int32_t buffer;
-        size_t num = ::recv(socketId, &buffer, 4, 0);
+        size_t num = ::recv(socketId, reinterpret_cast<char*>(&buffer), 4, 0);
         if(num != 4)
         {
             return -1;
@@ -341,14 +366,14 @@ namespace Arcus
         timeval t;
         t.tv_sec = 0;
         t.tv_usec = timeout * 1000;
-        ::setsockopt(socketId, SOL_SOCKET, SO_RCVTIMEO, &t, sizeof(t));
+        ::setsockopt(socketId, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&t), sizeof(t));
     }
 
     // Send a keepalive packet to check whether we are still connected.
     void SocketPrivate::checkConnectionState()
     {
         int32_t keepalive = 0;
-        if(::send(socketId, &keepalive, 4, MSG_NOSIGNAL) == -1)
+        if(::send(socketId, reinterpret_cast<const char*>(&keepalive), 4, 0) == -1)
         {
             errorString = "Connection reset by peer";
             nextState = SocketState::Closing;
@@ -360,4 +385,18 @@ namespace Arcus
         }
     }
 
+#ifdef _WIN32
+    void SocketPrivate::initializeWSA()
+    {
+        if(!wsaInitialized)
+        {
+            WSADATA wsaData;
+            WSAStartup(MAKEWORD(2, 2), &wsaData);
+            wsaInitialized = true;
+        }
+    }
+#endif
+
 }
+
+
