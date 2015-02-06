@@ -105,7 +105,9 @@ namespace Arcus
     #endif
     };
 
+#ifdef _WIN32
     bool SocketPrivate::wsaInitialized = false;
+#endif
 
     // This is run in a thread.
     void SocketPrivate::run()
