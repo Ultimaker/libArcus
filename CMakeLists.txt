@@ -30,6 +30,7 @@ set(arcus_HDRS
     src/Socket.h
     src/SocketListener.h
     src/Types.h
+    src/ArcusExport.h
 )
 
 set(ARCUS_VERSION 0.1.0)
