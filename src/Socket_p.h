@@ -56,6 +56,7 @@ namespace Arcus
             , messageType(0)
             , messageSize(0)
             , amountReceived(0)
+            , lastKeepAliveSent(std::chrono::system_clock::now())
         {
         #ifdef _WIN32
             initializeWSA();
@@ -98,6 +99,10 @@ namespace Arcus
         std::string errorString;
 
         int socketId;
+
+        std::chrono::system_clock::time_point lastKeepAliveSent;
+
+        static const int keepAliveRate = 500; //Number of milliseconds between sending keepalive packets
 
     #ifdef _WIN32
         static bool wsaInitialized;
@@ -374,16 +379,23 @@ namespace Arcus
     // Send a keepalive packet to check whether we are still connected.
     void SocketPrivate::checkConnectionState()
     {
-        int32_t keepalive = 0;
-        if(::send(socketId, reinterpret_cast<const char*>(&keepalive), 4, 0) == -1)
-        {
-            errorString = "Connection reset by peer";
-            nextState = SocketState::Closing;
+        auto now = std::chrono::system_clock::now();
+        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastKeepAliveSent);
 
-            for(auto listener : listeners)
+        if(diff.count() > keepAliveRate)
+        {
+            int32_t keepalive = 0;
+            if(::send(socketId, reinterpret_cast<const char*>(&keepalive), 4, 0) == -1)
             {
-                listener->error(errorString);
+                errorString = "Connection reset by peer";
+                nextState = SocketState::Closing;
+
+                for(auto listener : listeners)
+                {
+                    listener->error(errorString);
+                }
             }
+            lastKeepAliveSent = now;
         }
     }
 

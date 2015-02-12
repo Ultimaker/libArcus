@@ -42,6 +42,8 @@ class Socket(threading.Thread):
     ClosedState = 7
     ErrorState = 8
 
+    KeepAliveRate = 0.5 #Number of seconds between keepalive packets
+
     def __init__(self):
         super().__init__()
 
@@ -67,6 +69,8 @@ class Socket(threading.Thread):
         self._stateChangedCallback = None
         self._messageReceivedCallback = None
         self._errorCallback = None
+
+        self._lastKeepAliveSent = time.time()
 
     ##  Get the current state of the socket.
     def getState(self):
@@ -309,4 +313,8 @@ class Socket(threading.Thread):
         return False
 
     def _checkConnectionState(self):
-        self._socket.send(struct.pack('!i', 0))
+        now = time.time()
+
+        if now - self._lastKeepAliveSent > self.KeepAliveRate:
+            self._socket.send(struct.pack('!i', 0))
+            self._lastKeepAliveSent = now
