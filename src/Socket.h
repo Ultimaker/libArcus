@@ -61,6 +61,8 @@ namespace Arcus
          */
         std::string errorString() const;
 
+        void clearError();
+
         /**
         * Register a new type of Message to handle.
         *

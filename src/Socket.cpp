@@ -50,6 +50,11 @@ std::string Socket::errorString() const
     return d->errorString;
 }
 
+void Socket::clearError()
+{
+    d->errorString.clear();
+}
+
 void Socket::registerMessageType(int type, const google::protobuf::Message* messageType)
 {
     if(d->state != SocketState::Initial)
