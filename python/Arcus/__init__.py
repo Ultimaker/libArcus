@@ -228,9 +228,11 @@ class Socket(threading.Thread):
     # Send a byte array across the socket.
     def _sendBytes(self, data):
         amount_to_send = len(data)
+        offset = 0
         while amount_to_send > 0:
             try:
-                n = self._socket.send(data)
+                n = self._socket.send(data[offset:])
+                offset += n
                 amount_to_send -= n
             except socket.timeout:
                 continue
