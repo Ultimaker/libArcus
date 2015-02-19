@@ -7,9 +7,9 @@ library. It is designed to facilitate the communication between Cura and its
 backend and similar code.
 
 Building
---------
+========
 
-To build the library, you need CMake and Protobuf installed. In addition, if the
+To build the library, you need CMake and Protobuf installed (see below). In addition, if the
 Python module should be installed, you need a python interpreter available. Only
 Python 3 is supported.
 
@@ -28,8 +28,21 @@ To change this destination, set PYTHON_SITE_PACKAGES_DIR. To disable installing
 the Python module completely, set INSTALL_PYTHON_PACKAGE to off. By default, the
 examples directory is also built. To disable this, set BUILD_EXAMPLES to off.
 
+
+Installing Protobuf
+-------------------
+1. Be sure to have libtool installed.
+2. Download protobuf from https://github.com/google/protobuf/ (download ZIP and unZIP at desired location, or clone the repo) The protocol buffer is used for communication between the CuraEngine and the GUI.
+3. Before installing protobuf, change autogen.sh : comment line 18 to line 38 using '#'s. This removes the dependency on gtest-1.7.0.
+4. Run autogen.sh from the protobuf directory: 
+   $ ./autogen.sh
+5. $ ./configure
+6. $ make
+7. $ make install     # Requires superused priviliges.
+8. (In case the shared library cannot be loaded, you can try "sudo ldconfig" on Linux systems)
+
 Using the Socket
-----------------
+================
 
 The socket assumes a very simple and strict wire protocol: one 32-bit integer with
 a type ID, one 32-bit integer with the message size, then a byte array containing
@@ -45,7 +58,7 @@ determined. The message type ID can be freely chosen, except that `0` is reserve
 it is used for keep alive messages.
 
 Origin of the Name
-------------------
+==================
 
 The name Arcus is from the Roman god Arcus. This god is the roman equivalent of
 the goddess Iris, who is the personification of the rainbow and the messenger
