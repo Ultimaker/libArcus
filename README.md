@@ -9,6 +9,7 @@ backend and similar code.
 Installing Protobuf
 -------------------
 C++
+
 1. Be sure to have libtool installed.
 2. Download protobuf from https://github.com/google/protobuf/ (download ZIP and unZIP at desired location, or clone the repo) The protocol buffer is used for communication between the CuraEngine and the GUI.
 3. Before installing protobuf, change autogen.sh : comment line 18 to line 38 using '#'s. This removes the dependency on gtest-1.7.0.
@@ -20,6 +21,7 @@ C++
 8. (In case the shared library cannot be loaded, you can try "sudo ldconfig" on Linux systems)
 
 Python
+
 1. Navigate to protobuf-master/python
 2. sudo apt-get install python3-setuptools
 3. python3 setup.py build 
