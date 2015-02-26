@@ -46,6 +46,7 @@ class Socket(threading.Thread):
 
     def __init__(self):
         super().__init__()
+        self.daemon = True
 
         self._state = self.InitialState
         self._next_state = self.InitialState
