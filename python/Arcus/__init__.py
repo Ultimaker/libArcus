@@ -128,6 +128,8 @@ class Socket(threading.Thread):
 
     ##  Close the connection and stop the thread.
     def close(self):
+        if self._socket is not None:
+            self._socket.close()
         self._next_state = self.ClosingState
         self.join()
 
