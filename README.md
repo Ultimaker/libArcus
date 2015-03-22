@@ -32,6 +32,7 @@ Installing Protobuf on Windows
 C++
 
 (Make sure to use the latest MinGW stable version, e.g. MinGW 4.8.1)
+
 1. Download and install MinGW-get from http://sourceforge.net/projects/mingw/files/Installer/mingw-get/
 2. With MinGW-get, install the MSYS package for MinGW
 3. With MinGW-get, install msys-autogen, msys-automake, msys-libtool
