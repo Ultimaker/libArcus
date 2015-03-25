@@ -72,6 +72,7 @@ namespace Arcus
         void handleMessage(int type, int size, char* buffer);
         void setSocketReceiveTimeout(int socketId, int timeout);
         void checkConnectionState();
+        void error(std::string msg);
 
         SocketState::State state;
         SocketState::State nextState;
@@ -113,6 +114,22 @@ namespace Arcus
 #ifdef _WIN32
     bool SocketPrivate::wsaInitialized = false;
 #endif
+
+    void SocketPrivate::error(std::string msg)
+    {
+    	errorString = msg;
+#ifdef _WIN32
+		::closesocket(socketId);
+#else
+		::close(socketId);
+#endif
+    	nextState = SocketState::Error;
+
+        for(auto listener : listeners)
+        {
+            listener->error(errorString);
+        }
+    }
 
     // This is run in a thread.
     void SocketPrivate::run()
@@ -266,6 +283,8 @@ namespace Arcus
 
     void SocketPrivate::receiveNextMessage()
     {
+    	char* buffer;
+
         //Continuation of message receive from previous call.
         if(partialMessage)
         {
@@ -303,7 +322,13 @@ namespace Arcus
             return;
         }
 
-        char* buffer = new char[messageSize];
+        try {
+        	buffer = new char[messageSize];
+        } catch (std::bad_alloc& ba) {
+        	/* Either way we're in trouble. */
+        	error("Received malformed package or out of memory");
+        	return;
+        }
         int readSize = readBytes(messageSize, buffer);
         if(readSize == messageSize)
         {
