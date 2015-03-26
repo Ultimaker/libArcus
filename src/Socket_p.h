@@ -238,7 +238,9 @@ namespace Arcus
 
                     receiveNextMessage();
 
-                    checkConnectionState();
+                    if (nextState != SocketState::Error)
+                    	checkConnectionState();
+
                     break;
                 }
                 case SocketState::Closing:
