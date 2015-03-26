@@ -100,6 +100,20 @@ void Socket::connect(const std::string& address, int port)
     d->thread = new std::thread([&]() { d->run(); });
 }
 
+void Socket::reset()
+{
+	if (d->state != SocketState::Closed &&
+		d->state != SocketState::Error)
+		return;
+
+	d->thread->join();
+
+	d->state = SocketState::Initial;
+	d->nextState = SocketState::Initial;
+	d->partialMessage = nullptr;
+	d->errorString = "";
+}
+
 void Socket::listen(const std::string& address, int port)
 {
     d->address = address;

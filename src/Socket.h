@@ -122,6 +122,11 @@ namespace Arcus
         */
         MessagePtr takeNextMessage();
 
+        /**
+         * Reset a socket for re-use. State must be Closed or Error
+         */
+        void reset();
+
     private:
         const std::unique_ptr<SocketPrivate> d;
     };
