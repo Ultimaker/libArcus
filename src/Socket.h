@@ -68,7 +68,7 @@ namespace Arcus
         *
         * If the socket state is not SocketState::Initial, this method will do nothing.
         *
-        * \param type An integer ID to use to identify the message.
+        * \param type An integer ID larger than 0 to use to identify the message.
         * \param messageType An instance of the Message that will be used as factory object.
         *
         * \note The `type` parameter should be the same both on the sender and receiver side.

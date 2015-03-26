@@ -20,6 +20,7 @@
 #include "Socket_p.h"
 
 #include <algorithm>
+#include <typeinfo>
 
 using namespace Arcus;
 
@@ -61,6 +62,9 @@ void Socket::registerMessageType(int type, const google::protobuf::Message* mess
     {
         return;
     }
+
+    if(type <= 0)
+    	throw new std::bad_typeid();
 
     d->messageTypes[type] = messageType;
     d->messageTypeMapping[messageType->GetDescriptor()] = type;
