@@ -67,7 +67,7 @@ namespace Arcus
         sockaddr_in createAddress();
         void sendMessage(MessagePtr message);
         void receiveNextMessage();
-        int32_t readInt32();
+        int readInt32(int32_t *dest);
         int readBytes(int size, char* dest);
         void handleMessage(int type, int size, char* buffer);
         void setSocketReceiveTimeout(int socketId, int timeout);
@@ -310,17 +310,11 @@ namespace Arcus
             return;
         }
 
-        messageType = readInt32();
-        if(messageType <= 0)
-        {
+        if(readInt32(&messageType) || messageType <= 0)
             return;
-        }
 
-        messageSize = readInt32();
-        if(messageSize < 0)
-        {
+        if(readInt32(&messageSize) || messageSize < 0)
             return;
-        }
 
         try {
         	buffer = new char[messageSize];
@@ -342,7 +336,7 @@ namespace Arcus
         }
     }
 
-    int32_t SocketPrivate::readInt32()
+    int SocketPrivate::readInt32(int32_t *dest)
     {
         int32_t buffer;
         size_t num = ::recv(socketId, reinterpret_cast<char*>(&buffer), 4, 0);
@@ -351,7 +345,8 @@ namespace Arcus
             return -1;
         }
 
-        return ntohl(buffer);
+        *dest = ntohl(buffer);
+        return 0;
     }
 
     int SocketPrivate::readBytes(int size, char* dest)
