@@ -32,6 +32,7 @@
     #include <netinet/in.h>
     #include <arpa/inet.h>
     #include <unistd.h>
+	#include <signal.h>
 #endif
 
 #include <google/protobuf/message.h>
@@ -134,6 +135,10 @@ namespace Arcus
     // This is run in a thread.
     void SocketPrivate::run()
     {
+#ifndef _WIN32
+    	signal(SIGPIPE, SIG_IGN);
+#endif
+
         while(state != SocketState::Closed && state != SocketState::Error)
         {
             switch(state)
