@@ -35,7 +35,10 @@ Socket::~Socket()
         if(d->state != SocketState::Closed || d->state != SocketState::Error)
         {
             d->nextState = SocketState::Closing;
-            d->thread->join();
+        	if(d->thread) {
+        		d->thread->join();
+        		d->thread = nullptr;
+        	}
         }
         delete d->thread;
     }
@@ -106,7 +109,10 @@ void Socket::reset()
 		d->state != SocketState::Error)
 		return;
 
-	d->thread->join();
+	if(d->thread) {
+		d->thread->join();
+		d->thread = nullptr;
+	}
 
 	d->state = SocketState::Initial;
 	d->nextState = SocketState::Initial;
@@ -125,7 +131,10 @@ void Socket::listen(const std::string& address, int port)
 void Socket::close()
 {
     d->nextState = SocketState::Closing;
-    d->thread->join();
+	if(d->thread) {
+		d->thread->join();
+		d->thread = nullptr;
+	}
 }
 
 void Socket::sendMessage(MessagePtr message)
