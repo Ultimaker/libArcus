@@ -40,6 +40,12 @@
 #include "Types.h"
 #include "SocketListener.h"
 
+#define VERSION_MAJOR 0
+#define VERSION_MINOR 1
+
+#define ARCUS_SIGNATURE 0x2BAD
+#define SIG(n) (((n) & 0xffff0000) >> 16)
+
 /**
  * Private implementation details for Socket.
  */
@@ -57,6 +63,7 @@ namespace Arcus
             , messageType(0)
             , messageSize(0)
             , amountReceived(0)
+    		, messageValid(0)
             , lastKeepAliveSent(std::chrono::system_clock::now())
         {
         #ifdef _WIN32
@@ -97,6 +104,7 @@ namespace Arcus
         int messageType;
         int messageSize;
         int amountReceived;
+        int messageValid;
 
         std::string errorString;
 
@@ -276,11 +284,14 @@ namespace Arcus
     void SocketPrivate::sendMessage(MessagePtr message)
     {
         //TODO: Improve error handling.
-        int type = ::htonl(messageTypeMapping[message->GetDescriptor()]);
-        size_t sent_size = ::send(socketId, reinterpret_cast<const char*>(&type), 4, 0);
+    	uint32_t hdr = ::htonl((ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | VERSION_MINOR);
+    	size_t sent_size = ::send(socketId, reinterpret_cast<const char*>(&hdr), 4, 0);
 
         int size = ::htonl(message->ByteSize());
         sent_size = ::send(socketId, reinterpret_cast<const char*>(&size), 4, 0);
+
+        int type = ::htonl(messageTypeMapping[message->GetDescriptor()]);
+        sent_size = ::send(socketId, reinterpret_cast<const char*>(&type), 4, 0);
 
         std::string data = message->SerializeAsString();
         sent_size = ::send(socketId, data.data(), data.size(), 0);
@@ -289,6 +300,7 @@ namespace Arcus
     void SocketPrivate::receiveNextMessage()
     {
     	char* buffer;
+    	int32_t hdr;
 
         //Continuation of message receive from previous call.
         if(partialMessage)
@@ -315,11 +327,28 @@ namespace Arcus
             return;
         }
 
-        if(readInt32(&messageType) || messageType <= 0)
-            return;
+        messageValid = 1;
+        if (readInt32(&hdr) || hdr == 0) /* Keep-alive, just return */
+        	return;
 
-        if(readInt32(&messageSize) || messageSize < 0)
+        if (SIG(hdr) != ARCUS_SIGNATURE) {
+        	/* Someone might be speaking to us in a different protocol? */
+        	error("Header mismatch");
+        	return;
+        }
+
+        if (readInt32(&messageSize) || messageSize < 0) {
+            error("Size invalid");
+        	return;
+        }
+
+        if (readInt32(&messageType)) {
+            error("Could not read message type");
             return;
+        }
+
+        if (messageType <= 0)
+        	messageValid = 0; /* Try and skip over it */
 
         try {
         	buffer = new char[messageSize];
@@ -328,14 +357,12 @@ namespace Arcus
         	error("Received malformed package or out of memory");
         	return;
         }
+
         int readSize = readBytes(messageSize, buffer);
-        if(readSize == messageSize)
-        {
-            handleMessage(messageType, messageSize, buffer);
+        if (readSize == messageSize) {
+        	handleMessage(messageType, messageSize, buffer);
             delete[] buffer;
-        }
-        else
-        {
+        } else {
             partialMessage = buffer;
             amountReceived = readSize;
         }
@@ -369,6 +396,9 @@ namespace Arcus
 
     void SocketPrivate::handleMessage(int type, int size, char* buffer)
     {
+    	if(!messageValid)
+    		return;
+
         if(messageTypes.find(type) == messageTypes.end())
         {
             errorString = "Unknown message type";
