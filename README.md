@@ -84,12 +84,12 @@ the message as serialized by Protobuf. The receiving side checks for these field
 and will deserialize the message, after which it can be processed by the
 application.
 
-To send or receive messages, the message first needs to be registered on both sides
-with `registerMessageType()`. Most importantly, the ID passed to this method is
-needed since it is part of the wire protocol. This ID should be the same both on the
-sender and on the receiver side, otherwise the message type cannot be properly
-determined. The message type ID can be freely chosen, except that `0` is reserved as
-it is used for keep alive messages.
+To send or receive messages, the message first needs to be registered on both
+sides with a call to `registerMessageType()`. Please note that the first
+parameter (type ID) is used to determine the message type on the receiving end,
+therefore it must correspond on both ends. The message type ID can be any
+positive (signed) integer larger than 0; type ID 0 is reserved for keep-alive
+messages.
 
 Origin of the Name
 ==================

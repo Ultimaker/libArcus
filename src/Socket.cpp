@@ -20,6 +20,7 @@
 #include "Socket_p.h"
 
 #include <algorithm>
+#include <typeinfo>
 
 using namespace Arcus;
 
@@ -34,7 +35,10 @@ Socket::~Socket()
         if(d->state != SocketState::Closed || d->state != SocketState::Error)
         {
             d->nextState = SocketState::Closing;
-            d->thread->join();
+        	if(d->thread) {
+        		d->thread->join();
+        		d->thread = nullptr;
+        	}
         }
         delete d->thread;
     }
@@ -61,6 +65,9 @@ void Socket::registerMessageType(int type, const google::protobuf::Message* mess
     {
         return;
     }
+
+    if(type <= 0)
+    	throw new std::bad_typeid();
 
     d->messageTypes[type] = messageType;
     d->messageTypeMapping[messageType->GetDescriptor()] = type;
@@ -96,6 +103,23 @@ void Socket::connect(const std::string& address, int port)
     d->thread = new std::thread([&]() { d->run(); });
 }
 
+void Socket::reset()
+{
+	if (d->state != SocketState::Closed &&
+		d->state != SocketState::Error)
+		return;
+
+	if(d->thread) {
+		d->thread->join();
+		d->thread = nullptr;
+	}
+
+	d->state = SocketState::Initial;
+	d->nextState = SocketState::Initial;
+	d->partialMessage = nullptr;
+	d->errorString = "";
+}
+
 void Socket::listen(const std::string& address, int port)
 {
     d->address = address;
@@ -107,7 +131,10 @@ void Socket::listen(const std::string& address, int port)
 void Socket::close()
 {
     d->nextState = SocketState::Closing;
-    d->thread->join();
+	if(d->thread) {
+		d->thread->join();
+		d->thread = nullptr;
+	}
 }
 
 void Socket::sendMessage(MessagePtr message)
