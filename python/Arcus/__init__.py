@@ -23,6 +23,13 @@ import time
 class UnknownMessageError(Exception):
     pass
 
+##  Raised when the message header does not match the excpected header.
+class UnknownProtocolError(Exception):
+    pass
+
+class InvalidMessageError(Exception):
+    pass
+
 ##  Threaded socket communication class.
 #
 #   This class represents a socket and the logic for parsing and handling
@@ -43,6 +50,10 @@ class Socket(threading.Thread):
     ErrorState = 8
 
     KeepAliveRate = 0.5 #Number of seconds between keepalive packets
+
+    ProtocolVersionMajor = 0
+    ProtocolVersionMinor = 1
+    ProtocolSignature = 0x2BAD
 
     def __init__(self):
         super().__init__()
@@ -228,8 +239,9 @@ class Socket(threading.Thread):
 
     # Send a message to the connected peer.
     def _sendMessage(self, message):
-        self._sendBytes(struct.pack('!i', self._message_type_mapping[type(message)]))
+        self._sendBytes(struct.pack('!i', (self.ProtocolSignature << 16 | self.ProtocolVersionMajor << 8 | self.ProtocolVersionMinor)))
         self._sendBytes(struct.pack('!i', message.ByteSize()))
+        self._sendBytes(struct.pack('!i', self._message_type_mapping[type(message)]))
         self._sendBytes(message.SerializeToString())
 
     # Send a byte array across the socket.
@@ -258,14 +270,24 @@ class Socket(threading.Thread):
             else:
                 return
 
-        self._message_type = self._receiveInt32()
-        if not self._message_type:
+        header = self._receiveInt32()
+        if header == 0:
+            return #Keepalive, ignore
+
+        if ((header & 0xffff0000) >> 16) != self.ProtocolSignature:
+            if self._errorCallback:
+                self._errorCallback(UnknownProtocolError())
+            self._next_state = self.ErrorState
             return
 
         self._message_size = self._receiveInt32()
-        if self._message_size == 0:
-            self._handleMessage(None)
+        if self._message_size < 0:
+            if self._errorCallback:
+                self._errorCallback(InvalidMessageError("Invalid message size"))
+            self._next_state = self.ErrorState
             return
+
+        self._message_type = self._receiveInt32()
 
         data = self._receiveBytes(self._message_size)
         if not data:
