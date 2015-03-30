@@ -63,7 +63,7 @@ namespace Arcus
             , messageType(0)
             , messageSize(0)
             , amountReceived(0)
-    		, messageValid(0)
+            , messageValid(0)
             , lastKeepAliveSent(std::chrono::system_clock::now())
         {
         #ifdef _WIN32
@@ -128,9 +128,9 @@ namespace Arcus
     {
     	errorString = msg;
 #ifdef _WIN32
-		::closesocket(socketId);
+        ::closesocket(socketId);
 #else
-		::close(socketId);
+        ::close(socketId);
 #endif
     	nextState = SocketState::Error;
 
@@ -144,7 +144,7 @@ namespace Arcus
     void SocketPrivate::run()
     {
 #ifndef _WIN32
-    	signal(SIGPIPE, SIG_IGN);
+        signal(SIGPIPE, SIG_IGN);
 #endif
 
         while(state != SocketState::Closed && state != SocketState::Error)
@@ -286,8 +286,8 @@ namespace Arcus
     void SocketPrivate::sendMessage(MessagePtr message)
     {
         //TODO: Improve error handling.
-    	uint32_t hdr = ::htonl((ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | VERSION_MINOR);
-    	size_t sent_size = ::send(socketId, reinterpret_cast<const char*>(&hdr), 4, 0);
+        uint32_t hdr = ::htonl((ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | VERSION_MINOR);
+        size_t sent_size = ::send(socketId, reinterpret_cast<const char*>(&hdr), 4, 0);
 
         int size = ::htonl(message->ByteSize());
         sent_size = ::send(socketId, reinterpret_cast<const char*>(&size), 4, 0);
@@ -301,8 +301,8 @@ namespace Arcus
 
     void SocketPrivate::receiveNextMessage()
     {
-    	char* buffer;
-    	int32_t hdr;
+        char* buffer;
+        int32_t hdr;
 
         //Continuation of message receive from previous call.
         if(partialMessage)
@@ -331,17 +331,17 @@ namespace Arcus
 
         messageValid = 1;
         if (readInt32(&hdr) || hdr == 0) /* Keep-alive, just return */
-        	return;
+            return;
 
         if (SIG(hdr) != ARCUS_SIGNATURE) {
-        	/* Someone might be speaking to us in a different protocol? */
-        	error("Header mismatch");
-        	return;
+            /* Someone might be speaking to us in a different protocol? */
+            error("Header mismatch");
+            return;
         }
 
         if (readInt32(&messageSize) || messageSize < 0) {
             error("Size invalid");
-        	return;
+            return;
         }
 
         if (readInt32(&messageType)) {
@@ -350,19 +350,19 @@ namespace Arcus
         }
 
         if (messageType <= 0)
-        	messageValid = 0; /* Try and skip over it */
+            messageValid = 0; /* Try and skip over it */
 
         try {
-        	buffer = new char[messageSize];
+            buffer = new char[messageSize];
         } catch (std::bad_alloc& ba) {
-        	/* Either way we're in trouble. */
-        	error("Received malformed package or out of memory");
-        	return;
+            /* Either way we're in trouble. */
+            error("Received malformed package or out of memory");
+            return;
         }
 
         int readSize = readBytes(messageSize, buffer);
         if (readSize == messageSize) {
-        	handleMessage(messageType, messageSize, buffer);
+            handleMessage(messageType, messageSize, buffer);
             delete[] buffer;
         } else {
             partialMessage = buffer;
@@ -398,8 +398,8 @@ namespace Arcus
 
     void SocketPrivate::handleMessage(int type, int size, char* buffer)
     {
-    	if(!messageValid)
-    		return;
+        if(!messageValid)
+            return;
 
         if(messageTypes.find(type) == messageTypes.end())
         {
