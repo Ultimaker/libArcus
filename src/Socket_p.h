@@ -310,9 +310,14 @@ namespace Arcus
             int readSize = readBytes(messageSize - amountReceived, partialMessage + amountReceived);
             if(readSize == -1)
             {
-                delete[] partialMessage;
-                partialMessage = nullptr;
-                amountReceived = 0;
+            #ifndef _WIN32
+                if(errno != EAGAIN)
+            #endif
+                {
+                    delete[] partialMessage;
+                    partialMessage = nullptr;
+                    amountReceived = 0;
+                }
             }
             else
             {
