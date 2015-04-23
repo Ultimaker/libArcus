@@ -22,6 +22,7 @@
 #include <list>
 #include <unordered_map>
 #include <deque>
+#include <iostream>
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -51,6 +52,15 @@
  */
 namespace Arcus
 {
+    enum MessageState {
+        MESSAGE_STATE_INIT,
+        MESSAGE_STATE_HEADER,
+        MESSAGE_STATE_SIZE,
+        MESSAGE_STATE_TYPE,
+        MESSAGE_STATE_DATA,
+        MESSAGE_STATE_DISPATCH,
+    };
+
     class SocketPrivate
     {
     public:
@@ -59,13 +69,12 @@ namespace Arcus
             , nextState(SocketState::Initial)
             , port(0)
             , thread(nullptr)
-            , partialMessage(nullptr)
-            , messageType(0)
-            , messageSize(0)
-            , amountReceived(0)
-            , messageValid(0)
+            , message({})
             , lastKeepAliveSent(std::chrono::system_clock::now())
         {
+
+
+
         #ifdef _WIN32
             initializeWSA();
         #endif
@@ -100,11 +109,14 @@ namespace Arcus
         std::deque<MessagePtr> receiveQueue;
         std::mutex receiveQueueMutex;
 
-        char* partialMessage;
-        int messageType;
-        int messageSize;
-        int amountReceived;
-        int messageValid;
+        struct {
+            Arcus::MessageState state;
+            int type;
+            int size;
+            int size_recv;
+            bool valid;
+            char *data;
+        } message;
 
         std::string errorString;
 
@@ -299,86 +311,131 @@ namespace Arcus
         sent_size = ::send(socketId, data.data(), data.size(), 0);
     }
 
+
     void SocketPrivate::receiveNextMessage()
     {
-        char* buffer;
         int32_t hdr;
+        int ret;
 
-        //Continuation of message receive from previous call.
-        if(partialMessage)
+        if (message.state == MESSAGE_STATE_INIT)
         {
-            int readSize = readBytes(messageSize - amountReceived, partialMessage + amountReceived);
-            if(readSize == -1)
+            message.valid = true;
+            message.size = 0;
+            message.size_recv = 0;
+            message.type = 0;
+            message.state = MESSAGE_STATE_HEADER;
+        }
+
+        if (message.state == MESSAGE_STATE_HEADER)
+        {
+            if (readInt32(&hdr) || hdr == 0) /* Keep-alive, just return */
+                return;
+
+            if (SIG(hdr) != ARCUS_SIGNATURE)
+            {
+                /* Someone might be speaking to us in a different protocol? */
+                error("Header mismatch");
+                return;
+            }
+
+            message.state = MESSAGE_STATE_SIZE;
+        }
+
+        if (message.state == MESSAGE_STATE_SIZE)
+        {
+            ret = readInt32(&message.size);
+            if (ret) {
+#ifndef _WIN32
+                if (errno == EAGAIN)
+                    return;
+#endif
+                error("Size invalid");
+                message.state = MESSAGE_STATE_INIT;
+                return;
+            }
+
+            if (message.size < 0)
+            {
+                message.state = MESSAGE_STATE_INIT;
+                error("Size invalid");
+                return;
+            }
+
+            message.state = MESSAGE_STATE_TYPE;
+        }
+
+        if (message.state == MESSAGE_STATE_TYPE)
+        {
+            ret = readInt32(&message.type);
+            if (ret) {
+#ifndef _WIN32
+                if (errno == EAGAIN)
+                    return;
+#endif
+                error("Type invalid");
+                message.valid = false;
+            }
+
+            if (message.type < 0)
+            {
+                error("Type invalid");
+                message.valid = false;
+            }
+
+            try {
+                message.data = new char[message.size];
+            } catch (std::bad_alloc& ba) {
+                /* Either way we're in trouble. */
+                error("Received malformed package or out of memory");
+                message.state = MESSAGE_STATE_INIT;
+                return;
+            }
+            message.state = MESSAGE_STATE_DATA;
+        }
+
+        if (message.state == MESSAGE_STATE_DATA)
+        {
+            ret = readBytes(message.size - message.size_recv,
+                    &message.data[message.size_recv]);
+            if(ret == -1)
             {
             #ifndef _WIN32
                 if(errno != EAGAIN)
             #endif
                 {
-                    delete[] partialMessage;
-                    partialMessage = nullptr;
-                    amountReceived = 0;
+                    delete[] message.data;
+                    message.data = nullptr;
+                    message.size_recv = 0;
+                    message.state = MESSAGE_STATE_INIT;
                 }
             }
             else
             {
-                amountReceived += readSize;
-                if(amountReceived >= messageSize)
+                message.size_recv += ret;
+                if(message.size_recv >= message.size)
                 {
-                    handleMessage(messageType, messageSize, partialMessage);
-                    delete[] partialMessage;
-                    partialMessage = nullptr;
-                    amountReceived = 0;
+                    if (message.valid)
+                        message.state = MESSAGE_STATE_DISPATCH;
+                    else
+                        message.state = MESSAGE_STATE_INIT;
                 }
             }
-
-            return;
         }
 
-        messageValid = 1;
-        if (readInt32(&hdr) || hdr == 0) /* Keep-alive, just return */
-            return;
-
-        if (SIG(hdr) != ARCUS_SIGNATURE) {
-            /* Someone might be speaking to us in a different protocol? */
-            error("Header mismatch");
-            return;
-        }
-
-        if (readInt32(&messageSize) || messageSize < 0) {
-            error("Size invalid");
-            return;
-        }
-
-        if (readInt32(&messageType)) {
-            error("Could not read message type");
-            return;
-        }
-
-        if (messageType <= 0)
-            messageValid = 0; /* Try and skip over it */
-
-        try {
-            buffer = new char[messageSize];
-        } catch (std::bad_alloc& ba) {
-            /* Either way we're in trouble. */
-            error("Received malformed package or out of memory");
-            return;
-        }
-
-        int readSize = readBytes(messageSize, buffer);
-        if (readSize == messageSize) {
-            handleMessage(messageType, messageSize, buffer);
-            delete[] buffer;
-        } else {
-            partialMessage = buffer;
-            amountReceived = readSize;
+        if(message.state == MESSAGE_STATE_DISPATCH)
+        {
+            handleMessage(message.type, message.size, message.data);
+            delete[] message.data;
+            message.data = nullptr;
+            message.state = MESSAGE_STATE_INIT;
         }
     }
 
     int SocketPrivate::readInt32(int32_t *dest)
     {
         int32_t buffer;
-        size_t num = ::recv(socketId, reinterpret_cast<char*>(&buffer), 4, 0);
+        int num = ::recv(socketId, reinterpret_cast<char*>(&buffer), 4, 0);
+
         if(num != 4)
         {
             return -1;
@@ -390,7 +447,7 @@ namespace Arcus
 
     int SocketPrivate::readBytes(int size, char* dest)
     {
-        size_t num = ::recv(socketId, dest, size, 0);
+        int num = ::recv(socketId, dest, size, 0);
         if(num == -1)
         {
             return -1;
@@ -403,9 +460,6 @@ namespace Arcus
 
     void SocketPrivate::handleMessage(int type, int size, char* buffer)
     {
-        if(!messageValid)
-            return;
-
         if(messageTypes.find(type) == messageTypes.end())
         {
             errorString = "Unknown message type";

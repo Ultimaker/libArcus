@@ -118,7 +118,6 @@ void Socket::reset()
 
     d->state = SocketState::Initial;
     d->nextState = SocketState::Initial;
-    d->partialMessage = nullptr;
     d->errorString = "";
 }
 
