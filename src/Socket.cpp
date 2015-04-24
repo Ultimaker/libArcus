@@ -98,6 +98,11 @@ void Socket::removeListener(SocketListener* listener)
 
 void Socket::connect(const std::string& address, int port)
 {
+    if(d->state != SocketState::Initial || d->thread != nullptr)
+    {
+        return;
+    }
+
     d->address = address;
     d->port = port;
     d->nextState = SocketState::Connecting;
@@ -112,8 +117,8 @@ void Socket::reset()
 
     if(d->thread)
     {
-            d->thread->join();
-            d->thread = nullptr;
+        d->thread->join();
+        d->thread = nullptr;
     }
 
     d->state = SocketState::Initial;
