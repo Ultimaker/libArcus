@@ -158,7 +158,6 @@ namespace Arcus
 #ifndef _WIN32
         signal(SIGPIPE, SIG_IGN);
 #endif
-
         while(state != SocketState::Closed && state != SocketState::Error)
         {
             switch(state)
@@ -414,15 +413,20 @@ namespace Arcus
                 message.size_recv += ret;
                 if(message.size_recv >= message.size)
                 {
-                    if (message.valid)
+                    if (message.valid) {
                         message.state = MESSAGE_STATE_DISPATCH;
+                    }
                     else
+                    {
+                        delete[] message.data;
+                        message.data = nullptr;
                         message.state = MESSAGE_STATE_INIT;
+                    }
                 }
             }
         }
 
-        if(message.state == MESSAGE_STATE_DISPATCH)
+        if (message.state == MESSAGE_STATE_DISPATCH)
         {
             handleMessage(message.type, message.size, message.data);
             delete[] message.data;
