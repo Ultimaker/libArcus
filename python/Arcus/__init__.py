@@ -133,6 +133,9 @@ class Socket(threading.Thread):
     #   \param address The IP address to connect to.
     #   \param port The port to connect on.
     def connect(self, address, port):
+        if self._state != self.InitialState:
+            return
+
         self._address = (address, port)
         self._next_state = self.ConnectingState
         self.start()
