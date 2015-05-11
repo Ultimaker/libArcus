@@ -21,6 +21,8 @@
 
 #include "Types.h"
 
+#include "ArcusExport.h"
+
 namespace Arcus
 {
     class Socket;
@@ -38,7 +40,7 @@ namespace Arcus
      * signal from a subclass of this class, to make sure the actual event
      * is handled on the main thread.
      */
-    class SocketListener
+    class ARCUS_EXPORT SocketListener
     {
     public:
         SocketListener();
