@@ -28,6 +28,7 @@
     #include <winsock2.h>
     #include <ws2tcpip.h>
 #else
+    #include <sys/types.h>
     #include <sys/socket.h>
     #include <sys/time.h>
     #include <netinet/in.h>
@@ -290,20 +291,20 @@ namespace Arcus
     #else
         ::inet_pton(AF_INET, address.c_str(), &(a.sin_addr));
     #endif
-        a.sin_port = ::htons(port);
+        a.sin_port = htons(port);
         return a;
     }
 
     void SocketPrivate::sendMessage(MessagePtr message)
     {
         //TODO: Improve error handling.
-        uint32_t hdr = ::htonl((ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | VERSION_MINOR);
+        uint32_t hdr = htonl((ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | VERSION_MINOR);
         size_t sent_size = ::send(socketId, reinterpret_cast<const char*>(&hdr), 4, 0);
 
-        int size = ::htonl(message->ByteSize());
+        int size = htonl(message->ByteSize());
         sent_size = ::send(socketId, reinterpret_cast<const char*>(&size), 4, 0);
 
-        int type = ::htonl(messageTypeMapping[message->GetDescriptor()]);
+        int type = htonl(messageTypeMapping[message->GetDescriptor()]);
         sent_size = ::send(socketId, reinterpret_cast<const char*>(&type), 4, 0);
 
         std::string data = message->SerializeAsString();

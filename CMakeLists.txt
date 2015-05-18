@@ -52,7 +52,7 @@ if(WIN32)
 endif()
 
 set_target_properties(Arcus PROPERTIES
-    FRAMEWORK TRUE
+    FRAMEWORK FALSE
     VERSION ${ARCUS_VERSION}
     SOVERSION ${ARCUS_SOVERSION}
     PUBLIC_HEADER "${arcus_HDRS}"
