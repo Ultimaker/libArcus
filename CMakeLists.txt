@@ -6,6 +6,7 @@ include(CMakePackageConfigHelpers)
 
 option(INSTALL_PYTHON_PACKAGE "Install the Python parts of Arcus" ON)
 option(BUILD_EXAMPLES "Build the example programs" ON)
+option(BUILD_STATIC "Build as a static library" OFF)
 
 set(REQUIRED_PROTOBUF_VERSION 3.0.0)
 find_package(Protobuf ${REQUIRED_PROTOBUF_VERSION} REQUIRED)
@@ -36,7 +37,12 @@ set(arcus_HDRS
 set(ARCUS_VERSION 0.1.0)
 set(ARCUS_SOVERSION 0)
 
-add_library(Arcus SHARED ${arcus_SRCS})
+if(BUILD_STATIC)
+    add_library(Arcus STATIC ${arcus_SRCS})
+else()
+    add_library(Arcus SHARED ${arcus_SRCS})
+endif()
+
 target_include_directories(Arcus PUBLIC
     ${PROTOBUF_INCLUDE_DIR}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
