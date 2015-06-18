@@ -24,7 +24,7 @@ Python
 
 1. Navigate to protobuf-master/python
 2. sudo apt-get install python3-setuptools
-3. python3 setup.py build 
+3. sudo python3 setup.py build 
 4. sudo python3 setup.py install
 
 Installing Protobuf on Windows
