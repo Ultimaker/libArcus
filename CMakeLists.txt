@@ -85,3 +85,5 @@ install(FILES
 if(INSTALL_PYTHON_PACKAGE)
     install(FILES python/Arcus/__init__.py DESTINATION ${PYTHON_SITE_PACKAGES_DIR}/Arcus)
 endif()
+
+include(CPackConfig.cmake)
