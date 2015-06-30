@@ -39,6 +39,7 @@ set(ARCUS_SOVERSION 0)
 
 if(BUILD_STATIC)
     add_library(Arcus STATIC ${arcus_SRCS})
+    target_link_libraries(Arcus PRIVATE pthread)
 else()
     add_library(Arcus SHARED ${arcus_SRCS})
 endif()
