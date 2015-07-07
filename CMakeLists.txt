@@ -13,7 +13,6 @@ find_package(Protobuf ${REQUIRED_PROTOBUF_VERSION} REQUIRED)
 
 if(INSTALL_PYTHON_PACKAGE)
     find_package(PythonInterp 3.0.0 REQUIRED)
-    set(PYTHON_SITE_PACKAGES_DIR ${CMAKE_INSTALL_PREFIX}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages CACHE PATH "Install location of Python package")
 endif()
 
 if(NOT ${CMAKE_VERSION} VERSION_LESS 3.1)
@@ -90,6 +89,10 @@ install(FILES
 )
 
 if(INSTALL_PYTHON_PACKAGE)
-    install(FILES python/Arcus/__init__.py DESTINATION ${PYTHON_SITE_PACKAGES_DIR}/Arcus)
+    if(APPLE)
+        install(FILES python/Arcus/__init__.py DESTINATION lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/Arcus)
+    else()
+        install(FILES python/Arcus/__init__.py DESTINATION lib/python${PYTHON_VERSION_MAJOR}/dist-packages/Arcus)
+    endif()
 endif()
 
