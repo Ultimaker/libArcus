@@ -146,6 +146,9 @@ void Socket::close()
 
 void Socket::sendMessage(MessagePtr message)
 {
+    if(!message)
+        return;
+    
     std::lock_guard<std::mutex> lock(d->sendQueueMutex);
     d->sendQueue.push_back(message);
 }
