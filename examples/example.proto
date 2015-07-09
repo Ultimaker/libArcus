@@ -9,8 +9,8 @@ message ObjectList {
 message Object {
     int32 id = 1;
     bytes vertices = 2; //An array of 3 floats.
-    optional bytes normals = 3; //An array of 3 floats.
-    optional bytes indices = 4; //An array of ints.
+    bytes normals = 3; //An array of 3 floats.
+    bytes indices = 4; //An array of ints.
 }
 
 message ProgressUpdate {
