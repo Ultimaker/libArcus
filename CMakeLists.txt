@@ -12,7 +12,11 @@ find_package(Protobuf ${REQUIRED_PROTOBUF_VERSION} REQUIRED)
 
 if(INSTALL_PYTHON_PACKAGE)
     find_package(PythonInterp 3.0.0 REQUIRED)
-    set(PYTHON_SITE_PACKAGES_DIR ${CMAKE_INSTALL_PREFIX}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/dist-packages CACHE PATH "Install location of Python package")
+    if(APPLE)
+        set(PYTHON_SITE_PACKAGES_DIR ${CMAKE_INSTALL_PREFIX}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages CACHE PATH "Install location of Python package")
+    else()
+        set(PYTHON_SITE_PACKAGES_DIR ${CMAKE_INSTALL_PREFIX}/lib/python${PYTHON_VERSION_MAJOR}/dist-packages CACHE PATH "Install location of Python package")
+    endif()
 endif()
 
 if(NOT ${CMAKE_VERSION} VERSION_LESS 3.1)
