@@ -40,6 +40,8 @@ set(arcus_HDRS
 set(ARCUS_VERSION 0.1.0)
 set(ARCUS_SOVERSION 0)
 
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
+
 add_library(Arcus SHARED ${arcus_SRCS})
 target_include_directories(Arcus PUBLIC
     ${PROTOBUF_INCLUDE_DIR}
