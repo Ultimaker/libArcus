@@ -13,11 +13,6 @@ find_package(Protobuf ${REQUIRED_PROTOBUF_VERSION} REQUIRED)
 
 if(INSTALL_PYTHON_PACKAGE)
     find_package(PythonInterp 3.0.0 REQUIRED)
-    if(APPLE)
-        set(PYTHON_SITE_PACKAGES_DIR ${CMAKE_INSTALL_PREFIX}/lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages CACHE PATH "Install location of Python package")
-    else()
-        set(PYTHON_SITE_PACKAGES_DIR ${CMAKE_INSTALL_PREFIX}/lib/python${PYTHON_VERSION_MAJOR}/dist-packages CACHE PATH "Install location of Python package")
-    endif()
 endif()
 
 if(NOT ${CMAKE_VERSION} VERSION_LESS 3.1)
@@ -38,16 +33,18 @@ set(arcus_HDRS
     src/ArcusExport.h
 )
 
-set(ARCUS_VERSION 0.1.0)
-set(ARCUS_SOVERSION 0)
-
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
+set(ARCUS_VERSION 15.05.90)
+set(ARCUS_SOVERSION 1)
 
 if(BUILD_STATIC)
     add_library(Arcus STATIC ${arcus_SRCS})
+    target_link_libraries(Arcus PRIVATE pthread)
 else()
     add_library(Arcus SHARED ${arcus_SRCS})
 endif()
+
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
+
 target_include_directories(Arcus PUBLIC
     ${PROTOBUF_INCLUDE_DIR}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
@@ -96,7 +93,11 @@ install(FILES
 )
 
 if(INSTALL_PYTHON_PACKAGE)
-    install(FILES python/Arcus/__init__.py DESTINATION ${PYTHON_SITE_PACKAGES_DIR}/Arcus)
+    if(APPLE)
+        install(FILES python/Arcus/__init__.py DESTINATION lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/Arcus)
+    else()
+        install(FILES python/Arcus/__init__.py DESTINATION lib/python${PYTHON_VERSION_MAJOR}/dist-packages/Arcus)
+    endif()
 endif()
 
 include(CPackConfig.cmake)
