@@ -1,7 +1,6 @@
 project(arcus)
 cmake_minimum_required(VERSION 2.8.12)
 
-include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 option(INSTALL_PYTHON_PACKAGE "Install the Python parts of Arcus" ON)
@@ -48,7 +47,7 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
 target_include_directories(Arcus PUBLIC
     ${PROTOBUF_INCLUDE_DIR}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(Arcus PUBLIC
     ${PROTOBUF_LIBRARY}
@@ -73,23 +72,23 @@ endif()
 
 install(TARGETS Arcus
     EXPORT Arcus-targets
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Arcus
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    PUBLIC_HEADER DESTINATION include/Arcus
 )
 
 install(EXPORT Arcus-targets
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Arcus
+    DESTINATION lib/cmake/Arcus
 )
 
-configure_package_config_file(ArcusConfig.cmake.in ${CMAKE_BINARY_DIR}/ArcusConfig.cmake INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Arcus)
+configure_package_config_file(ArcusConfig.cmake.in ${CMAKE_BINARY_DIR}/ArcusConfig.cmake INSTALL_DESTINATION lib/cmake/Arcus)
 write_basic_package_version_file(${CMAKE_BINARY_DIR}/ArcusConfigVersion.cmake VERSION ${ARCUS_VERSION} COMPATIBILITY SameMajorVersion)
 
 install(FILES
     ${CMAKE_BINARY_DIR}/ArcusConfig.cmake
     ${CMAKE_BINARY_DIR}/ArcusConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Arcus
+    DESTINATION lib/cmake/Arcus
 )
 
 if(INSTALL_PYTHON_PACKAGE)
