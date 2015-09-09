@@ -92,7 +92,7 @@ install(FILES
 )
 
 if(INSTALL_PYTHON_PACKAGE)
-    if(APPLE)
+    if(APPLE OR WIN32)
         install(FILES python/Arcus/__init__.py DESTINATION lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/Arcus)
     else()
         install(FILES python/Arcus/__init__.py DESTINATION lib/python${PYTHON_VERSION_MAJOR}/dist-packages/Arcus)
