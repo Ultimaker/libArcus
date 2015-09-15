@@ -156,9 +156,6 @@ namespace Arcus
     // This is run in a thread.
     void SocketPrivate::run()
     {
-#ifndef _WIN32
-        signal(SIGPIPE, SIG_IGN);
-#endif
         while(state != SocketState::Closed && state != SocketState::Error)
         {
             switch(state)
@@ -299,16 +296,16 @@ namespace Arcus
     {
         //TODO: Improve error handling.
         uint32_t hdr = htonl((ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | VERSION_MINOR);
-        size_t sent_size = ::send(socketId, reinterpret_cast<const char*>(&hdr), 4, 0);
+        size_t sent_size = ::send(socketId, reinterpret_cast<const char*>(&hdr), 4, MSG_NOSIGNAL);
 
         int size = htonl(message->ByteSize());
-        sent_size = ::send(socketId, reinterpret_cast<const char*>(&size), 4, 0);
+        sent_size = ::send(socketId, reinterpret_cast<const char*>(&size), 4, MSG_NOSIGNAL);
 
         int type = htonl(messageTypeMapping[message->GetDescriptor()]);
-        sent_size = ::send(socketId, reinterpret_cast<const char*>(&type), 4, 0);
+        sent_size = ::send(socketId, reinterpret_cast<const char*>(&type), 4, MSG_NOSIGNAL);
 
         std::string data = message->SerializeAsString();
-        sent_size = ::send(socketId, data.data(), data.size(), 0);
+        sent_size = ::send(socketId, data.data(), data.size(), MSG_NOSIGNAL);
     }
 
 
@@ -506,7 +503,7 @@ namespace Arcus
         if(diff.count() > keepAliveRate)
         {
             int32_t keepalive = 0;
-            if(::send(socketId, reinterpret_cast<const char*>(&keepalive), 4, 0) == -1)
+            if(::send(socketId, reinterpret_cast<const char*>(&keepalive), 4, MSG_NOSIGNAL) == -1)
             {
                 errorString = "Connection reset by peer";
                 nextState = SocketState::Closing;
