@@ -11,7 +11,7 @@ set(REQUIRED_PROTOBUF_VERSION 3.0.0)
 find_package(Protobuf ${REQUIRED_PROTOBUF_VERSION} REQUIRED)
 
 if(INSTALL_PYTHON_PACKAGE)
-    find_package(PythonInterp 3.0.0 REQUIRED)
+    find_package(PythonInterp 3.4.0 REQUIRED)
 endif()
 
 if(NOT ${CMAKE_VERSION} VERSION_LESS 3.1)
@@ -32,7 +32,7 @@ set(arcus_HDRS
     src/ArcusExport.h
 )
 
-set(ARCUS_VERSION 15.05.90)
+set(ARCUS_VERSION 15.09.81)
 set(ARCUS_SOVERSION 1)
 
 if(BUILD_STATIC)
