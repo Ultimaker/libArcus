@@ -48,6 +48,10 @@
 #define ARCUS_SIGNATURE 0x2BAD
 #define SIG(n) (((n) & 0xffff0000) >> 16)
 
+#ifndef MSG_NOSIGNAL
+	#define MSG_NOSIGNAL 0x4000 //Do not generate SIGPIPE.
+#endif
+
 /**
  * Private implementation details for Socket.
  */
