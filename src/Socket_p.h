@@ -49,7 +49,7 @@
 #define SIG(n) (((n) & 0xffff0000) >> 16)
 
 #ifndef MSG_NOSIGNAL
-	#define MSG_NOSIGNAL 0x4000 //Do not generate SIGPIPE.
+	#define MSG_NOSIGNAL 0x0 //Don't request NOSIGNAL on systems where this is not implemented.
 #endif
 
 /**
