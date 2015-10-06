@@ -34,10 +34,12 @@
     #include <netinet/in.h>
     #include <arpa/inet.h>
     #include <unistd.h>
-	#include <signal.h>
+    #include <signal.h>
 #endif
 
 #include <google/protobuf/message.h>
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
+#include <google/protobuf/io/coded_stream.h>
 
 #include "Types.h"
 #include "SocketListener.h"
@@ -473,7 +475,10 @@ namespace Arcus
         }
 
         MessagePtr message = MessagePtr(messageTypes[type]->New());
-        if(!message->ParseFromArray(buffer, size))
+        google::protobuf::io::ArrayInputStream array(buffer, size);
+        google::protobuf::io::CodedInputStream stream(&array);
+        stream.SetTotalBytesLimit(500 * 1048576, 128 * 1048576); //Set size limit to 500MiB, warn at 128MiB
+        if(!message->ParseFromCodedStream(&stream))
         {
             errorString = "Failed to parse message";
             return;
