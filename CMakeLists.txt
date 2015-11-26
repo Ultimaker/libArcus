@@ -1,18 +1,17 @@
 project(arcus)
 cmake_minimum_required(VERSION 2.8.12)
 
-include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 option(INSTALL_PYTHON_PACKAGE "Install the Python parts of Arcus" ON)
 option(BUILD_EXAMPLES "Build the example programs" ON)
+option(BUILD_STATIC "Build as a static library" OFF)
 
 set(REQUIRED_PROTOBUF_VERSION 3.0.0)
 find_package(Protobuf ${REQUIRED_PROTOBUF_VERSION} REQUIRED)
 
 if(INSTALL_PYTHON_PACKAGE)
-    find_package(PythonInterp 3.0.0 REQUIRED)
-    set(PYTHON_SITE_PACKAGES_DIR ${CMAKE_INSTALL_LIBDIR}/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/dist-packages CACHE PATH "Install location of Python package")
+    find_package(PythonInterp 3.4.0 REQUIRED)
 endif()
 
 if(NOT ${CMAKE_VERSION} VERSION_LESS 3.1)
@@ -33,14 +32,22 @@ set(arcus_HDRS
     src/ArcusExport.h
 )
 
-set(ARCUS_VERSION 0.1.0)
-set(ARCUS_SOVERSION 0)
+set(ARCUS_VERSION 15.09.81)
+set(ARCUS_SOVERSION 1)
 
-add_library(Arcus SHARED ${arcus_SRCS})
+if(BUILD_STATIC)
+    add_library(Arcus STATIC ${arcus_SRCS})
+    target_link_libraries(Arcus PRIVATE pthread)
+else()
+    add_library(Arcus SHARED ${arcus_SRCS})
+endif()
+
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
+
 target_include_directories(Arcus PUBLIC
     ${PROTOBUF_INCLUDE_DIR}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(Arcus PUBLIC
     ${PROTOBUF_LIBRARY}
@@ -65,27 +72,31 @@ endif()
 
 install(TARGETS Arcus
     EXPORT Arcus-targets
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Arcus
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    PUBLIC_HEADER DESTINATION include/Arcus
 )
 
 install(EXPORT Arcus-targets
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Arcus
+    DESTINATION lib/cmake/Arcus
 )
 
-configure_package_config_file(ArcusConfig.cmake.in ${CMAKE_BINARY_DIR}/ArcusConfig.cmake INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Arcus)
+configure_package_config_file(ArcusConfig.cmake.in ${CMAKE_BINARY_DIR}/ArcusConfig.cmake INSTALL_DESTINATION lib/cmake/Arcus)
 write_basic_package_version_file(${CMAKE_BINARY_DIR}/ArcusConfigVersion.cmake VERSION ${ARCUS_VERSION} COMPATIBILITY SameMajorVersion)
 
 install(FILES
     ${CMAKE_BINARY_DIR}/ArcusConfig.cmake
     ${CMAKE_BINARY_DIR}/ArcusConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Arcus
+    DESTINATION lib/cmake/Arcus
 )
 
 if(INSTALL_PYTHON_PACKAGE)
-    install(FILES python/Arcus/__init__.py DESTINATION ${PYTHON_SITE_PACKAGES_DIR}/Arcus)
+    if(APPLE OR WIN32)
+        install(FILES python/Arcus/__init__.py DESTINATION lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/Arcus)
+    else()
+        install(FILES python/Arcus/__init__.py DESTINATION lib/python${PYTHON_VERSION_MAJOR}/dist-packages/Arcus)
+    endif()
 endif()
 
 include(CPackConfig.cmake)

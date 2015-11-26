@@ -34,10 +34,12 @@
     #include <netinet/in.h>
     #include <arpa/inet.h>
     #include <unistd.h>
-	#include <signal.h>
+    #include <signal.h>
 #endif
 
 #include <google/protobuf/message.h>
+#include <google/protobuf/io/zero_copy_stream_impl_lite.h>
+#include <google/protobuf/io/coded_stream.h>
 
 #include "Types.h"
 #include "SocketListener.h"
@@ -47,6 +49,10 @@
 
 #define ARCUS_SIGNATURE 0x2BAD
 #define SIG(n) (((n) & 0xffff0000) >> 16)
+
+#ifndef MSG_NOSIGNAL
+	#define MSG_NOSIGNAL 0x0 //Don't request NOSIGNAL on systems where this is not implemented.
+#endif
 
 /**
  * Private implementation details for Socket.
@@ -156,9 +162,6 @@ namespace Arcus
     // This is run in a thread.
     void SocketPrivate::run()
     {
-#ifndef _WIN32
-        signal(SIGPIPE, SIG_IGN);
-#endif
         while(state != SocketState::Closed && state != SocketState::Error)
         {
             switch(state)
@@ -299,16 +302,16 @@ namespace Arcus
     {
         //TODO: Improve error handling.
         uint32_t hdr = htonl((ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | VERSION_MINOR);
-        size_t sent_size = ::send(socketId, reinterpret_cast<const char*>(&hdr), 4, 0);
+        size_t sent_size = ::send(socketId, reinterpret_cast<const char*>(&hdr), 4, MSG_NOSIGNAL);
 
         int size = htonl(message->ByteSize());
-        sent_size = ::send(socketId, reinterpret_cast<const char*>(&size), 4, 0);
+        sent_size = ::send(socketId, reinterpret_cast<const char*>(&size), 4, MSG_NOSIGNAL);
 
         int type = htonl(messageTypeMapping[message->GetDescriptor()]);
-        sent_size = ::send(socketId, reinterpret_cast<const char*>(&type), 4, 0);
+        sent_size = ::send(socketId, reinterpret_cast<const char*>(&type), 4, MSG_NOSIGNAL);
 
         std::string data = message->SerializeAsString();
-        sent_size = ::send(socketId, data.data(), data.size(), 0);
+        sent_size = ::send(socketId, data.data(), data.size(), MSG_NOSIGNAL);
     }
 
 
@@ -472,7 +475,10 @@ namespace Arcus
         }
 
         MessagePtr message = MessagePtr(messageTypes[type]->New());
-        if(!message->ParseFromArray(buffer, size))
+        google::protobuf::io::ArrayInputStream array(buffer, size);
+        google::protobuf::io::CodedInputStream stream(&array);
+        stream.SetTotalBytesLimit(500 * 1048576, 128 * 1048576); //Set size limit to 500MiB, warn at 128MiB
+        if(!message->ParseFromCodedStream(&stream))
         {
             errorString = "Failed to parse message";
             return;
@@ -506,7 +512,7 @@ namespace Arcus
         if(diff.count() > keepAliveRate)
         {
             int32_t keepalive = 0;
-            if(::send(socketId, reinterpret_cast<const char*>(&keepalive), 4, 0) == -1)
+            if(::send(socketId, reinterpret_cast<const char*>(&keepalive), 4, MSG_NOSIGNAL) == -1)
             {
                 errorString = "Connection reset by peer";
                 nextState = SocketState::Closing;

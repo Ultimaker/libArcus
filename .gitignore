@@ -8,6 +8,8 @@
 *.so
 *.dylib
 *.dll
+*.so.0.1.0
+*.so.0
 
 # Compiled Static libraries
 *.lai
@@ -26,7 +28,25 @@
 
 # Standard CMake build dir
 build
+*.cmake
+*.make
+Makefile
+CMakeCache.txt
+install_manifest.txt
+CMakeFiles/*
+compile_commands.json
+examples/Makefile
+examples/CMakeFiles/*
+examples/example
+examples/example.pb.h
+examples/example.pb.cc
+examples/example_pb2.py
 
 # Python compile cache files
 *.pyc
 __pycache__
+/examples/cmake_install.cmake
+/CMakeFiles/CMakeRuleHashes.txt
+
+# Netbeans project files
+nbproject/*
