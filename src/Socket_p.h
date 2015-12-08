@@ -260,6 +260,20 @@ namespace Arcus
                 }
                 case SocketState::Closing:
                 {
+                    std::list<MessagePtr> messagesToSend;
+                    sendQueueMutex.lock();
+                    while(sendQueue.size() > 0)
+                    {
+                        messagesToSend.push_back(sendQueue.front());
+                        sendQueue.pop_front();
+                    }
+                    sendQueueMutex.unlock();
+
+                    for(auto message : messagesToSend)
+                    {
+                        sendMessage(message);
+                    }
+
                 #ifdef _WIN32
                     ::closesocket(socketId);
                 #else
