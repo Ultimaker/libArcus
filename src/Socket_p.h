@@ -73,11 +73,11 @@ namespace Arcus
     public:
         SocketPrivate()
             : state(SocketState::Initial)
-            , nextState(SocketState::Initial)
+            , next_state(SocketState::Initial)
             , port(0)
             , thread(nullptr)
             , message({})
-            , lastKeepAliveSent(std::chrono::system_clock::now())
+            , last_keep_alive_sent(std::chrono::system_clock::now())
         {
 
 
@@ -99,7 +99,7 @@ namespace Arcus
         void error(std::string msg);
 
         SocketState::State state;
-        SocketState::State nextState;
+        SocketState::State next_state;
 
         std::string address;
         int port;
@@ -108,13 +108,13 @@ namespace Arcus
 
         std::list<SocketListener*> listeners;
 
-        std::unordered_map<int, const google::protobuf::Message*> messageTypes;
-        std::unordered_map<const google::protobuf::Descriptor*, int> messageTypeMapping;
+        std::unordered_map<int, const google::protobuf::Message*> message_types;
+        std::unordered_map<const google::protobuf::Descriptor*, int> message_type_mapping;
 
-        std::deque<MessagePtr> sendQueue;
-        std::mutex sendQueueMutex;
-        std::deque<MessagePtr> receiveQueue;
-        std::mutex receiveQueueMutex;
+        std::deque<MessagePtr> send_queue;
+        std::mutex send_queue_mutex;
+        std::deque<MessagePtr> receive_queue;
+        std::mutex receive_queue_mutex;
 
         struct {
             Arcus::MessageState state;
@@ -125,151 +125,151 @@ namespace Arcus
             char *data;
         } message;
 
-        std::string errorString;
+        std::string error_string;
 
-        int socketId;
+        int socket_id;
 
-        std::chrono::system_clock::time_point lastKeepAliveSent;
+        std::chrono::system_clock::time_point last_keep_alive_sent;
 
-        static const int keepAliveRate = 500; //Number of milliseconds between sending keepalive packets
+        static const int keep_alive_rate = 500; //Number of milliseconds between sending keepalive packets
 
     #ifdef _WIN32
-        static bool wsaInitialized;
+        static bool wsa_initialized;
         static void initializeWSA();
     #endif
     };
 
 #ifdef _WIN32
-    bool SocketPrivate::wsaInitialized = false;
+    bool SocketPrivate::wsa_initialized = false;
 #endif
 
     void SocketPrivate::error(std::string msg)
     {
-    	errorString = msg;
+    	error_string = msg;
 #ifdef _WIN32
         ::closesocket(socketId);
 #else
-        ::close(socketId);
+        ::close(socket_id);
 #endif
-    	nextState = SocketState::Error;
+    	next_state = SocketState::Error;
 
-        for(auto listener : listeners)
+        for (auto listener : listeners)
         {
-            listener->error(errorString);
+            listener->error(error_string);
         }
     }
 
     // This is run in a thread.
     void SocketPrivate::run()
     {
-        while(state != SocketState::Closed && state != SocketState::Error)
+        while (state != SocketState::Closed && state != SocketState::Error)
         {
             switch(state)
             {
                 case SocketState::Connecting:
                 {
-                    socketId = ::socket(AF_INET, SOCK_STREAM, 0);
+                    socket_id = ::socket(AF_INET, SOCK_STREAM, 0);
                     sockaddr_in address_data = createAddress();
-                    if(::connect(socketId, reinterpret_cast<sockaddr*>(&address_data), sizeof(address_data)))
+                    if (::connect(socket_id, reinterpret_cast<sockaddr*>(&address_data), sizeof(address_data)))
                     {
-                        errorString = "Could not connect to the given address";
-                        nextState = SocketState::Error;
+                        error_string = "Could not connect to the given address";
+                        next_state = SocketState::Error;
 
-                        for(auto listener : listeners)
+                        for (auto listener : listeners)
                         {
-                            listener->error(errorString);
+                            listener->error(error_string);
                         }
                     }
                     else
                     {
-                        setSocketReceiveTimeout(socketId, 250);
-                        nextState = SocketState::Connected;
+                        setSocketReceiveTimeout(socket_id, 250);
+                        next_state = SocketState::Connected;
                     }
                     break;
                 }
                 case SocketState::Opening:
                 {
-                    socketId = ::socket(AF_INET, SOCK_STREAM, 0);
+                    socket_id = ::socket(AF_INET, SOCK_STREAM, 0);
                     sockaddr_in address_data = createAddress();
-                    if(::bind(socketId, reinterpret_cast<sockaddr*>(&address_data), sizeof(address_data)))
+                    if (::bind(socket_id, reinterpret_cast<sockaddr*>(&address_data), sizeof(address_data)))
                     {
-                        errorString =  "Could not bind to the given address";
-                        nextState = SocketState::Error;
+                        error_string =  "Could not bind to the given address";
+                        next_state = SocketState::Error;
 
-                        for(auto listener : listeners)
+                        for (auto listener : listeners)
                         {
-                            listener->error(errorString);
+                            listener->error(error_string);
                         }
                     }
                     else
                     {
-                        nextState = SocketState::Listening;
+                        next_state = SocketState::Listening;
                     }
                     break;
                 }
                 case SocketState::Listening:
                 {
-                    ::listen(socketId, 1);
+                    ::listen(socket_id, 1);
 
-                    int newSocket = ::accept(socketId, 0, 0);
-                    if(newSocket == -1)
+                    int new_socket = ::accept(socket_id, 0, 0);
+                    if (new_socket == -1)
                     {
-                        errorString = "Could not accept connection";
-                        nextState = SocketState::Error;
+                        error_string = "Could not accept connection";
+                        next_state = SocketState::Error;
 
-                        for(auto listener : listeners)
+                        for (auto listener : listeners)
                         {
-                            listener->error(errorString);
+                            listener->error(error_string);
                         }
                     }
 
                 #ifdef _WIN32
                     ::closesocket(socketId);
                 #else
-                    ::close(socketId);
+                    ::close(socket_id);
                 #endif
-                    socketId = newSocket;
-                    setSocketReceiveTimeout(socketId, 250);
-                    nextState = SocketState::Connected;
+                    socket_id = new_socket;
+                    setSocketReceiveTimeout(socket_id, 250);
+                    next_state = SocketState::Connected;
                     break;
                 }
                 case SocketState::Connected:
                 {
                     //Get all the messages from the queue and store them in a temporary array so we can
                     //unlock the queue before performing the send.
-                    std::list<MessagePtr> messagesToSend;
-                    sendQueueMutex.lock();
-                    while(sendQueue.size() > 0)
+                    std::list<MessagePtr> messages_to_send;
+                    send_queue_mutex.lock();
+                    while (send_queue.size() > 0)
                     {
-                        messagesToSend.push_back(sendQueue.front());
-                        sendQueue.pop_front();
+                        messages_to_send.push_back(send_queue.front());
+                        send_queue.pop_front();
                     }
-                    sendQueueMutex.unlock();
+                    send_queue_mutex.unlock();
 
-                    for(auto message : messagesToSend)
+                    for (auto message : messages_to_send)
                     {
                         sendMessage(message);
                     }
 
                     receiveNextMessage();
 
-                    if (nextState != SocketState::Error)
+                    if (next_state != SocketState::Error)
                     	checkConnectionState();
 
                     break;
                 }
                 case SocketState::Closing:
                 {
-                    std::list<MessagePtr> messagesToSend;
-                    sendQueueMutex.lock();
-                    while(sendQueue.size() > 0)
+                    std::list<MessagePtr> messages_to_send;
+                    send_queue_mutex.lock();
+                    while (send_queue.size() > 0)
                     {
-                        messagesToSend.push_back(sendQueue.front());
-                        sendQueue.pop_front();
+                        messages_to_send.push_back(send_queue.front());
+                        send_queue.pop_front();
                     }
-                    sendQueueMutex.unlock();
+                    send_queue_mutex.unlock();
 
-                    for(auto message : messagesToSend)
+                    for (auto message : messages_to_send)
                     {
                         sendMessage(message);
                     }
@@ -277,20 +277,20 @@ namespace Arcus
                 #ifdef _WIN32
                     ::closesocket(socketId);
                 #else
-                    ::close(socketId);
+                    ::close(socket_id);
                 #endif
-                    nextState = SocketState::Closed;
+                    next_state = SocketState::Closed;
                     break;
                 }
                 default:
                     break;
             }
 
-            if(nextState != state)
+            if (next_state != state)
             {
-                state = nextState;
+                state = next_state;
 
-                for(auto listener : listeners)
+                for (auto listener : listeners)
                 {
                     listener->stateChanged(state);
                 }
@@ -316,16 +316,16 @@ namespace Arcus
     {
         //TODO: Improve error handling.
         uint32_t hdr = htonl((ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | VERSION_MINOR);
-        size_t sent_size = ::send(socketId, reinterpret_cast<const char*>(&hdr), 4, MSG_NOSIGNAL);
+        size_t sent_size = ::send(socket_id, reinterpret_cast<const char*>(&hdr), 4, MSG_NOSIGNAL);
 
         int size = htonl(message->ByteSize());
-        sent_size = ::send(socketId, reinterpret_cast<const char*>(&size), 4, MSG_NOSIGNAL);
+        sent_size = ::send(socket_id, reinterpret_cast<const char*>(&size), 4, MSG_NOSIGNAL);
 
-        int type = htonl(messageTypeMapping[message->GetDescriptor()]);
-        sent_size = ::send(socketId, reinterpret_cast<const char*>(&type), 4, MSG_NOSIGNAL);
+        int type = htonl(message_type_mapping[message->GetDescriptor()]);
+        sent_size = ::send(socket_id, reinterpret_cast<const char*>(&type), 4, MSG_NOSIGNAL);
 
         std::string data = message->SerializeAsString();
-        sent_size = ::send(socketId, data.data(), data.size(), MSG_NOSIGNAL);
+        sent_size = ::send(socket_id, data.data(), data.size(), MSG_NOSIGNAL);
     }
 
 
@@ -414,10 +414,10 @@ namespace Arcus
         {
             ret = readBytes(message.size - message.size_recv,
                     &message.data[message.size_recv]);
-            if(ret == -1)
+            if (ret == -1)
             {
             #ifndef _WIN32
-                if(errno != EAGAIN)
+                if (errno != EAGAIN)
             #endif
                 {
                     delete[] message.data;
@@ -429,7 +429,7 @@ namespace Arcus
             else
             {
                 message.size_recv += ret;
-                if(message.size_recv >= message.size)
+                if (message.size_recv >= message.size)
                 {
                     if (message.valid) {
                         message.state = MESSAGE_STATE_DISPATCH;
@@ -456,9 +456,9 @@ namespace Arcus
     int SocketPrivate::readInt32(int32_t *dest)
     {
         int32_t buffer;
-        int num = ::recv(socketId, reinterpret_cast<char*>(&buffer), 4, 0);
+        int num = ::recv(socket_id, reinterpret_cast<char*>(&buffer), 4, 0);
 
-        if(num != 4)
+        if (num != 4)
         {
             return -1;
         }
@@ -469,8 +469,8 @@ namespace Arcus
 
     int SocketPrivate::readBytes(int size, char* dest)
     {
-        int num = ::recv(socketId, dest, size, 0);
-        if(num == -1)
+        int num = ::recv(socket_id, dest, size, 0);
+        if (num == -1)
         {
             return -1;
         }
@@ -482,72 +482,72 @@ namespace Arcus
 
     void SocketPrivate::handleMessage(int type, int size, char* buffer)
     {
-        if(messageTypes.find(type) == messageTypes.end())
+        if (message_types.find(type) == message_types.end())
         {
-            errorString = "Unknown message type";
+            error_string = "Unknown message type";
             return;
         }
 
-        MessagePtr message = MessagePtr(messageTypes[type]->New());
+        MessagePtr message = MessagePtr(message_types[type]->New());
         google::protobuf::io::ArrayInputStream array(buffer, size);
         google::protobuf::io::CodedInputStream stream(&array);
         stream.SetTotalBytesLimit(500 * 1048576, 128 * 1048576); //Set size limit to 500MiB, warn at 128MiB
-        if(!message->ParseFromCodedStream(&stream))
+        if (!message->ParseFromCodedStream(&stream))
         {
-            errorString = "Failed to parse message";
+            error_string = "Failed to parse message";
             return;
         }
 
-        receiveQueueMutex.lock();
-        receiveQueue.push_back(message);
-        receiveQueueMutex.unlock();
+        receive_queue_mutex.lock();
+        receive_queue.push_back(message);
+        receive_queue_mutex.unlock();
 
-        for(auto listener : listeners)
+        for (auto listener : listeners)
         {
             listener->messageReceived();
         }
     }
 
     // Set socket timeout value in milliseconds
-    void SocketPrivate::setSocketReceiveTimeout(int socketId, int timeout)
+    void SocketPrivate::setSocketReceiveTimeout(int socket_id, int timeout)
     {
         timeval t;
         t.tv_sec = 0;
         t.tv_usec = timeout * 1000;
-        ::setsockopt(socketId, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&t), sizeof(t));
+        ::setsockopt(socket_id, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&t), sizeof(t));
     }
 
     // Send a keepalive packet to check whether we are still connected.
     void SocketPrivate::checkConnectionState()
     {
         auto now = std::chrono::system_clock::now();
-        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastKeepAliveSent);
+        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_keep_alive_sent);
 
-        if(diff.count() > keepAliveRate)
+        if (diff.count() > keep_alive_rate)
         {
             int32_t keepalive = 0;
-            if(::send(socketId, reinterpret_cast<const char*>(&keepalive), 4, MSG_NOSIGNAL) == -1)
+            if (::send(socket_id, reinterpret_cast<const char*>(&keepalive), 4, MSG_NOSIGNAL) == -1)
             {
-                errorString = "Connection reset by peer";
-                nextState = SocketState::Closing;
+                error_string = "Connection reset by peer";
+                next_state = SocketState::Closing;
 
-                for(auto listener : listeners)
+                for (auto listener : listeners)
                 {
-                    listener->error(errorString);
+                    listener->error(error_string);
                 }
             }
-            lastKeepAliveSent = now;
+            last_keep_alive_sent = now;
         }
     }
 
 #ifdef _WIN32
     void SocketPrivate::initializeWSA()
     {
-        if(!wsaInitialized)
+        if (!wsa_initialized)
         {
-            WSADATA wsaData;
-            WSAStartup(MAKEWORD(2, 2), &wsaData);
-            wsaInitialized = true;
+            WSADATA wsa_data;
+            WSAStartup(MAKEWORD(2, 2), &wsa_data);
+            wsa_initialized = true;
         }
     }
 #endif

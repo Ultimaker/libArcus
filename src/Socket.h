@@ -69,12 +69,12 @@ namespace Arcus
         * If the socket state is not SocketState::Initial, this method will do nothing.
         *
         * \param type An integer ID larger than 0 to use to identify the message.
-        * \param messageType An instance of the Message that will be used as factory object.
+        * \param message_type An instance of the Message that will be used as factory object.
         *
         * \note The `type` parameter should be the same both on the sender and receiver side.
         * It is used to identify the messages when sent across the wire.
         */
-        void registerMessageType(int type, const google::protobuf::Message* messageType);
+        void registerMessageType(int type, const google::protobuf::Message* message_type);
 
         /**
         * Add a listener object that will be notified of socket events.

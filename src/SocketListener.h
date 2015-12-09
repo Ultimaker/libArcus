@@ -60,9 +60,9 @@ namespace Arcus
         /**
          * Called whenever the socket's state changes.
          *
-         * \param newState The new state of the socket.
+         * \param new_state The new state of the socket.
          */
-        virtual void stateChanged(SocketState::State newState) = 0;
+        virtual void stateChanged(SocketState::State new_state) = 0;
         /**
          * Called whenever a new message has been received and
          * correctly parsed.
@@ -76,7 +76,7 @@ namespace Arcus
          *
          * \param errorMessage The error message.
          */
-        virtual void error(std::string errorMessage) = 0;
+        virtual void error(std::string error_message) = 0;
 
     private:
         Socket* m_socket;

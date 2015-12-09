@@ -30,12 +30,12 @@ Socket::Socket() : d(new SocketPrivate)
 
 Socket::~Socket()
 {
-    if(d->thread)
+    if (d->thread)
     {
-        if(d->state != SocketState::Closed || d->state != SocketState::Error)
+        if (d->state != SocketState::Closed || d->state != SocketState::Error)
         {
-            d->nextState = SocketState::Closing;
-            if(d->thread)
+            d->next_state = SocketState::Closing;
+            if (d->thread)
             {
                 d->thread->join();
                 d->thread = nullptr;
@@ -52,31 +52,31 @@ SocketState::State Socket::state() const
 
 std::string Socket::errorString() const
 {
-    return d->errorString;
+    return d->error_string;
 }
 
 void Socket::clearError()
 {
-    d->errorString.clear();
+    d->error_string.clear();
 }
 
-void Socket::registerMessageType(int type, const google::protobuf::Message* messageType)
+void Socket::registerMessageType(int type, const google::protobuf::Message* message_type)
 {
-    if(d->state != SocketState::Initial)
+    if (d->state != SocketState::Initial)
     {
         return;
     }
 
-    if(type <= 0)
+    if (type <= 0)
         throw new std::bad_typeid();
 
-    d->messageTypes[type] = messageType;
-    d->messageTypeMapping[messageType->GetDescriptor()] = type;
+    d->message_types[type] = message_type;
+    d->message_type_mapping[message_type->GetDescriptor()] = type;
 }
 
 void Socket::addListener(SocketListener* listener)
 {
-    if(d->state != SocketState::Initial)
+    if (d->state != SocketState::Initial)
     {
         return;
     }
@@ -87,7 +87,7 @@ void Socket::addListener(SocketListener* listener)
 
 void Socket::removeListener(SocketListener* listener)
 {
-    if(d->state != SocketState::Initial)
+    if (d->state != SocketState::Initial)
     {
         return;
     }
@@ -98,14 +98,14 @@ void Socket::removeListener(SocketListener* listener)
 
 void Socket::connect(const std::string& address, int port)
 {
-    if(d->state != SocketState::Initial || d->thread != nullptr)
+    if (d->state != SocketState::Initial || d->thread != nullptr)
     {
         return;
     }
 
     d->address = address;
     d->port = port;
-    d->nextState = SocketState::Connecting;
+    d->next_state = SocketState::Connecting;
     d->thread = new std::thread([&]() { d->run(); });
 }
 
@@ -115,29 +115,29 @@ void Socket::reset()
         d->state != SocketState::Error)
         return;
 
-    if(d->thread)
+    if (d->thread)
     {
         d->thread->join();
         d->thread = nullptr;
     }
 
     d->state = SocketState::Initial;
-    d->nextState = SocketState::Initial;
-    d->errorString = "";
+    d->next_state = SocketState::Initial;
+    d->error_string = "";
 }
 
 void Socket::listen(const std::string& address, int port)
 {
     d->address = address;
     d->port = port;
-    d->nextState = SocketState::Opening;
+    d->next_state = SocketState::Opening;
     d->thread = new std::thread([&]() { d->run(); });
 }
 
 void Socket::close()
 {
-    d->nextState = SocketState::Closing;
-    if(d->thread)
+    d->next_state = SocketState::Closing;
+    if (d->thread)
     {
         d->thread->join();
         d->thread = nullptr;
@@ -146,20 +146,20 @@ void Socket::close()
 
 void Socket::sendMessage(MessagePtr message)
 {
-    if(!message)
+    if (!message)
         return;
     
-    std::lock_guard<std::mutex> lock(d->sendQueueMutex);
-    d->sendQueue.push_back(message);
+    std::lock_guard<std::mutex> lock(d->send_queue_mutex);
+    d->send_queue.push_back(message);
 }
 
 MessagePtr Socket::takeNextMessage()
 {
-    std::lock_guard<std::mutex> lock(d->receiveQueueMutex);
-    if(d->receiveQueue.size() > 0)
+    std::lock_guard<std::mutex> lock(d->receive_queue_mutex);
+    if (d->receive_queue.size() > 0)
     {
-        MessagePtr next = d->receiveQueue.front();
-        d->receiveQueue.pop_front();
+        MessagePtr next = d->receive_queue.front();
+        d->receive_queue.pop_front();
         return next;
     }
     else

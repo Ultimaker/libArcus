@@ -30,20 +30,20 @@ int main(int argc, char** argv)
     std::cout << "Connecting to server\n";
     socket.connect("127.0.0.1", 56789);
 
-    while(true)
+    while (true)
     {
-        if(socket.state() == Arcus::SocketState::Connected)
+        if (socket.state() == Arcus::SocketState::Connected)
         {
             auto message = socket.takeNextMessage();
-            if(message)
+            if (message)
             {
                 handleMessage(socket, message);
             }
-            std::this_thread::sleep_for(std::chrono::milliseconds(250));
+            std::this_thread::sleep_for (std::chrono::milliseconds(250));
         }
-        else if(socket.state() == Arcus::SocketState::Closed || socket.state() == Arcus::SocketState::Error)
+        else if (socket.state() == Arcus::SocketState::Closed || socket.state() == Arcus::SocketState::Error)
         {
-            if(!socket.errorString().empty())
+            if (!socket.errorString().empty())
             {
                 std::cout << "An error occurred: " << socket.errorString() << std::endl;
             }
@@ -58,11 +58,11 @@ void handleMessage(Arcus::Socket& socket, Arcus::MessagePtr message)
 {
     // (Dynamicly) cast the message to one of our types. If this works (does not return a nullptr), we've found the right type.
     auto objectList = dynamic_cast<Example::ObjectList*>(message.get()); 
-    if(objectList)
+    if (objectList)
     {
         objects.clear();
 
-        for(auto objectDesc : objectList->objects())
+        for (auto objectDesc : objectList->objects())
         {
             Object obj;
             obj.id = objectDesc.id();
@@ -74,12 +74,12 @@ void handleMessage(Arcus::Socket& socket, Arcus::MessagePtr message)
 
         auto msg = std::make_shared<Example::SlicedObjectList>();
         int progress = 0;
-        for(auto object : objects)
+        for (auto object : objects)
         {
             auto slicedObject = msg->add_objects();
             slicedObject->set_id(object.id);
 
-            for(int i = 0; i < 100; ++i)
+            for (int i = 0; i < 100; ++i)
             {
                 auto polygon = slicedObject->add_polygons();
                 polygon->set_points("abcdefghijklmnopqrstuvwxyz");
