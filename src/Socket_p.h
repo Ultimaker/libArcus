@@ -147,7 +147,7 @@ namespace Arcus
     {
     	error_string = msg;
 #ifdef _WIN32
-        ::closesocket(socketId);
+        ::closesocket(socket_id);
 #else
         ::close(socket_id);
 #endif
@@ -224,7 +224,7 @@ namespace Arcus
                     }
 
                 #ifdef _WIN32
-                    ::closesocket(socketId);
+                    ::closesocket(socket_id);
                 #else
                     ::close(socket_id);
                 #endif
@@ -275,7 +275,7 @@ namespace Arcus
                     }
 
                 #ifdef _WIN32
-                    ::closesocket(socketId);
+                    ::closesocket(socket_id);
                 #else
                     ::close(socket_id);
                 #endif
