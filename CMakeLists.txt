@@ -23,6 +23,7 @@ endif()
 set(arcus_SRCS
     src/Socket.cpp
     src/SocketListener.cpp
+    src/MessageTypeStore.cpp
 )
 
 set(arcus_HDRS
@@ -30,10 +31,12 @@ set(arcus_HDRS
     src/SocketListener.h
     src/Types.h
     src/ArcusExport.h
+    src/MessageTypeStore.h
+    src/WireMessage.h
 )
 
-set(ARCUS_VERSION 15.09.81)
-set(ARCUS_SOVERSION 1)
+set(ARCUS_VERSION 1.0.0)
+set(ARCUS_SOVERSION 2)
 
 if(BUILD_STATIC)
     add_library(Arcus STATIC ${arcus_SRCS})

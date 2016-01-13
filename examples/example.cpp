@@ -23,9 +23,16 @@ int main(int argc, char** argv)
 {
     Arcus::Socket socket;
 
-    socket.registerMessageType(2, &Example::ObjectList::default_instance());
-    socket.registerMessageType(5, &Example::ProgressUpdate::default_instance());
-    socket.registerMessageType(6, &Example::SlicedObjectList::default_instance());
+//     socket.registerMessageType(&Example::ObjectList::default_instance());
+//     socket.registerMessageType(&Example::ProgressUpdate::default_instance());
+//     socket.registerMessageType(&Example::SlicedObjectList::default_instance());
+    if(!socket.registerAllMessageTypes("example.proto"))
+    {
+        std::cout << socket.errorString();
+        return 1;
+    }
+
+    socket.dumpMessageTypes();
 
     std::cout << "Connecting to server\n";
     socket.connect("127.0.0.1", 56789);
