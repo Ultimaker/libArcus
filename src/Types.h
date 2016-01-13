@@ -32,6 +32,7 @@ namespace google
 
 namespace Arcus
 {
+    typedef unsigned int uint;
     typedef std::shared_ptr<google::protobuf::Message> MessagePtr;
 
     namespace SocketState
