@@ -20,7 +20,6 @@
 #include "Socket_p.h"
 
 #include <algorithm>
-#include <typeinfo>
 
 using namespace Arcus;
 
@@ -60,18 +59,29 @@ void Socket::clearError()
     d->errorString.clear();
 }
 
-void Socket::registerMessageType(int type, const google::protobuf::Message* messageType)
+bool Socket::registerMessageType(const google::protobuf::Message* message_type)
 {
     if(d->state != SocketState::Initial)
     {
-        return;
+        return false;
     }
 
-    if(type <= 0)
-        throw new std::bad_typeid();
+    return d->message_types.registerMessageType(message_type);
+}
 
-    d->messageTypes[type] = messageType;
-    d->messageTypeMapping[messageType->GetDescriptor()] = type;
+bool Socket::registerAllMessageTypes(std::string file_name)
+{
+    if(file_name.empty())
+    {
+        return false;
+    }
+
+    if(d->state != SocketState::Initial)
+    {
+        return false;
+    }
+
+    return d->message_types.registerAllMessageTypes(file_name);
 }
 
 void Socket::addListener(SocketListener* listener)
@@ -166,4 +176,9 @@ MessagePtr Socket::takeNextMessage()
     {
         return nullptr;
     }
+}
+
+void Arcus::Socket::dumpMessageTypes()
+{
+    d->message_types.dumpMessageTypes();
 }

@@ -43,10 +43,11 @@
 
 #include "Types.h"
 #include "SocketListener.h"
+#include "MessageTypeStore.h"
 #include "WireMessage.h"
 
-#define VERSION_MAJOR 0
-#define VERSION_MINOR 1
+#define VERSION_MAJOR 1
+#define VERSION_MINOR 0
 
 #define ARCUS_SIGNATURE 0x2BAD
 #define SIG(n) (((n) & 0xffff0000) >> 16)
@@ -96,8 +97,8 @@ namespace Arcus
 
         std::list<SocketListener*> listeners;
 
-        std::unordered_map<int, const google::protobuf::Message*> messageTypes;
-        std::unordered_map<const google::protobuf::Descriptor*, int> messageTypeMapping;
+        MessageTypeStore message_types;
+
         std::shared_ptr<WireMessage> current_message;
 
         std::deque<MessagePtr> sendQueue;
