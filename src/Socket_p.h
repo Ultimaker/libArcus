@@ -43,6 +43,7 @@
 
 #include "Types.h"
 #include "SocketListener.h"
+#include "WireMessage.h"
 
 #define VERSION_MAJOR 0
 #define VERSION_MINOR 1
@@ -51,7 +52,7 @@
 #define SIG(n) (((n) & 0xffff0000) >> 16)
 
 #ifndef MSG_NOSIGNAL
-	#define MSG_NOSIGNAL 0x0 //Don't request NOSIGNAL on systems where this is not implemented.
+    #define MSG_NOSIGNAL 0x0 //Don't request NOSIGNAL on systems where this is not implemented.
 #endif
 
 /**
@@ -59,15 +60,6 @@
  */
 namespace Arcus
 {
-    enum MessageState {
-        MESSAGE_STATE_INIT,
-        MESSAGE_STATE_HEADER,
-        MESSAGE_STATE_SIZE,
-        MESSAGE_STATE_TYPE,
-        MESSAGE_STATE_DATA,
-        MESSAGE_STATE_DISPATCH,
-    };
-
     class SocketPrivate
     {
     public:
@@ -76,12 +68,8 @@ namespace Arcus
             , nextState(SocketState::Initial)
             , port(0)
             , thread(nullptr)
-            , message({})
             , lastKeepAliveSent(std::chrono::system_clock::now())
         {
-
-
-
         #ifdef _WIN32
             initializeWSA();
         #endif
@@ -93,7 +81,7 @@ namespace Arcus
         void receiveNextMessage();
         int readInt32(int32_t *dest);
         int readBytes(int size, char* dest);
-        void handleMessage(int type, int size, char* buffer);
+        void handleMessage(const std::shared_ptr<WireMessage>& wire_message);
         void setSocketReceiveTimeout(int socketId, int timeout);
         void checkConnectionState();
         void error(std::string msg);
@@ -110,20 +98,12 @@ namespace Arcus
 
         std::unordered_map<int, const google::protobuf::Message*> messageTypes;
         std::unordered_map<const google::protobuf::Descriptor*, int> messageTypeMapping;
+        std::shared_ptr<WireMessage> current_message;
 
         std::deque<MessagePtr> sendQueue;
         std::mutex sendQueueMutex;
         std::deque<MessagePtr> receiveQueue;
         std::mutex receiveQueueMutex;
-
-        struct {
-            Arcus::MessageState state;
-            int type;
-            int size;
-            int size_recv;
-            bool valid;
-            char *data;
-        } message;
 
         std::string errorString;
 
@@ -145,13 +125,14 @@ namespace Arcus
 
     void SocketPrivate::error(std::string msg)
     {
-    	errorString = msg;
+        errorString = msg;
 #ifdef _WIN32
         ::closesocket(socketId);
 #else
         ::close(socketId);
 #endif
-    	nextState = SocketState::Error;
+        current_message.reset();
+        nextState = SocketState::Error;
 
         for(auto listener : listeners)
         {
@@ -254,7 +235,9 @@ namespace Arcus
                     receiveNextMessage();
 
                     if (nextState != SocketState::Error)
-                    	checkConnectionState();
+                    {
+                        checkConnectionState();
+                    }
 
                     break;
                 }
@@ -307,135 +290,133 @@ namespace Arcus
         int size = htonl(message->ByteSize());
         sent_size = ::send(socketId, reinterpret_cast<const char*>(&size), 4, MSG_NOSIGNAL);
 
-        int type = htonl(messageTypeMapping[message->GetDescriptor()]);
+        int type = htonl(message_types.getMessageTypeId(message));
         sent_size = ::send(socketId, reinterpret_cast<const char*>(&type), 4, MSG_NOSIGNAL);
 
         std::string data = message->SerializeAsString();
         sent_size = ::send(socketId, data.data(), data.size(), MSG_NOSIGNAL);
     }
 
-
     void SocketPrivate::receiveNextMessage()
     {
-        int32_t hdr;
-        int ret;
+        int result;
 
-        if (message.state == MESSAGE_STATE_INIT)
+        if(!current_message)
         {
-            message.valid = true;
-            message.size = 0;
-            message.size_recv = 0;
-            message.type = 0;
-            message.state = MESSAGE_STATE_HEADER;
+            current_message = std::make_shared<WireMessage>();
         }
 
-        if (message.state == MESSAGE_STATE_HEADER)
+        if(current_message->getState() == WireMessage::MessageStateHeader)
         {
-            if (readInt32(&hdr) || hdr == 0) /* Keep-alive, just return */
+            int32_t header;
+            readInt32(&header);
+
+            if(header == 0) // Keep-alive, just return
                 return;
 
-            if (SIG(hdr) != ARCUS_SIGNATURE)
+            if (SIG(header) != ARCUS_SIGNATURE)
             {
-                /* Someone might be speaking to us in a different protocol? */
+                // Someone might be speaking to us in a different protocol?
                 error("Header mismatch");
                 return;
             }
 
-            message.state = MESSAGE_STATE_SIZE;
+            current_message->setState(WireMessage::MessageStateSize);
         }
 
-        if (message.state == MESSAGE_STATE_SIZE)
+        if(current_message->getState() == WireMessage::MessageStateSize)
         {
-            ret = readInt32(&message.size);
-            if (ret) {
-#ifndef _WIN32
+            int32_t size;
+            result = readInt32(&size);
+            if(result)
+            {
+                #ifndef _WIN32
                 if (errno == EAGAIN)
                     return;
-#endif
-                error("Size invalid");
-                message.state = MESSAGE_STATE_INIT;
-                return;
-            }
+                #endif
 
-            if (message.size < 0)
-            {
-                message.state = MESSAGE_STATE_INIT;
                 error("Size invalid");
                 return;
             }
 
-            message.state = MESSAGE_STATE_TYPE;
+            if(size < 0)
+            {
+                error("Size invalid");
+                return;
+            }
+
+            current_message->setSize(size);
+            current_message->setState(WireMessage::MessageStateType);
         }
 
-        if (message.state == MESSAGE_STATE_TYPE)
+        if (current_message->getState() == WireMessage::MessageStateType)
         {
-            ret = readInt32(&message.type);
-            if (ret) {
-#ifndef _WIN32
+            int32_t type;
+            result = readInt32(&type);
+            if(result)
+            {
+                #ifndef _WIN32
                 if (errno == EAGAIN)
                     return;
-#endif
+                #endif
                 error("Type invalid");
-                message.valid = false;
+                current_message->setValid(false);
             }
 
-            if (message.type < 0)
+            if (type < 0)
             {
                 error("Type invalid");
-                message.valid = false;
+                current_message->setValid(false);
             }
 
-            try {
-                message.data = new char[message.size];
-            } catch (std::bad_alloc& ba) {
-                /* Either way we're in trouble. */
+            try
+            {
+                current_message->allocateData();
+            }
+            catch (std::bad_alloc& ba)
+            {
+                // Either way we're in trouble.
+                current_message.reset();
                 error("Received malformed package or out of memory");
-                message.state = MESSAGE_STATE_INIT;
                 return;
             }
-            message.state = MESSAGE_STATE_DATA;
+
+            current_message->setType(type);
+            current_message->setState(WireMessage::MessageStateData);
         }
 
-        if (message.state == MESSAGE_STATE_DATA)
+        if (current_message->getState() == WireMessage::MessageStateData)
         {
-            ret = readBytes(message.size - message.size_recv,
-                    &message.data[message.size_recv]);
-            if(ret == -1)
+            result = readBytes(current_message->getRemainingSize(), &current_message->getData()[current_message->getSizeReceived()]);
+            if(result == -1)
             {
             #ifndef _WIN32
                 if(errno != EAGAIN)
             #endif
                 {
-                    delete[] message.data;
-                    message.data = nullptr;
-                    message.size_recv = 0;
-                    message.state = MESSAGE_STATE_INIT;
+                    current_message.reset();
                 }
             }
             else
             {
-                message.size_recv += ret;
-                if(message.size_recv >= message.size)
+                current_message->setSizeReceived(current_message->getSizeReceived() + result);
+                if(current_message->isComplete())
                 {
-                    if (message.valid) {
-                        message.state = MESSAGE_STATE_DISPATCH;
-                    }
-                    else
+                    if(!current_message->isValid())
                     {
-                        delete[] message.data;
-                        message.data = nullptr;
-                        message.state = MESSAGE_STATE_INIT;
+                        current_message.reset();
+                        return;
                     }
+
+                    current_message->setState(WireMessage::MessageStateDispatch);
                 }
             }
         }
 
-        if (message.state == MESSAGE_STATE_DISPATCH)
+        if (current_message->getState() == WireMessage::MessageStateDispatch)
         {
-            handleMessage(message.type, message.size, message.data);
-            delete[] message.data;
-            message.data = nullptr;
-            message.state = MESSAGE_STATE_INIT;
+            handleMessage(current_message);
+            current_message.reset();
         }
     }
 
@@ -466,16 +447,17 @@ namespace Arcus
         }
     }
 
-    void SocketPrivate::handleMessage(int type, int size, char* buffer)
+    void SocketPrivate::handleMessage(const std::shared_ptr<WireMessage>& wire_message)
     {
-        if(messageTypes.find(type) == messageTypes.end())
+        if(!message_types.hasType(wire_message->getType()))
         {
             errorString = "Unknown message type";
             return;
         }
 
-        MessagePtr message = MessagePtr(messageTypes[type]->New());
-        google::protobuf::io::ArrayInputStream array(buffer, size);
+        MessagePtr message = message_types.createMessage(wire_message->getType());
+
+        google::protobuf::io::ArrayInputStream array(wire_message->getData(), wire_message->getSize());
         google::protobuf::io::CodedInputStream stream(&array);
         stream.SetTotalBytesLimit(500 * 1048576, 128 * 1048576); //Set size limit to 500MiB, warn at 128MiB
         if(!message->ParseFromCodedStream(&stream))
@@ -537,7 +519,6 @@ namespace Arcus
         }
     }
 #endif
-
 }
 
 
