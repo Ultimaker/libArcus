@@ -28,7 +28,7 @@
     newstring = PyUnicode_DecodeUTF8(sipCpp->c_str(), sipCpp->length(), NULL);
     if(newstring == NULL) {
         PyErr_Clear();
-        newstring = PyString_FromString(sipCpp->c_str());
+        newstring = PyBytes_FromString(sipCpp->c_str());
     }
     return newstring;
 %End
@@ -39,7 +39,7 @@
     // If argument is a Unicode string, just decode it to UTF-8
     // If argument is a Python string, assume it's UTF-8
     if (sipIsErr == NULL)
-        return (PyString_Check(sipPy) || PyUnicode_Check(sipPy));
+        return (PyBytes_Check(sipPy) || PyUnicode_Check(sipPy));
 
     if (sipPy == Py_None)
     {
@@ -50,46 +50,60 @@
     if (PyUnicode_Check(sipPy))
     {
         PyObject* s = PyUnicode_AsEncodedString(sipPy, "UTF-8", "");
-        *sipCppPtr = new std::string(PyString_AS_STRING(s));
+        *sipCppPtr = new std::string(PyBytes_AS_STRING(s));
         Py_DECREF(s);
         return 1;
     }
 
-    if (PyString_Check(sipPy))
+    if (PyBytes_Check(sipPy))
     {
-        *sipCppPtr = new std::string(PyString_AS_STRING(sipPy));
+        *sipCppPtr = new std::string(PyBytes_AS_STRING(sipPy));
         return 1;
     }
     return 0;
 %End
 };
 
-%MappedType MessagePtr
+%MappedType Arcus::MessagePtr
 {
 %TypeHeaderCode
 #include <memory>
-#include <google/protobuf/Message.h>
+#include <google/protobuf/message.h>
 %End
 
 %ConvertFromTypeCode
+    // Convert a Protobuf message to a Python object
+    //PyObject* object;
+    Py_RETURN_NOTIMPLEMENTED;
 %End
 
 %ConvertToTypeCode
+    // Convert a Python object to a Protobuf message
+//     if(PyObject_HasAttr(sipPy, "
+    //Py_RETURN_NOTIMPLEMENTED;
+    return 0;
 %End
 
-}
+};
 
-namespace SocketState
+%UnitCode
+#include "Types.h"
+%End
+
+namespace Arcus
 {
-    enum State
+    namespace SocketState
     {
-        Initial, ///< Created, not running.
-        Connecting, ///< Connecting to an address and port.
-        Connected, ///< Connected and capable of sending and receiving messages.
-        Opening, ///< Opening for incoming connections.
-        Listening, ///< Listening for incoming connections.
-        Closing, ///< Closing down.
-        Closed, ///< Closed, not running.
-        Error ///< An error happened.
+        enum State
+        {
+            Initial, ///< Created, not running.
+            Connecting, ///< Connecting to an address and port.
+            Connected, ///< Connected and capable of sending and receiving messages.
+            Opening, ///< Opening for incoming connections.
+            Listening, ///< Listening for incoming connections.
+            Closing, ///< Closing down.
+            Closed, ///< Closed, not running.
+            Error ///< An error happened.
+        };
     };
 };

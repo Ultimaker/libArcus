@@ -21,32 +21,39 @@
 %Include Types.sip
 %Include SocketListener.sip
 
-class Socket
+namespace Arcus
 {
-    %TypeHeaderCode
-    #include "Socket.h"
-    %End
+    class Socket
+    {
+        %TypeHeaderCode
+        #include "Socket.h"
+        %End
 
-public:
-    Socket();
-    virtual ~Socket();
+    public:
+        Socket();
+        virtual ~Socket();
 
-    SocketState::State state() const;
+        Arcus::SocketState::State state() const;
 
-    std::string errorString() const;
+        std::string errorString() const;
 
-    void clearError();
+        void clearError();
 
-    void addListener(SocketListener* listener /TransferThis/);
-    void removeListener(SocketListener* listener);
+        void addListener(Arcus::SocketListener* listener /TransferThis/);
+        void removeListener(Arcus::SocketListener* listener);
 
-    void connect(const std::string& address, int port);
-    void listen(const std::string& address, int port);
-    void close();
+        void connect(const std::string& address, int port);
+        void listen(const std::string& address, int port);
+        void close();
 
-    void sendMessage(MessagePtr message);
+        void sendMessage(Arcus::MessagePtr message);
 
-    MessagePtr takeNextMessage();
+        Arcus::MessagePtr takeNextMessage();
 
-    void reset();
+        void reset();
+
+    private:
+        Socket(const Arcus::Socket&);
+        Arcus::Socket& operator=(const Arcus::Socket&);
+    };
 };

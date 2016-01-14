@@ -16,17 +16,20 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-class SocketListener
+namespace Arcus
 {
-    %TypeHeaderCode
-    #include "SocketListener.h"
-    %End
+    class SocketListener
+    {
+        %TypeHeaderCode
+        #include "SocketListener.h"
+        %End
 
-public:
-    SocketListener();
-    virtual ~SocketListener();
+    public:
+        SocketListener();
+        virtual ~SocketListener();
 
-    virtual void stateChanged(SocketState::State newState) = 0;
-    virtual void messageReceived() = 0;
-    virtual void error(std::string errorMessage) = 0;
+        virtual void stateChanged(Arcus::SocketState::State newState) = 0;
+        virtual void messageReceived() = 0;
+        virtual void error(std::string errorMessage) = 0;
+    };
 };
