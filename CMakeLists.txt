@@ -3,15 +3,17 @@ cmake_minimum_required(VERSION 2.8.12)
 
 include(CMakePackageConfigHelpers)
 
-option(INSTALL_PYTHON_PACKAGE "Install the Python parts of Arcus" ON)
+option(BUILD_PYTHON "Build " ON)
 option(BUILD_EXAMPLES "Build the example programs" ON)
 option(BUILD_STATIC "Build as a static library" OFF)
 
 set(REQUIRED_PROTOBUF_VERSION 3.0.0)
 find_package(Protobuf ${REQUIRED_PROTOBUF_VERSION} REQUIRED)
 
-if(INSTALL_PYTHON_PACKAGE)
-    find_package(PythonInterp 3.4.0 REQUIRED)
+if(BUILD_PYTHON)
+    set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+    find_package(SIP REQUIRED)
+    include_directories(${SIP_INCLUDE_DIR})
 endif()
 
 if(NOT ${CMAKE_VERSION} VERSION_LESS 3.1)
@@ -44,6 +46,8 @@ if(BUILD_STATIC)
 else()
     add_library(Arcus SHARED ${arcus_SRCS})
 endif()
+
+add_sip_python_module(Arcus python/Socket.sip Arcus)
 
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
 
