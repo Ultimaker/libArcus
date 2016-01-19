@@ -16,44 +16,51 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-%Module Arcus
+%Module(name = Arcus, call_super_init = True)
 
 %Include Types.sip
 %Include SocketListener.sip
+%Include PythonMessage.sip
 
-namespace Arcus
+%ModuleHeaderCode
+using namespace Arcus;
+%End
+
+class Socket
 {
-    class Socket
-    {
-        %TypeHeaderCode
-        #include "Socket.h"
-        %End
+    %TypeHeaderCode
+    #include "Socket.h"
+    %End
 
-    public:
-        Socket();
-        virtual ~Socket();
+public:
+    Socket();
+    virtual ~Socket();
 
-        Arcus::SocketState::State state() const;
+    SocketState::State state() const;
 
-        std::string errorString() const;
+    std::string errorString() const;
 
-        void clearError();
+    void clearError();
 
-        void addListener(Arcus::SocketListener* listener /TransferThis/);
-        void removeListener(Arcus::SocketListener* listener);
+    void addListener(SocketListener* listener /TransferThis/);
+    void removeListener(SocketListener* listener);
 
-        void connect(const std::string& address, int port);
-        void listen(const std::string& address, int port);
-        void close();
+    void connect(const std::string& address, int port);
+    void listen(const std::string& address, int port);
+    void close() /ReleaseGIL/;
 
-        void sendMessage(Arcus::MessagePtr message);
+    void sendMessage(MessagePtr message);
 
-        Arcus::MessagePtr takeNextMessage();
+    MessagePtr takeNextMessage();
 
-        void reset();
+    void reset() /ReleaseGIL/;
 
-    private:
-        Socket(const Arcus::Socket&);
-        Arcus::Socket& operator=(const Arcus::Socket&);
-    };
+    bool registerAllMessageTypes(const std::string& file_name) /ReleaseGIL/;
+
+    MessagePtr createMessage(const std::string& type_name);
+
+private:
+    Socket(const Socket&);
+    Socket& operator=(const Socket&);
 };
+

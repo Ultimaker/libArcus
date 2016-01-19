@@ -64,7 +64,7 @@
 %End
 };
 
-%MappedType Arcus::MessagePtr
+%MappedType MessagePtr
 {
 %TypeHeaderCode
 #include <memory>
@@ -90,20 +90,17 @@
 #include "Types.h"
 %End
 
-namespace Arcus
+namespace SocketState
 {
-    namespace SocketState
+    enum State
     {
-        enum State
-        {
-            Initial, ///< Created, not running.
-            Connecting, ///< Connecting to an address and port.
-            Connected, ///< Connected and capable of sending and receiving messages.
-            Opening, ///< Opening for incoming connections.
-            Listening, ///< Listening for incoming connections.
-            Closing, ///< Closing down.
-            Closed, ///< Closed, not running.
-            Error ///< An error happened.
-        };
+        Initial, ///< Created, not running.
+        Connecting, ///< Connecting to an address and port.
+        Connected, ///< Connected and capable of sending and receiving messages.
+        Opening, ///< Opening for incoming connections.
+        Listening, ///< Listening for incoming connections.
+        Closing, ///< Closing down.
+        Closed, ///< Closed, not running.
+        Error ///< An error happened.
     };
 };
