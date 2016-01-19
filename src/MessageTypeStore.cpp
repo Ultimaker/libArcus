@@ -129,7 +129,7 @@ bool Arcus::MessageTypeStore::registerAllMessageTypes(const std::string& file_na
     {
         d->error_collector = std::make_shared<ErrorCollector>();
         d->source_tree = std::make_shared<google::protobuf::compiler::DiskSourceTree>();
-        d->source_tree->MapPath("", ".");
+        d->source_tree->MapPath("/", "/");
         d->importer = std::make_shared<google::protobuf::compiler::Importer>(d->source_tree.get(), d->error_collector.get());
     }
 
