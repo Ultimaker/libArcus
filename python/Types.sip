@@ -68,19 +68,51 @@
 {
 %TypeHeaderCode
 #include <memory>
-#include <google/protobuf/message.h>
+#include "PythonMessage.h"
 %End
 
 %ConvertFromTypeCode
     // Convert a Protobuf message to a Python object
-    //PyObject* object;
-    Py_RETURN_NOTIMPLEMENTED;
+    if(!(*sipCpp))
+    {
+        PyErr_SetString(PyExc_ValueError, "Unknown message type");
+        return NULL;
+    }
+
+    const sipTypeDef* message_type = sipFindType("PythonMessage");
+
+    PythonMessage* message = new PythonMessage(*sipCpp);
+
+    sipTransferObj = Py_None;
+
+    return sipConvertFromNewType(message, message_type, sipTransferObj);
 %End
 
 %ConvertToTypeCode
     // Convert a Python object to a Protobuf message
-//     if(PyObject_HasAttr(sipPy, "
-    //Py_RETURN_NOTIMPLEMENTED;
+    const sipTypeDef* message_type = sipFindType("PythonMessage");
+
+    if(sipIsErr == NULL)
+    {
+        return sipCanConvertToType(sipPy, message_type, SIP_NOT_NONE);
+    }
+
+    if(sipCanConvertToType(sipPy, message_type, SIP_NOT_NONE))
+    {
+        int iserr = 0;
+        PythonMessage* message = reinterpret_cast<PythonMessage*>(sipConvertToType(sipPy, message_type, NULL, 0, NULL, &iserr));
+
+        if(iserr != 0)
+        {
+            PyErr_SetString(PyExc_ValueError, "Could not convert to Message");
+            return 0;
+        }
+
+        MessagePtr msg = message->getSharedMessage();
+        *sipCppPtr = new MessagePtr{msg};
+        return 1;
+    }
+
     return 0;
 %End
 
