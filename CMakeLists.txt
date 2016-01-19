@@ -13,7 +13,7 @@ find_package(Protobuf ${REQUIRED_PROTOBUF_VERSION} REQUIRED)
 if(BUILD_PYTHON)
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
     find_package(SIP REQUIRED)
-    include_directories(${SIP_INCLUDE_DIR})
+    include_directories(python/ src/ ${SIP_INCLUDE_DIR})
 endif()
 
 if(NOT ${CMAKE_VERSION} VERSION_LESS 3.1)
@@ -47,7 +47,11 @@ else()
     add_library(Arcus SHARED ${arcus_SRCS})
 endif()
 
-add_sip_python_module(Arcus python/Socket.sip Arcus)
+if(BUILD_PYTHON)
+    set(SIP_EXTRA_FILES_DEPEND python/SocketListener.sip python/Types.sip python/PythonMessage.sip)
+    set(SIP_EXTRA_SOURCE_FILES python/PythonMessage.cpp)
+    add_sip_python_module(Arcus python/Socket.sip Arcus)
+endif()
 
 set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
 
@@ -98,12 +102,6 @@ install(FILES
     DESTINATION lib/cmake/Arcus
 )
 
-if(INSTALL_PYTHON_PACKAGE)
-    if(APPLE OR WIN32)
-        install(FILES python/Arcus/__init__.py DESTINATION lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/Arcus)
-    else()
-        install(FILES python/Arcus/__init__.py DESTINATION lib/python${PYTHON_VERSION_MAJOR}/dist-packages/Arcus)
-    endif()
-endif()
+
 
 include(CPackConfig.cmake)
