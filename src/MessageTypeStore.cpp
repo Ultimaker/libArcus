@@ -148,9 +148,9 @@ bool Arcus::MessageTypeStore::registerAllMessageTypes(const std::string& file_na
     {
         auto message_type_descriptor = descriptor->message_type(i);
 
-        uint type_id = std::hash<std::string>{}(message_type_descriptor->name());
-
         auto message_type = d->message_factory->GetPrototype(message_type_descriptor);
+
+        uint type_id = std::hash<std::string>{}(message_type->GetTypeName());
 
         d->message_types[type_id] = message_type;
         d->message_type_mapping[message_type_descriptor] = type_id;
