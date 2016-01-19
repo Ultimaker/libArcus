@@ -300,7 +300,7 @@ namespace Arcus
 
     void SocketPrivate::receiveNextMessage()
     {
-        int result;
+        int result = 0;
 
         if(!current_message)
         {
@@ -309,7 +309,7 @@ namespace Arcus
 
         if(current_message->getState() == WireMessage::MessageStateHeader)
         {
-            int32_t header;
+            int32_t header = 0;
             readInt32(&header);
 
             if(header == 0) // Keep-alive, just return
@@ -327,7 +327,7 @@ namespace Arcus
 
         if(current_message->getState() == WireMessage::MessageStateSize)
         {
-            int32_t size;
+            int32_t size = 0;
             result = readInt32(&size);
             if(result)
             {
@@ -352,7 +352,7 @@ namespace Arcus
 
         if (current_message->getState() == WireMessage::MessageStateType)
         {
-            int32_t type;
+            int32_t type = 0;
             result = readInt32(&type);
             if(result)
             {
@@ -360,15 +360,10 @@ namespace Arcus
                 if (errno == EAGAIN)
                     return;
                 #endif
-                error("Type invalid");
                 current_message->setValid(false);
             }
 
-            if (type < 0)
-            {
-                error("Type invalid");
-                current_message->setValid(false);
-            }
+            uint32_t real_type = static_cast<uint32_t>(type);
 
             try
             {
@@ -382,13 +377,14 @@ namespace Arcus
                 return;
             }
 
-            current_message->setType(type);
+            current_message->setType(real_type);
             current_message->setState(WireMessage::MessageStateData);
         }
 
         if (current_message->getState() == WireMessage::MessageStateData)
         {
             result = readBytes(current_message->getRemainingSize(), &current_message->getData()[current_message->getSizeReceived()]);
+
             if(result == -1)
             {
             #ifndef _WIN32
@@ -418,6 +414,15 @@ namespace Arcus
         {
             handleMessage(current_message);
             current_message.reset();
+
+            if(!errorString.empty())
+            {
+                for(auto listener : listeners)
+                {
+                    listener->error(errorString);
+                }
+                errorString.clear();
+            }
         }
     }
 

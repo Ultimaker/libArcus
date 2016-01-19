@@ -28,7 +28,6 @@ namespace Arcus
     public:
         enum MessageState
         {
-            MessageStateInitial,
             MessageStateHeader,
             MessageStateSize,
             MessageStateType,
@@ -115,11 +114,11 @@ namespace Arcus
         }
 
     private:
-        MessageState _state = MessageStateInitial;
+        MessageState _state = MessageStateHeader;
         uint _type = 0;
         uint _size = 0;
         uint _size_received = 0;
-        bool _valid = false;
+        bool _valid = true;
         char* _data = nullptr;
     };
 }
