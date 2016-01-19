@@ -23,19 +23,21 @@ int main(int argc, char** argv)
 {
     Arcus::Socket socket;
 
-//     socket.registerMessageType(&Example::ObjectList::default_instance());
-//     socket.registerMessageType(&Example::ProgressUpdate::default_instance());
-//     socket.registerMessageType(&Example::SlicedObjectList::default_instance());
-    if(!socket.registerAllMessageTypes("example.proto"))
-    {
-        std::cout << socket.errorString();
-        return 1;
-    }
+    socket.registerMessageType(&Example::ObjectList::default_instance());
+    socket.registerMessageType(&Example::ProgressUpdate::default_instance());
+    socket.registerMessageType(&Example::SlicedObjectList::default_instance());
 
     socket.dumpMessageTypes();
 
     std::cout << "Connecting to server\n";
     socket.connect("127.0.0.1", 56789);
+
+    while(socket.state() != Arcus::SocketState::Connected)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    std::cout << "Connected to server\n";
 
     while(true)
     {
@@ -56,18 +58,25 @@ int main(int argc, char** argv)
             }
             break;
         }
+        else if(!socket.errorString().empty())
+        {
+            std::cout << socket.errorString() << std::endl;
+        }
     }
 
+    socket.close();
     return 0;
 }
 
 void handleMessage(Arcus::Socket& socket, Arcus::MessagePtr message)
 {
     // (Dynamicly) cast the message to one of our types. If this works (does not return a nullptr), we've found the right type.
-    auto objectList = dynamic_cast<Example::ObjectList*>(message.get()); 
+    auto objectList = dynamic_cast<Example::ObjectList*>(message.get());
     if(objectList)
     {
         objects.clear();
+
+        std::cout << "Received object list containing " << objectList->objects_size() << " objects" << std::endl;
 
         for(auto objectDesc : objectList->objects())
         {

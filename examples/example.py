@@ -1,50 +1,72 @@
-import example_pb2
 import Arcus
 
 import time
+import os.path
+
+class Listener(Arcus.SocketListener):
+    def stateChanged(self, state):
+        print("Socket state changed:", state)
+
+    def messageReceived(self):
+        message = self.socket().takeNextMessage()
+
+        if message.getTypeName() == "Example.ProgressUpdate":
+            print("Progress:", message.amount)
+
+        if message.getTypeName() == "Example.SlicedObjectList":
+            print("Sliced Objects:", message.repeatedFieldCount("objects"))
+
+    def error(self, error):
+        print(error)
+
+print("Creating socket")
 
 socket = Arcus.Socket()
 
-socket.registerMessageType(2, example_pb2.ObjectList)
-socket.registerMessageType(5, example_pb2.ProgressUpdate)
-socket.registerMessageType(6, example_pb2.SlicedObjectList)
+print("Registering message types")
 
-def onStateChanged(newState):
-    print('State Changed:', newState)
+socket.registerAllMessageTypes(os.path.dirname(os.path.abspath(__file__)) + "/example.proto")
 
-def onError(error):
-    print('An error occured:', error)
+print("Creating listener")
 
-def onMessageAvailable():
-    message = socket.takeNextMessage()
-    if type(message) is example_pb2.ProgressUpdate:
-        print('Progress:', message.amount)
+listener = Listener()
+socket.addListener(listener)
 
-    if type(message) is example_pb2.SlicedObjectList:
-        print('Sliced Objects:')
-        for obj in message.objects:
-            print('  Object(', obj.id, '):')
-            for poly in obj.polygons:
-                print('    Polygon(', poly.points, ')')
+print("Listening for connections on 127.0.0.1:56789")
 
-socket.setStateChangedCallback(onStateChanged)
-socket.setMessageReceivedCallback(onMessageAvailable)
-socket.setErrorCallback(onError)
 socket.listen('127.0.0.1', 56789)
 
-time.sleep(5) #Sleep for a bit so the other side can connect
+while(socket.state() != Arcus.SocketState.Connected):
+    time.sleep(0.1)
+
+#time.sleep(5) #Sleep for a bit so the other side can connect
+
+if(socket.state() == Arcus.SocketState.Connected):
+    print("Connection established")
+else:
+    print(socket.state())
+    print("Could not establish a connection:", socket.errorString())
+    exit(1)
 
 for i in range(10):
-    msg = example_pb2.ObjectList()
+    msg = socket.createMessage("Example.ObjectList")
+
     for i in range(10):
-        obj = msg.objects.add()
+        obj = msg.addRepeatedField("objects")
         obj.id = i
         obj.vertices = b'abcdefghijklmnopqrstuvwxyz'
         obj.normals = b'abcdefghijklmnopqrstuvwxyz'
         obj.indices = b'abcdefghijklmnopqrstuvwxyz'
+
     socket.sendMessage(msg)
+
     time.sleep(1)
 
+    if socket.state() != Arcus.SocketState.Connected:
+        break
+
 time.sleep(5) #Sleep for a bit more so we can receive replies to what we just sent.
+
+print("Closing connection")
 
 socket.close()
