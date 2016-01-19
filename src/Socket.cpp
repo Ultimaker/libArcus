@@ -182,3 +182,13 @@ void Arcus::Socket::dumpMessageTypes()
 {
     d->message_types.dumpMessageTypes();
 }
+
+MessagePtr Arcus::Socket::createMessage(uint type_id)
+{
+    return d->message_types.createMessage(type_id);
+}
+
+MessagePtr Arcus::Socket::createMessage(const std::string& type)
+{
+    return d->message_types.createMessage(type);
+}

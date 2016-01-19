@@ -128,6 +128,9 @@ namespace Arcus
          */
         void reset();
 
+        MessagePtr createMessage(uint type_id);
+        MessagePtr createMessage(const std::string& type);
+
         void dumpMessageTypes();
 
     private:
