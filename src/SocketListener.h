@@ -26,6 +26,7 @@
 namespace Arcus
 {
     class Socket;
+    class Error;
 
     /**
      * Interface for socket event listeners.
@@ -70,7 +71,7 @@ namespace Arcus
          *
          * \param errorMessage The error message.
          */
-        virtual void error(std::string errorMessage) = 0;
+        virtual void error(const Error& error) = 0;
 
     private:
         // So we can call setSocket from Socket without making it public interface.

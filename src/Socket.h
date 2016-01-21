@@ -22,6 +22,7 @@
 #include <memory>
 
 #include "Types.h"
+#include "Error.h"
 #include "ArcusExport.h"
 
 namespace Arcus
@@ -55,12 +56,15 @@ namespace Arcus
         SocketState::SocketState getState() const;
 
         /**
-         * Get the last error string.
+         * Get the last error.
          *
-         * \return The last error string.
+         * \return The last error that occurred.
          */
-        std::string errorString() const;
+        Error getLastError() const;
 
+        /**
+         * Clear any error that was set previously.
+         */
         void clearError();
 
         /**

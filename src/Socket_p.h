@@ -44,7 +44,9 @@
 #include "Types.h"
 #include "SocketListener.h"
 #include "MessageTypeStore.h"
-#include "WireMessage.h"
+#include "Error.h"
+
+#include "WireMessage_p.h"
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 0
@@ -85,7 +87,9 @@ namespace Arcus
         void handleMessage(const std::shared_ptr<WireMessage>& wire_message);
         void setSocketReceiveTimeout(int socketId, int timeout);
         void checkConnectionState();
-        void error(std::string msg);
+
+        void error(ErrorCode::ErrorCode error_code, const std::string& message);
+        void fatalError(ErrorCode::ErrorCode error_code, const std::string& msg);
 
         SocketState::SocketState state = SocketState::Initial;
         SocketState::SocketState next_state = SocketState::Initial;
@@ -106,9 +110,9 @@ namespace Arcus
         std::deque<MessagePtr> receiveQueue;
         std::mutex receiveQueueMutex;
 
-        std::string errorString;
 
         int socketId;
+        Error last_error;
 
         std::chrono::system_clock::time_point lastKeepAliveSent;
 
@@ -123,21 +127,31 @@ namespace Arcus
 #ifdef _WIN32
     bool SocketPrivate::wsaInitialized = false;
 #endif
-
-    void SocketPrivate::error(std::string msg)
+    // Report an error that should not cause the connection to abort.
+    void Socket::Private::error(ErrorCode::ErrorCode error_code, const std::string& message)
     {
-        errorString = msg;
-#ifdef _WIN32
-        ::closesocket(socketId);
-#else
-        ::close(socketId);
-#endif
+        Error error{error_code, message};
+        last_error = error;
+
+        for(auto listener : listeners)
+        {
+            listener->error(error);
+        }
+    }
+
+    // Report an error that should cause the socket to go into an error state and abort the connection.
+    void Socket::Private::fatalError(ErrorCode::ErrorCode error_code, const std::string& message)
+    {
+        Error error{error_code, message};
+        error.setFatalError(true);
+        last_error = error;
+
         current_message.reset();
         next_state = SocketState::Error;
 
         for(auto listener : listeners)
         {
-            listener->error(errorString);
+            listener->error(error);
         }
     }
 
@@ -154,11 +168,6 @@ namespace Arcus
                     sockaddr_in address_data = createAddress();
                     if(::connect(socketId, reinterpret_cast<sockaddr*>(&address_data), sizeof(address_data)))
                     {
-                        errorString = "Could not connect to the given address";
-                        for(auto listener : listeners)
-                        {
-                            listener->error(errorString);
-                        }
                     }
                     else
                     {
@@ -173,11 +182,6 @@ namespace Arcus
                     sockaddr_in address_data = createAddress();
                     if(::bind(socketId, reinterpret_cast<sockaddr*>(&address_data), sizeof(address_data)))
                     {
-                        errorString =  "Could not bind to the given address";
-                        for(auto listener : listeners)
-                        {
-                            listener->error(errorString);
-                        }
                     }
                     else
                     {
@@ -192,12 +196,7 @@ namespace Arcus
                     int newSocket = ::accept(socketId, 0, 0);
                     if(newSocket == -1)
                     {
-                        errorString = "Could not accept connection";
-
-                        for(auto listener : listeners)
-                        {
-                            listener->error(errorString);
-                        }
+                        fatalError(ErrorCode::AcceptFailedError, "Could not accept the incoming connection");
                         next_state = SocketState::Connected;
                     }
                 #ifdef _WIN32
@@ -312,7 +311,7 @@ namespace Arcus
             if (SIG(header) != ARCUS_SIGNATURE)
             {
                 // Someone might be speaking to us in a different protocol?
-                error("Header mismatch");
+                error(ErrorCode::ReceiveFailedError, "Header mismatch");
                 return;
             }
 
@@ -330,13 +329,13 @@ namespace Arcus
                     return;
                 #endif
 
-                error("Size invalid");
+                error(ErrorCode::ReceiveFailedError, "Size invalid");
                 return;
             }
 
             if(size < 0)
             {
-                error("Size invalid");
+                error(ErrorCode::ReceiveFailedError, "Size invalid");
                 return;
             }
 
@@ -366,8 +365,7 @@ namespace Arcus
             catch (std::bad_alloc& ba)
             {
                 // Either way we're in trouble.
-                current_message.reset();
-                error("Received malformed package or out of memory");
+                fatalError(ErrorCode::ReceiveFailedError, "Out of memory");
                 return;
             }
 
@@ -408,15 +406,6 @@ namespace Arcus
         {
             handleMessage(current_message);
             current_message.reset();
-
-            if(!errorString.empty())
-            {
-                for(auto listener : listeners)
-                {
-                    listener->error(errorString);
-                }
-                errorString.clear();
-            }
         }
     }
 
@@ -451,7 +440,7 @@ namespace Arcus
     {
         if(!message_types.hasType(wire_message->getType()))
         {
-            errorString = "Unknown message type";
+            error(ErrorCode::UnknownMessageTypeError, "Unknown message type");
             return;
         }
 
@@ -462,7 +451,7 @@ namespace Arcus
         stream.SetTotalBytesLimit(500 * 1048576, 128 * 1048576); //Set size limit to 500MiB, warn at 128MiB
         if(!message->ParseFromCodedStream(&stream))
         {
-            errorString = "Failed to parse message";
+            error(ErrorCode::ParseFailedError, "Failed to parse message");
             return;
         }
 
@@ -496,12 +485,7 @@ namespace Arcus
             int32_t keepalive = 0;
             if(::send(socketId, reinterpret_cast<const char*>(&keepalive), 4, MSG_NOSIGNAL) == -1)
             {
-                errorString = "Connection reset by peer";
-
-                for(auto listener : listeners)
-                {
-                    listener->error(errorString);
-                }
+                error(ErrorCode::ConnectionResetError, "Connection reset by peer");
                 next_state = SocketState::Closing;
             }
             lastKeepAliveSent = now;

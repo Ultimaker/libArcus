@@ -49,14 +49,14 @@ SocketState::SocketState Socket::getState() const
     return d->state;
 }
 
-std::string Socket::errorString() const
+Error Socket::getLastError() const
 {
-    return d->errorString;
+    return d->last_error;
 }
 
 void Socket::clearError()
 {
-    d->errorString.clear();
+    d->last_error = Error();
 }
 
 bool Socket::registerMessageType(const google::protobuf::Message* message_type)
@@ -132,8 +132,8 @@ void Socket::reset()
     }
 
     d->state = SocketState::Initial;
-    d->nextState = SocketState::Initial;
-    d->errorString = "";
+    d->next_state = SocketState::Initial;
+    clearError();
 }
 
 void Socket::listen(const std::string& address, int port)
