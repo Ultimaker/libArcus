@@ -42,6 +42,8 @@ set(arcus_HDRS
 set(ARCUS_VERSION 1.0.0)
 set(ARCUS_SOVERSION 2)
 
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
 if(BUILD_STATIC)
     add_library(Arcus STATIC ${arcus_SRCS})
     target_link_libraries(Arcus PRIVATE pthread)
@@ -50,12 +52,16 @@ else()
 endif()
 
 if(BUILD_PYTHON)
-    set(SIP_EXTRA_FILES_DEPEND python/SocketListener.sip python/Types.sip python/PythonMessage.sip)
+    set(SIP_EXTRA_FILES_DEPEND python/SocketListener.sip python/Types.sip python/PythonMessage.sip python/Error.sip)
     set(SIP_EXTRA_SOURCE_FILES python/PythonMessage.cpp)
+    set(SIP_EXTRA_OPTIONS -g) # -g means always release the GIL before calling C++ methods.
+    if(APPLE OR WIN32)
+        set(PYTHON_SITE_PACKAGES_DIR lib/python3.4/site-packages)
+    else()
+        set(PYTHON_SITE_PACKAGES_DIR lib/python3/dist-packages)
+    endif()
     add_sip_python_module(Arcus python/Socket.sip Arcus)
 endif()
-
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
 
 target_include_directories(Arcus PUBLIC
     ${PROTOBUF_INCLUDE_DIR}
@@ -103,7 +109,5 @@ install(FILES
     ${CMAKE_BINARY_DIR}/ArcusConfigVersion.cmake
     DESTINATION lib/cmake/Arcus
 )
-
-
 
 include(CPackConfig.cmake)
