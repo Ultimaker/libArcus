@@ -50,12 +50,6 @@ namespace Arcus
          * \return The socket this listener is listening to.
          */
         Socket* socket() const;
-        /**
-         * Set the socket this listener is listening to.
-         *
-         * This is automatically called by the socket when Socket::addListener() is called.
-         */
-        void setSocket(Socket* socket);
 
         /**
          * Called whenever the socket's state changes.
@@ -79,7 +73,14 @@ namespace Arcus
         virtual void error(std::string errorMessage) = 0;
 
     private:
-        Socket* m_socket;
+        // So we can call setSocket from Socket without making it public interface.
+        friend class Socket;
+
+        // Set the socket this listener is listening to.
+        // This is automatically called by the socket when Socket::addListener() is called.
+        void setSocket(Socket* socket);
+
+        Socket* _socket = nullptr;
     };
 }
 

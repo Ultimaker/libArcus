@@ -35,10 +35,10 @@ SocketListener::~SocketListener()
 
 Socket* SocketListener::socket() const
 {
-    return m_socket;
+    return _socket;
 }
 
 void SocketListener::setSocket(Socket* socket)
 {
-    m_socket = socket;
+    _socket = socket;
 }
