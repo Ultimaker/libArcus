@@ -16,8 +16,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ARCUS_WIRE_MESSAGE_H
-#define ARCUS_WIRE_MESSAGE_H
+#ifndef ARCUS_WIRE_MESSAGE_P_H
+#define ARCUS_WIRE_MESSAGE_P_H
 
 #include "Types.h"
 
@@ -123,4 +123,4 @@ namespace Arcus
     };
 }
 
-#endif //ARCUS_WIRE_MESSAGE_H
+#endif //ARCUS_WIRE_MESSAGE_P_H
