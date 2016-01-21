@@ -33,12 +33,7 @@ Socket::~Socket()
     {
         if(d->state != SocketState::Closed || d->state != SocketState::Error)
         {
-            d->nextState = SocketState::Closing;
-            if(d->thread)
-            {
-                d->thread->join();
-                d->thread = nullptr;
-            }
+            close();
         }
         delete d->thread;
     }
@@ -115,15 +110,16 @@ void Socket::connect(const std::string& address, int port)
 
     d->address = address;
     d->port = port;
-    d->nextState = SocketState::Connecting;
     d->thread = new std::thread([&]() { d->run(); });
+    d->next_state = SocketState::Connecting;
 }
 
 void Socket::reset()
 {
-    if (d->state != SocketState::Closed &&
-        d->state != SocketState::Error)
+    if (d->state != SocketState::Closed && d->state != SocketState::Error)
+    {
         return;
+    }
 
     if(d->thread)
     {
@@ -140,13 +136,14 @@ void Socket::listen(const std::string& address, int port)
 {
     d->address = address;
     d->port = port;
-    d->nextState = SocketState::Opening;
     d->thread = new std::thread([&]() { d->run(); });
+    d->next_state = SocketState::Opening;
 }
 
 void Socket::close()
 {
-    d->nextState = SocketState::Closing;
+    d->next_state = SocketState::Closing;
+    d->platform_socket.close();
     if(d->thread)
     {
         d->thread->join();
@@ -157,8 +154,10 @@ void Socket::close()
 void Socket::sendMessage(MessagePtr message)
 {
     if(!message)
+    {
         return;
-    
+    }
+
     std::lock_guard<std::mutex> lock(d->sendQueueMutex);
     d->sendQueue.push_back(message);
 }

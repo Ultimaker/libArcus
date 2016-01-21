@@ -41,22 +41,20 @@
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
 
+#include "Socket.h"
 #include "Types.h"
 #include "SocketListener.h"
 #include "MessageTypeStore.h"
 #include "Error.h"
 
 #include "WireMessage_p.h"
+#include "PlatformSocket_p.h"
 
 #define VERSION_MAJOR 1
 #define VERSION_MINOR 0
 
 #define ARCUS_SIGNATURE 0x2BAD
 #define SIG(n) (((n) & 0xffff0000) >> 16)
-
-#ifndef MSG_NOSIGNAL
-    #define MSG_NOSIGNAL 0x0 //Don't request NOSIGNAL on systems where this is not implemented.
-#endif
 
 /**
  * Private implementation details for Socket.
@@ -69,13 +67,9 @@ namespace Arcus
     {
     public:
         void run();
-        sockaddr_in createAddress();
-        void sendMessage(MessagePtr message);
+        void sendMessage(const MessagePtr& message);
         void receiveNextMessage();
-        int readInt32(int32_t *dest);
-        int readBytes(int size, char* dest);
         void handleMessage(const std::shared_ptr<WireMessage>& wire_message);
-        void setSocketReceiveTimeout(int socketId, int timeout);
         void checkConnectionState();
 
         void error(ErrorCode::ErrorCode error_code, const std::string& message);
@@ -85,7 +79,7 @@ namespace Arcus
         SocketState::SocketState next_state = SocketState::Initial;
 
         std::string address;
-        int port;
+        uint port = 0;
 
         std::thread* thread;
 
@@ -100,23 +94,15 @@ namespace Arcus
         std::deque<MessagePtr> receiveQueue;
         std::mutex receiveQueueMutex;
 
+        Arcus::Private::PlatformSocket platform_socket;
 
-        int socketId;
         Error last_error;
 
         std::chrono::system_clock::time_point lastKeepAliveSent;
 
         static const int keepAliveRate = 500; //Number of milliseconds between sending keepalive packets
-
-    #ifdef _WIN32
-        static bool wsaInitialized;
-        static void initializeWSA();
-    #endif
     };
 
-#ifdef _WIN32
-    bool SocketPrivate::wsaInitialized = false;
-#endif
     // Report an error that should not cause the connection to abort.
     void Socket::Private::error(ErrorCode::ErrorCode error_code, const std::string& message)
     {
@@ -136,6 +122,7 @@ namespace Arcus
         error.setFatalError(true);
         last_error = error;
 
+        platform_socket.close();
         current_message.reset();
         next_state = SocketState::Error;
 
@@ -145,8 +132,8 @@ namespace Arcus
         }
     }
 
-    // This is run in a thread.
-    void SocketPrivate::run()
+    // Thread run method.
+    void Socket::Private::run()
     {
         while(state != SocketState::Closed && state != SocketState::Error)
         {
@@ -154,24 +141,30 @@ namespace Arcus
             {
                 case SocketState::Connecting:
                 {
-                    socketId = ::socket(AF_INET, SOCK_STREAM, 0);
-                    sockaddr_in address_data = createAddress();
-                    if(::connect(socketId, reinterpret_cast<sockaddr*>(&address_data), sizeof(address_data)))
+                    if(!platform_socket.create())
                     {
+                        fatalError(ErrorCode::CreationError, "Could not create a socket");
+                    }
+                    else if(!platform_socket.connect(address, port))
+                    {
+                        fatalError(ErrorCode::ConnectFailedError, "Could not connect to the given address");
                     }
                     else
                     {
-                        setSocketReceiveTimeout(socketId, 250);
+                        platform_socket.setReceiveTimeout(250);
                         next_state = SocketState::Connected;
                     }
                     break;
                 }
                 case SocketState::Opening:
                 {
-                    socketId = ::socket(AF_INET, SOCK_STREAM, 0);
-                    sockaddr_in address_data = createAddress();
-                    if(::bind(socketId, reinterpret_cast<sockaddr*>(&address_data), sizeof(address_data)))
+                    if(!platform_socket.create())
                     {
+                        fatalError(ErrorCode::CreationError, "Could not create a socket");
+                    }
+                    else if(!platform_socket.bind(address, port))
+                    {
+                        fatalError(ErrorCode::BindFailedError, "Could not bind to the given address and port");
                     }
                     else
                     {
@@ -181,21 +174,16 @@ namespace Arcus
                 }
                 case SocketState::Listening:
                 {
-                    ::listen(socketId, 1);
-
-                    int newSocket = ::accept(socketId, 0, 0);
-                    if(newSocket == -1)
+                    platform_socket.listen(1);
+                    if(!platform_socket.accept())
                     {
                         fatalError(ErrorCode::AcceptFailedError, "Could not accept the incoming connection");
+                    }
+                    else
+                    {
+                        platform_socket.setReceiveTimeout(250);
                         next_state = SocketState::Connected;
                     }
-                #ifdef _WIN32
-                    ::closesocket(socketId);
-                #else
-                    ::close(socketId);
-                #endif
-                    socketId = newSocket;
-                    setSocketReceiveTimeout(socketId, 250);
                     break;
                 }
                 case SocketState::Connected:
@@ -227,11 +215,7 @@ namespace Arcus
                 }
                 case SocketState::Closing:
                 {
-                #ifdef _WIN32
-                    ::closesocket(socketId);
-                #else
-                    ::close(socketId);
-                #endif
+                    platform_socket.close();
                     next_state = SocketState::Closed;
                     break;
                 }
@@ -251,33 +235,33 @@ namespace Arcus
         }
     }
 
-    // Create a sockaddr_in structure from the address and port variables.
-    sockaddr_in SocketPrivate::createAddress()
+    // Send a message to the connected socket.
+    void Socket::Private::sendMessage(const MessagePtr& message)
     {
-        sockaddr_in a;
-        a.sin_family = AF_INET;
-    #ifdef _WIN32
-        InetPton(AF_INET, address.c_str(), &(a.sin_addr)); //Note: Vista and higher only.
-    #else
-        ::inet_pton(AF_INET, address.c_str(), &(a.sin_addr));
-    #endif
-        a.sin_port = htons(port);
-        return a;
-    }
+        int32_t header = (ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | (VERSION_MINOR);
+        if(platform_socket.writeInt32(header) == -1)
+        {
+            error(ErrorCode::SendFailedError, "Could not send message header");
+            return;
+        }
 
-    {
-        //TODO: Improve error handling.
-        uint32_t hdr = htonl((ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | VERSION_MINOR);
-        size_t sent_size = ::send(socketId, reinterpret_cast<const char*>(&hdr), 4, MSG_NOSIGNAL);
+        if(platform_socket.writeInt32(message->ByteSize()) == -1)
+        {
+            error(ErrorCode::SendFailedError, "Could not send message size");
+            return;
+        }
 
-        int size = htonl(message->ByteSize());
-        sent_size = ::send(socketId, reinterpret_cast<const char*>(&size), 4, MSG_NOSIGNAL);
-
-        int type = htonl(message_types.getMessageTypeId(message));
-        sent_size = ::send(socketId, reinterpret_cast<const char*>(&type), 4, MSG_NOSIGNAL);
+        if(platform_socket.writeInt32(message_types.getMessageTypeId(message)) == -1)
+        {
+            error(ErrorCode::SendFailedError, "Could not send message type");
+            return;
+        }
 
         std::string data = message->SerializeAsString();
-        sent_size = ::send(socketId, data.data(), data.size(), MSG_NOSIGNAL);
+        if(platform_socket.writeBytes(data.size(), data.data()) == -1)
+        {
+            error(ErrorCode::SendFailedError, "Could not send message data");
+        }
     }
 
     // Handle receiving data until we have a proper message.
@@ -293,7 +277,7 @@ namespace Arcus
         if(current_message->state == WireMessage::MessageState::Header)
         {
             int32_t header = 0;
-            readInt32(&header);
+            platform_socket.readInt32(&header);
 
             if(header == 0) // Keep-alive, just return
                 return;
@@ -311,8 +295,8 @@ namespace Arcus
         if(current_message->state == WireMessage::MessageState::Size)
         {
             int32_t size = 0;
-            result = readInt32(&size);
-            if(result)
+            result = platform_socket.readInt32(&size);
+            if(result == -1)
             {
                 #ifndef _WIN32
                 if (errno == EAGAIN)
@@ -320,12 +304,14 @@ namespace Arcus
                 #endif
 
                 error(ErrorCode::ReceiveFailedError, "Size invalid");
+                platform_socket.flush();
                 return;
             }
 
             if(size < 0)
             {
                 error(ErrorCode::ReceiveFailedError, "Size invalid");
+                platform_socket.flush();
                 return;
             }
 
@@ -336,8 +322,8 @@ namespace Arcus
         if (current_message->state == WireMessage::MessageState::Type)
         {
             int32_t type = 0;
-            result = readInt32(&type);
-            if(result)
+            result = platform_socket.readInt32(&type);
+            if(result == -1)
             {
                 #ifndef _WIN32
                 if (errno == EAGAIN)
@@ -365,7 +351,7 @@ namespace Arcus
 
         if (current_message->state == WireMessage::MessageState::Data)
         {
-            result = readBytes(current_message->getRemainingSize(), &current_message->getData()[current_message->getSizeReceived()]);
+            result = platform_socket.readBytes(current_message->getRemainingSize(), &current_message->data[current_message->received_size]);
 
             if(result == -1)
             {
@@ -399,43 +385,18 @@ namespace Arcus
         }
     }
 
-    int SocketPrivate::readInt32(int32_t *dest)
+    // Parse and process a message received on the socket.
+    void Socket::Private::handleMessage(const std::shared_ptr<WireMessage>& wire_message)
     {
-        int32_t buffer;
-        int num = ::recv(socketId, reinterpret_cast<char*>(&buffer), 4, 0);
-
-        if(num != 4)
-        {
-            return -1;
-        }
-
-        *dest = ntohl(buffer);
-        return 0;
-    }
-
-    int SocketPrivate::readBytes(int size, char* dest)
-    {
-        int num = ::recv(socketId, dest, size, 0);
-        if(num == -1)
-        {
-            return -1;
-        }
-        else
-        {
-            return num;
-        }
-    }
-
-    {
-        if(!message_types.hasType(wire_message->getType()))
+        if(!message_types.hasType(wire_message->type))
         {
             error(ErrorCode::UnknownMessageTypeError, "Unknown message type");
             return;
         }
 
-        MessagePtr message = message_types.createMessage(wire_message->getType());
+        MessagePtr message = message_types.createMessage(wire_message->type);
 
-        google::protobuf::io::ArrayInputStream array(wire_message->getData(), wire_message->getSize());
+        google::protobuf::io::ArrayInputStream array(wire_message->data, wire_message->size);
         google::protobuf::io::CodedInputStream stream(&array);
         stream.SetTotalBytesLimit(500 * 1048576, 128 * 1048576); //Set size limit to 500MiB, warn at 128MiB
         if(!message->ParseFromCodedStream(&stream))
@@ -454,15 +415,6 @@ namespace Arcus
         }
     }
 
-    // Set socket timeout value in milliseconds
-    void SocketPrivate::setSocketReceiveTimeout(int socketId, int timeout)
-    {
-        timeval t;
-        t.tv_sec = 0;
-        t.tv_usec = timeout * 1000;
-        ::setsockopt(socketId, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&t), sizeof(t));
-    }
-
     // Send a keepalive packet to check whether we are still connected.
     void Socket::Private::checkConnectionState()
     {
@@ -472,7 +424,7 @@ namespace Arcus
         if(diff.count() > keepAliveRate)
         {
             int32_t keepalive = 0;
-            if(::send(socketId, reinterpret_cast<const char*>(&keepalive), 4, MSG_NOSIGNAL) == -1)
+            if(platform_socket.writeInt32(keepalive) == -1)
             {
                 error(ErrorCode::ConnectionResetError, "Connection reset by peer");
                 next_state = SocketState::Closing;
@@ -480,18 +432,6 @@ namespace Arcus
             lastKeepAliveSent = now;
         }
     }
-
-#ifdef _WIN32
-    void SocketPrivate::initializeWSA()
-    {
-        if(!wsaInitialized)
-        {
-            WSADATA wsaData;
-            WSAStartup(MAKEWORD(2, 2), &wsaData);
-            wsaInitialized = true;
-        }
-    }
-#endif
 }
 
 
