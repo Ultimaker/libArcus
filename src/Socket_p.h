@@ -282,10 +282,29 @@ namespace Arcus
             if(header == 0) // Keep-alive, just return
                 return;
 
-            if (SIG(header) != ARCUS_SIGNATURE)
+            int signature = (header & 0xffff0000) >> 16;
+            int major_version = (header & 0x0000ff00) >> 8;
+            int minor_version = header & 0x000000ff;
+
+            if(signature != ARCUS_SIGNATURE)
             {
                 // Someone might be speaking to us in a different protocol?
                 error(ErrorCode::ReceiveFailedError, "Header mismatch");
+                platform_socket.flush();
+                return;
+            }
+
+            if(major_version != VERSION_MAJOR)
+            {
+                error(ErrorCode::ReceiveFailedError, "Protocol version mismatch");
+                platform_socket.flush();
+                return;
+            }
+
+            if(minor_version != VERSION_MINOR)
+            {
+                error(ErrorCode::ReceiveFailedError, "Protocol version mismatch");
+                platform_socket.flush();
                 return;
             }
 
