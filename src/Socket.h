@@ -28,7 +28,6 @@
 namespace Arcus
 {
     class SocketListener;
-    class SocketPrivate;
 
     /**
     * \brief Threaded socket class.
@@ -138,7 +137,8 @@ namespace Arcus
         void dumpMessageTypes();
 
     private:
-        const std::unique_ptr<SocketPrivate> d;
+        class Private;
+        const std::unique_ptr<Private> d;
     };
 }
 

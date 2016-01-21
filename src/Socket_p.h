@@ -63,23 +63,11 @@
  */
 namespace Arcus
 {
-    class SocketPrivate
     using namespace Private;
 
+    class Socket::Private
     {
     public:
-        SocketPrivate()
-            : state(SocketState::Initial)
-            , nextState(SocketState::Initial)
-            , port(0)
-            , thread(nullptr)
-            , lastKeepAliveSent(std::chrono::system_clock::now())
-        {
-        #ifdef _WIN32
-            initializeWSA();
-        #endif
-        }
-
         void run();
         sockaddr_in createAddress();
         void sendMessage(MessagePtr message);
@@ -277,7 +265,6 @@ namespace Arcus
         return a;
     }
 
-    void SocketPrivate::sendMessage(MessagePtr message)
     {
         //TODO: Improve error handling.
         uint32_t hdr = htonl((ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | VERSION_MINOR);
@@ -293,7 +280,8 @@ namespace Arcus
         sent_size = ::send(socketId, data.data(), data.size(), MSG_NOSIGNAL);
     }
 
-    void SocketPrivate::receiveNextMessage()
+    // Handle receiving data until we have a proper message.
+    void Socket::Private::receiveNextMessage()
     {
         int result = 0;
 
@@ -438,7 +426,6 @@ namespace Arcus
         }
     }
 
-    void SocketPrivate::handleMessage(const std::shared_ptr<WireMessage>& wire_message)
     {
         if(!message_types.hasType(wire_message->getType()))
         {
@@ -477,7 +464,7 @@ namespace Arcus
     }
 
     // Send a keepalive packet to check whether we are still connected.
-    void SocketPrivate::checkConnectionState()
+    void Socket::Private::checkConnectionState()
     {
         auto now = std::chrono::system_clock::now();
         auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastKeepAliveSent);

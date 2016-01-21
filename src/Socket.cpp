@@ -23,7 +23,7 @@
 
 using namespace Arcus;
 
-Socket::Socket() : d(new SocketPrivate)
+Socket::Socket() : d(new Private)
 {
 }
 
