@@ -26,9 +26,9 @@ public:
     SocketListener();
     virtual ~SocketListener();
 
-    Socket* socket();
+    Socket* getSocket();
 
-    virtual void stateChanged(SocketState::State newState) = 0;
+    virtual void stateChanged(SocketState::SocketState newState) = 0;
     virtual void messageReceived() = 0;
-    virtual void error(std::string errorMessage) = 0;
+    virtual void error(const Error& error) = 0;
 };

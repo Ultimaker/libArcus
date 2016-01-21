@@ -21,6 +21,7 @@
 %Include Types.sip
 %Include SocketListener.sip
 %Include PythonMessage.sip
+%Include Error.sip
 
 %ModuleHeaderCode
 using namespace Arcus;
@@ -36,10 +37,9 @@ public:
     Socket();
     virtual ~Socket();
 
-    SocketState::State state() const;
+    SocketState::SocketState getState() const;
 
-    std::string errorString() const;
-
+    Error getLastError() const;
     void clearError();
 
     void addListener(SocketListener* listener /TransferThis/);
@@ -48,16 +48,13 @@ public:
     void connect(const std::string& address, int port);
     void listen(const std::string& address, int port);
     void close() /ReleaseGIL/;
-
-    void sendMessage(MessagePtr message);
-
-    MessagePtr takeNextMessage();
-
     void reset() /ReleaseGIL/;
 
-    bool registerAllMessageTypes(const std::string& file_name) /ReleaseGIL/;
-
+    void sendMessage(MessagePtr message);
+    MessagePtr takeNextMessage();
     MessagePtr createMessage(const std::string& type_name);
+
+    bool registerAllMessageTypes(const std::string& file_name);
 
 private:
     Socket(const Socket&);

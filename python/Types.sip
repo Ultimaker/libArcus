@@ -16,6 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+// Convert a python str object to a std::string.
 %MappedType std::string
 {
 %TypeHeaderCode
@@ -64,6 +65,7 @@
 %End
 };
 
+// Convert a MessagePtr (aka std::shared_ptr<google::protobuf::Message>) to a PythonMessage*
 %MappedType MessagePtr
 {
 %TypeHeaderCode
@@ -124,15 +126,15 @@
 
 namespace SocketState
 {
-    enum State
+    enum SocketState
     {
-        Initial, ///< Created, not running.
-        Connecting, ///< Connecting to an address and port.
-        Connected, ///< Connected and capable of sending and receiving messages.
-        Opening, ///< Opening for incoming connections.
-        Listening, ///< Listening for incoming connections.
-        Closing, ///< Closing down.
-        Closed, ///< Closed, not running.
-        Error ///< An error happened.
+        Initial,
+        Connecting,
+        Connected,
+        Opening,
+        Listening,
+        Closing,
+        Closed,
+        Error
     };
 };
