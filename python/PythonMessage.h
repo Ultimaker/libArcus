@@ -44,9 +44,9 @@ namespace Arcus
 
         MessagePtr getSharedMessage() const;
 
-        bool hasField(const std::string& field_name);
-        PyObject* getField(const std::string& field_name);
-        void setField(const std::string& name, PyObject* value);
+        bool __hasattr__(const std::string& field_name) const;
+        PyObject* __getattr__(const std::string& field_name) const;
+        void __setattr__(const std::string& name, PyObject* value);
 
         PythonMessage* addRepeatedField(const std::string& field_name);
         int repeatedFieldCount(const std::string& field_name);

@@ -55,13 +55,13 @@ MessagePtr Arcus::PythonMessage::getSharedMessage() const
     return _shared_message;
 }
 
-bool Arcus::PythonMessage::hasField(const std::string& field_name)
+bool Arcus::PythonMessage::__hasattr__(const std::string& field_name) const
 {
     auto field = _descriptor->FindFieldByName(field_name);
     return bool(field);
 }
 
-PyObject* Arcus::PythonMessage::getField(const std::string& field_name)
+PyObject* Arcus::PythonMessage::__getattr__(const std::string& field_name) const
 {
     auto field = _descriptor->FindFieldByName(field_name);
     if(!field)
@@ -109,7 +109,7 @@ PyObject* Arcus::PythonMessage::getField(const std::string& field_name)
     }
 }
 
-void Arcus::PythonMessage::setField(const std::string& field_name, PyObject* value)
+void Arcus::PythonMessage::__setattr__(const std::string& field_name, PyObject* value)
 {
     auto field = _descriptor->FindFieldByName(field_name);
     if(!field)
