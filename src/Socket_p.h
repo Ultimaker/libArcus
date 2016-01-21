@@ -64,6 +64,8 @@
 namespace Arcus
 {
     class SocketPrivate
+    using namespace Private;
+
     {
     public:
         SocketPrivate()
@@ -103,7 +105,7 @@ namespace Arcus
 
         MessageTypeStore message_types;
 
-        std::shared_ptr<WireMessage> current_message;
+        std::shared_ptr<Arcus::Private::WireMessage> current_message;
 
         std::deque<MessagePtr> sendQueue;
         std::mutex sendQueueMutex;
@@ -300,7 +302,7 @@ namespace Arcus
             current_message = std::make_shared<WireMessage>();
         }
 
-        if(current_message->getState() == WireMessage::MessageStateHeader)
+        if(current_message->state == WireMessage::MessageState::Header)
         {
             int32_t header = 0;
             readInt32(&header);
@@ -315,10 +317,10 @@ namespace Arcus
                 return;
             }
 
-            current_message->setState(WireMessage::MessageStateSize);
+            current_message->state = WireMessage::MessageState::Size;
         }
 
-        if(current_message->getState() == WireMessage::MessageStateSize)
+        if(current_message->state == WireMessage::MessageState::Size)
         {
             int32_t size = 0;
             result = readInt32(&size);
@@ -339,11 +341,11 @@ namespace Arcus
                 return;
             }
 
-            current_message->setSize(size);
-            current_message->setState(WireMessage::MessageStateType);
+            current_message->size = size;
+            current_message->state = WireMessage::MessageState::Type;
         }
 
-        if (current_message->getState() == WireMessage::MessageStateType)
+        if (current_message->state == WireMessage::MessageState::Type)
         {
             int32_t type = 0;
             result = readInt32(&type);
@@ -353,7 +355,7 @@ namespace Arcus
                 if (errno == EAGAIN)
                     return;
                 #endif
-                current_message->setValid(false);
+                current_message->valid = false;
             }
 
             uint32_t real_type = static_cast<uint32_t>(type);
@@ -369,11 +371,11 @@ namespace Arcus
                 return;
             }
 
-            current_message->setType(real_type);
-            current_message->setState(WireMessage::MessageStateData);
+            current_message->type = real_type;
+            current_message->state = WireMessage::MessageState::Data;
         }
 
-        if (current_message->getState() == WireMessage::MessageStateData)
+        if (current_message->state == WireMessage::MessageState::Data)
         {
             result = readBytes(current_message->getRemainingSize(), &current_message->getData()[current_message->getSizeReceived()]);
 
@@ -388,21 +390,21 @@ namespace Arcus
             }
             else
             {
-                current_message->setSizeReceived(current_message->getSizeReceived() + result);
+                current_message->received_size = current_message->received_size + result;
                 if(current_message->isComplete())
                 {
-                    if(!current_message->isValid())
+                    if(!current_message->valid)
                     {
                         current_message.reset();
                         return;
                     }
 
-                    current_message->setState(WireMessage::MessageStateDispatch);
+                    current_message->state = WireMessage::MessageState::Dispatch;
                 }
             }
         }
 
-        if (current_message->getState() == WireMessage::MessageStateDispatch)
+        if (current_message->state == WireMessage::MessageState::Dispatch)
         {
             handleMessage(current_message);
             current_message.reset();

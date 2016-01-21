@@ -23,104 +23,66 @@
 
 namespace Arcus
 {
-    class WireMessage
+    namespace Private
     {
-    public:
-        enum MessageState
+        /**
+         * Private class that encapsulates a message being sent over the wire.
+         */
+        class WireMessage
         {
-            MessageStateHeader,
-            MessageStateSize,
-            MessageStateType,
-            MessageStateData,
-            MessageStateDispatch
-        };
-
-        inline ~WireMessage()
-        {
-            if(_size > 0 && _data)
+        public:
+            /**
+             * Current state of the message.
+             */
+            enum class MessageState
             {
-                delete[] _data;
+                Header, ///< Check for the header.
+                Size, ///< Check for the message size.
+                Type, ///< Check for the message type.
+                Data, ///< Get the message data.
+                Dispatch ///< Process the message and parse it into a protobuf message.
+            };
+
+            inline ~WireMessage()
+            {
+                if(size > 0 && data)
+                {
+                    delete[] data;
+                }
             }
-        }
 
-        inline MessageState getState() const
-        {
-            return _state;
-        }
+            // Current message state.
+            MessageState state = MessageState::Header;
+            // Size of the message.
+            uint size = 0;
+            // Amount of bytes received so far.
+            uint received_size = 0;
+            // Is this a potentially valid message?
+            bool valid = true;
+            // The type of message.
+            uint type = 0;
+            // The data of the message.
+            char* data = nullptr;
 
-        inline void setState(MessageState state)
-        {
-            _state = state;
-        }
+            // Return how many bytes are remaining for this message to be complete.
+            inline int getRemainingSize() const
+            {
+                return size - received_size;
+            }
 
-        inline uint getSize() const
-        {
-            return _size;
-        }
+            // Allocate data for this message based on size.
+            inline void allocateData()
+            {
+                data = new char[size];
+            }
 
-        inline void setSize(uint size)
-        {
-            _size = size;
-        }
-
-        inline bool isValid() const
-        {
-            return _valid;
-        }
-
-        inline void setValid(bool valid)
-        {
-            _valid = valid;
-        }
-
-        inline uint getType() const
-        {
-            return _type;
-        }
-
-        inline void setType(uint type)
-        {
-            _type = type;
-        }
-
-        inline int getRemainingSize() const
-        {
-            return _size - _size_received;
-        }
-
-        inline void allocateData()
-        {
-            _data = new char[_size];
-        }
-
-        inline char* getData() const
-        {
-            return _data;
-        }
-
-        inline uint getSizeReceived() const
-        {
-            return _size_received;
-        }
-
-        inline void setSizeReceived(uint size)
-        {
-            _size_received = size;
-        }
-
-        inline bool isComplete() const
-        {
-            return _size_received >= _size;
-        }
-
-    private:
-        MessageState _state = MessageStateHeader;
-        uint _type = 0;
-        uint _size = 0;
-        uint _size_received = 0;
-        bool _valid = true;
-        char* _data = nullptr;
-    };
+            // Check if the message can be considered complete.
+            inline bool isComplete() const
+            {
+                return received_size >= size;
+            }
+        };
+    }
 }
 
 #endif //ARCUS_WIRE_MESSAGE_P_H
