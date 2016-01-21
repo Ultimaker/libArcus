@@ -22,18 +22,7 @@
 
 using namespace Arcus;
 
-SocketListener::SocketListener()
-    : m_socket(nullptr)
-{
-
-}
-
-SocketListener::~SocketListener()
-{
-
-}
-
-Socket* SocketListener::socket() const
+Socket* SocketListener::getSocket() const
 {
     return _socket;
 }

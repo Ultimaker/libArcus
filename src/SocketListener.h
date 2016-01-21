@@ -44,13 +44,12 @@ namespace Arcus
     class ARCUS_EXPORT SocketListener
     {
     public:
-        SocketListener();
-        virtual ~SocketListener();
+        virtual ~SocketListener() { }
 
         /**
          * \return The socket this listener is listening to.
          */
-        Socket* socket() const;
+        Socket* getSocket() const;
 
         /**
          * Called whenever the socket's state changes.
