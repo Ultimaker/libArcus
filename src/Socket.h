@@ -126,13 +126,11 @@ namespace Arcus
          */
         void reset();
 
-        MessagePtr createMessage(uint type_id);
         /**
          * Send a message across the socket.
          */
         void sendMessage(MessagePtr message);
 
-        void dumpMessageTypes();
         /**
          * Remove the next pending message from the queue.
          */
