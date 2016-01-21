@@ -26,6 +26,8 @@ set(arcus_SRCS
     src/Socket.cpp
     src/SocketListener.cpp
     src/MessageTypeStore.cpp
+    src/PlatformSocket.cpp
+    src/Error.cpp
 )
 
 set(arcus_HDRS
@@ -34,7 +36,7 @@ set(arcus_HDRS
     src/Types.h
     src/ArcusExport.h
     src/MessageTypeStore.h
-    src/WireMessage.h
+    src/Error.h
 )
 
 set(ARCUS_VERSION 1.0.0)
