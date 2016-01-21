@@ -103,6 +103,8 @@ PyObject* Arcus::PythonMessage::__getattr__(const std::string& field_name) const
             return PyBytes_FromString(_reflection->GetString(*_message, field).c_str());
         case FieldDescriptor::TYPE_STRING:
             return PyUnicode_FromString(_reflection->GetString(*_message, field).c_str());
+        case FieldDescriptor::TYPE_ENUM:
+            return PyUnicode_FromString(_reflection->GetEnum(*_message, field)->full_name().c_str());
         default:
             PyErr_SetString(PyExc_ValueError, "Could not handle value of field");
             return nullptr;
@@ -160,6 +162,12 @@ void Arcus::PythonMessage::__setattr__(const std::string& field_name, PyObject* 
         case FieldDescriptor::TYPE_STRING:
             _reflection->SetString(_message, field, PyUnicode_AsUTF8(value));
             break;
+        case FieldDescriptor::TYPE_ENUM:
+        {
+            auto enum_value = _descriptor->FindEnumValueByName(PyUnicode_AsUTF8(value));
+            _reflection->SetEnum(_message, field, enum_value);
+            break;
+        }
         default:
             PyErr_SetString(PyExc_ValueError, "Could not handle value of field");
             break;
@@ -207,4 +215,16 @@ PythonMessage* Arcus::PythonMessage::getRepeatedMessage(const std::string& field
     }
 
     return new PythonMessage(_reflection->MutableRepeatedMessage(_message, field, index));
+}
+
+int Arcus::PythonMessage::getEnumValue(const std::string& enum_value) const
+{
+    auto field = _descriptor->FindEnumValueByName(enum_value);
+    if(!field)
+    {
+        PyErr_SetString(PyExc_AttributeError, enum_value.c_str());
+        return -1;
+    }
+
+    return field->number();
 }

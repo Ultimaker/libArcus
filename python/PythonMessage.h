@@ -52,6 +52,7 @@ namespace Arcus
         int repeatedMessageCount(const std::string& field_name) const;
         PythonMessage* getRepeatedMessage(const std::string& field_name, int index) const;
 
+        int getEnumValue(const std::string& enum_value) const;
 
     private:
         MessagePtr _shared_message;
