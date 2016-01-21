@@ -32,15 +32,18 @@ namespace google
 
 namespace Arcus
 {
+    // Convenience typedef so uint can be used.
     typedef unsigned int uint;
+    // Convenience typedef for standard message argument.
     typedef std::shared_ptr<google::protobuf::Message> MessagePtr;
 
+    /**
+     * Socket state.
+     */
     namespace SocketState
     {
-        /**
-        * Socket state.
-        */
         enum State
+        // Note: Not using enum class due to incompatibility with SIP.
         {
             Initial, ///< Created, not running.
             Connecting, ///< Connecting to an address and port.
@@ -49,7 +52,7 @@ namespace Arcus
             Listening, ///< Listening for incoming connections.
             Closing, ///< Closing down.
             Closed, ///< Closed, not running.
-            Error ///< An error happened.
+            Error ///< A fatal error happened that blocks the socket from operating.
         };
     }
 }
