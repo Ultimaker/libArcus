@@ -166,7 +166,7 @@ void Arcus::PythonMessage::__setattr__(const std::string& field_name, PyObject* 
     }
 }
 
-PythonMessage* Arcus::PythonMessage::addRepeatedField(const std::string& field_name)
+PythonMessage* Arcus::PythonMessage::addRepeatedMessage(const std::string& field_name)
 {
     auto field = _descriptor->FindFieldByName(field_name);
     if(!field)
@@ -179,7 +179,7 @@ PythonMessage* Arcus::PythonMessage::addRepeatedField(const std::string& field_n
     return new PythonMessage(message);
 }
 
-int PythonMessage::repeatedFieldCount(const std::string& field_name)
+int PythonMessage::repeatedMessageCount(const std::string& field_name) const
 {
     auto field = _descriptor->FindFieldByName(field_name);
     if(!field)

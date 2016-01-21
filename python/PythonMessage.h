@@ -48,8 +48,8 @@ namespace Arcus
         PyObject* __getattr__(const std::string& field_name) const;
         void __setattr__(const std::string& name, PyObject* value);
 
-        PythonMessage* addRepeatedField(const std::string& field_name);
-        int repeatedFieldCount(const std::string& field_name);
+        PythonMessage* addRepeatedMessage(const std::string& field_name);
+        int repeatedMessageCount(const std::string& field_name) const;
 
     private:
         MessagePtr _shared_message;

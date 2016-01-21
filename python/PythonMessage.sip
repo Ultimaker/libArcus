@@ -38,8 +38,8 @@ public:
     return 0;
     %End
 
-    PythonMessage* addRepeatedField(const std::string& field_name);
-    int repeatedFieldCount(const std::string& field_name);
+    PythonMessage* addRepeatedMessage(const std::string& field_name);
+    int repeatedMessageCount(const std::string& field_name) const;
 
 private:
     PythonMessage();
