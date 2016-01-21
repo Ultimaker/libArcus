@@ -42,8 +42,8 @@ namespace Arcus
      */
     namespace SocketState
     {
-        enum State
         // Note: Not using enum class due to incompatibility with SIP.
+        enum SocketState
         {
             Initial, ///< Created, not running.
             Connecting, ///< Connecting to an address and port.

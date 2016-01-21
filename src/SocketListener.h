@@ -62,7 +62,7 @@ namespace Arcus
          *
          * \param newState The new state of the socket.
          */
-        virtual void stateChanged(SocketState::State newState) = 0;
+        virtual void stateChanged(SocketState::SocketState newState) = 0;
         /**
          * Called whenever a new message has been received and
          * correctly parsed.

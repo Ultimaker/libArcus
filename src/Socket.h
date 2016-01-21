@@ -48,11 +48,11 @@ namespace Arcus
         Socket& operator=(const Socket& other) = delete;
 
         /**
-        * Get the socket state.
-        *
-        * \return The current socket state.
-        */
-        SocketState::State state() const;
+         * Get the socket state.
+         *
+         * \return The current socket state.
+         */
+        SocketState::SocketState getState() const;
 
         /**
          * Get the last error string.
