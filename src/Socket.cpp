@@ -64,7 +64,7 @@ bool Socket::registerMessageType(const google::protobuf::Message* message_type)
     return d->message_types.registerMessageType(message_type);
 }
 
-bool Socket::registerAllMessageTypes(std::string file_name)
+bool Socket::registerAllMessageTypes(const std::string& file_name)
 {
     if(file_name.empty())
     {
