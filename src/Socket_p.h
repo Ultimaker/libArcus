@@ -417,7 +417,7 @@ namespace Arcus
 
         google::protobuf::io::ArrayInputStream array(wire_message->data, wire_message->size);
         google::protobuf::io::CodedInputStream stream(&array);
-        stream.SetTotalBytesLimit(500 * 1048576, 128 * 1048576); //Set size limit to 500MiB, warn at 128MiB
+        stream.SetTotalBytesLimit(500 * 1048576, 384 * 1048576); //Set size limit to 500MiB, warn at 368MiB
         if(!message->ParseFromCodedStream(&stream))
         {
             error(ErrorCode::ParseFailedError, "Failed to parse message");
