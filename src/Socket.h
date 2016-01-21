@@ -30,13 +30,13 @@ namespace Arcus
     class SocketListener;
 
     /**
-    * \brief Threaded socket class.
-    *
-    * This class represents a socket and the logic for parsing and handling
-    * protobuf messages that can be sent and received over this socket.
-    *
-    * Please see the README in libArcus for more details.
-    */
+     * \brief Threaded socket class.
+     *
+     * This class represents a socket and the logic for parsing and handling
+     * protobuf messages that can be sent and received over this socket.
+     *
+     * Please see the README in libArcus for more details.
+     */
     class ARCUS_EXPORT Socket
     {
     public:
@@ -67,64 +67,59 @@ namespace Arcus
         void clearError();
 
         /**
-        * Register a new type of Message to handle.
-        *
-        * If the socket state is not SocketState::Initial, this method will do nothing.
-        *
-        * \param message_type An instance of the Message that will be used as factory object.
-        *
-        * \note The `type` parameter should be the same both on the sender and receiver side.
-        * It is used to identify the messages when sent across the wire.
-        */
+         * Register a new type of Message to handle.
+         *
+         * If the socket state is not SocketState::Initial, this method will do nothing.
+         *
+         * \param message_type An instance of the Message that will be used as factory object.
+         *
+         */
         bool registerMessageType(const google::protobuf::Message* message_type);
 
-        bool registerAllMessageTypes(std::string file_name);
+        /**
+         * Register all message types contained in a Protobuf protocol description file.
+         *
+         * If the socket state is not SocketState::Initial, this method will do nothing.
+         *
+         * \param file_name The absolute path to a Protobuf protocol file to load message types from.
+         */
+        bool registerAllMessageTypes(const std::string& file_name);
 
         /**
-        * Add a listener object that will be notified of socket events.
-        *
-        * If the socket state is not SocketState::Initial, this method will do nothing.
-        *
-        * \param listener The listener to add.
-        */
+         * Add a listener object that will be notified of socket events.
+         *
+         * If the socket state is not SocketState::Initial, this method will do nothing.
+         *
+         * \param listener The listener to add.
+         */
         void addListener(SocketListener* listener);
         /**
-        * Remove a listener from the list of listeners.
-        *
-        * If the socket state is not SocketState::Initial, this method will do nothing.
-        *
-        * \param listener The listener to remove.
-        */
+         * Remove a listener from the list of listeners.
+         *
+         * If the socket state is not SocketState::Initial, this method will do nothing.
+         *
+         * \param listener The listener to remove.
+         */
         void removeListener(SocketListener* listener);
 
         /**
-        * Connect to an address and port.
-        *
-        * \param address The IP address to connect to.
-        * \param port The port to connect to.
-        */
+         * Connect to an address and port.
+         *
+         * \param address The IP address to connect to.
+         * \param port The port to connect to.
+         */
         void connect(const std::string& address, int port);
         /**
-        * Listen for connections on an address and port.
-        *
-        * \param address The IP address to listen on.
-        * \param port The port to listen on.
-        */
+         * Listen for connections on an address and port.
+         *
+         * \param address The IP address to listen on.
+         * \param port The port to listen on.
+         */
         void listen(const std::string& address, int port);
         /**
-        * Close the connection and stop handling any messages.
-        */
+         * Close the connection and stop handling any messages.
+         */
         void close();
-
-        /**
-        * Send a message across the socket.
-        */
-        void sendMessage(MessagePtr message);
-
-        /**
-        * Remove the next pending message from the queue.
-        */
-        MessagePtr takeNextMessage();
 
         /**
          * Reset a socket for re-use. State must be Closed or Error
@@ -132,9 +127,23 @@ namespace Arcus
         void reset();
 
         MessagePtr createMessage(uint type_id);
-        MessagePtr createMessage(const std::string& type);
+        /**
+         * Send a message across the socket.
+         */
+        void sendMessage(MessagePtr message);
 
         void dumpMessageTypes();
+        /**
+         * Remove the next pending message from the queue.
+         */
+        MessagePtr takeNextMessage();
+
+        /**
+         * Create an instance of a Message class.
+         *
+         * \param type_name The type name of the Message type to create an instance of.
+         */
+        MessagePtr createMessage(const std::string& type_name);
 
     private:
         class Private;
