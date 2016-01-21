@@ -87,8 +87,8 @@ namespace Arcus
         void checkConnectionState();
         void error(std::string msg);
 
-        SocketState::State state;
-        SocketState::State nextState;
+        SocketState::SocketState state = SocketState::Initial;
+        SocketState::SocketState next_state = SocketState::Initial;
 
         std::string address;
         int port;
@@ -133,7 +133,7 @@ namespace Arcus
         ::close(socketId);
 #endif
         current_message.reset();
-        nextState = SocketState::Error;
+        next_state = SocketState::Error;
 
         for(auto listener : listeners)
         {
@@ -155,8 +155,6 @@ namespace Arcus
                     if(::connect(socketId, reinterpret_cast<sockaddr*>(&address_data), sizeof(address_data)))
                     {
                         errorString = "Could not connect to the given address";
-                        nextState = SocketState::Error;
-
                         for(auto listener : listeners)
                         {
                             listener->error(errorString);
@@ -165,7 +163,7 @@ namespace Arcus
                     else
                     {
                         setSocketReceiveTimeout(socketId, 250);
-                        nextState = SocketState::Connected;
+                        next_state = SocketState::Connected;
                     }
                     break;
                 }
@@ -176,8 +174,6 @@ namespace Arcus
                     if(::bind(socketId, reinterpret_cast<sockaddr*>(&address_data), sizeof(address_data)))
                     {
                         errorString =  "Could not bind to the given address";
-                        nextState = SocketState::Error;
-
                         for(auto listener : listeners)
                         {
                             listener->error(errorString);
@@ -185,7 +181,7 @@ namespace Arcus
                     }
                     else
                     {
-                        nextState = SocketState::Listening;
+                        next_state = SocketState::Listening;
                     }
                     break;
                 }
@@ -197,14 +193,13 @@ namespace Arcus
                     if(newSocket == -1)
                     {
                         errorString = "Could not accept connection";
-                        nextState = SocketState::Error;
 
                         for(auto listener : listeners)
                         {
                             listener->error(errorString);
                         }
+                        next_state = SocketState::Connected;
                     }
-
                 #ifdef _WIN32
                     ::closesocket(socketId);
                 #else
@@ -212,7 +207,6 @@ namespace Arcus
                 #endif
                     socketId = newSocket;
                     setSocketReceiveTimeout(socketId, 250);
-                    nextState = SocketState::Connected;
                     break;
                 }
                 case SocketState::Connected:
@@ -235,7 +229,7 @@ namespace Arcus
 
                     receiveNextMessage();
 
-                    if (nextState != SocketState::Error)
+                    if(next_state != SocketState::Error)
                     {
                         checkConnectionState();
                     }
@@ -249,16 +243,16 @@ namespace Arcus
                 #else
                     ::close(socketId);
                 #endif
-                    nextState = SocketState::Closed;
+                    next_state = SocketState::Closed;
                     break;
                 }
                 default:
                     break;
             }
 
-            if(nextState != state)
+            if(next_state != state)
             {
-                state = nextState;
+                state = next_state;
 
                 for(auto listener : listeners)
                 {
@@ -503,12 +497,12 @@ namespace Arcus
             if(::send(socketId, reinterpret_cast<const char*>(&keepalive), 4, MSG_NOSIGNAL) == -1)
             {
                 errorString = "Connection reset by peer";
-                nextState = SocketState::Closing;
 
                 for(auto listener : listeners)
                 {
                     listener->error(errorString);
                 }
+                next_state = SocketState::Closing;
             }
             lastKeepAliveSent = now;
         }
