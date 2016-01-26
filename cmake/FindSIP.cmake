@@ -25,6 +25,7 @@
 # For details see the accompanying COPYING-CMAKE-SCRIPTS file.
 
 find_package(PythonInterp 3.4.0 REQUIRED)
+find_package(PythonLibs 3.4.0 REQUIRED)
 
 IF(SIP_VERSION)
   # Already in cache, be silent
