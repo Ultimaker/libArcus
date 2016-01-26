@@ -33,6 +33,17 @@ namespace google
 
 namespace Arcus
 {
+    /**
+     * A simple wrapper around a Protobuf message so it can be used from Python.
+     *
+     * This class wraps a Protobuf message and makes it possible to get and set
+     * values from the message. Message properties are exposed as Python protoperties
+     * so can be set using things like `message.data = b"something"` from Python.
+     *
+     * Repeated messages are supported, using addRepeatedMessage, repeatedMessageCount
+     * and getRepeatedMessage. A repeated message is returned as a PythonMessage object
+     * so exposes the same API as the top level message.
+     */
     class PythonMessage
     {
     public:
@@ -40,19 +51,53 @@ namespace Arcus
         PythonMessage(const MessagePtr& message);
         virtual ~PythonMessage();
 
+        /**
+         * Get the message type name of this message.
+         */
         std::string getTypeName() const;
 
-        MessagePtr getSharedMessage() const;
-
+        /**
+         * Python property interface.
+         */
         bool __hasattr__(const std::string& field_name) const;
         PyObject* __getattr__(const std::string& field_name) const;
         void __setattr__(const std::string& name, PyObject* value);
 
+        /**
+         * Add an instance of a Repeated Message to a specific field.
+         *
+         * \param field_name The name of the field to add a message to.
+         *
+         * \return An instance of PythonMessage wrapping the new Message in the field.
+         */
         PythonMessage* addRepeatedMessage(const std::string& field_name);
+        /**
+         * Get the number of messages in a repeated message field.
+         */
         int repeatedMessageCount(const std::string& field_name) const;
+        /**
+         * Get a specific instance of a message in a repeated message field.
+         *
+         * \param field_name The name of a repeated message field to get an instance from.
+         * \param index The index of the item to get in the repeated field.
+         *
+         * \return An instance of PythonMessage wrapping the specified repeated message.
+         */
         PythonMessage* getRepeatedMessage(const std::string& field_name, int index) const;
 
+        /**
+         * Get the value of a certain enumeration.
+         *
+         * \param enum_value The fully-qualified name of an Enum value.
+         *
+         * \return The integer value of the specified enum.
+         */
         int getEnumValue(const std::string& enum_value) const;
+
+        /**
+         * Internal.
+         */
+        MessagePtr getSharedMessage() const;
 
     private:
         MessagePtr _shared_message;
