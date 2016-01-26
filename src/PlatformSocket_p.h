@@ -20,6 +20,7 @@
 #define ARCUS_PLATFORM_SOCKET_P_H
 
 #include <memory>
+#include <string>
 
 namespace Arcus
 {

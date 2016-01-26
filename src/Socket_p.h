@@ -66,6 +66,13 @@ namespace Arcus
     class Socket::Private
     {
     public:
+        Private()
+            : state(SocketState::Initial)
+            , next_state(SocketState::Initial)
+            , port(0)
+        {
+        }
+
         void run();
         void sendMessage(const MessagePtr& message);
         void receiveNextMessage();
@@ -75,11 +82,11 @@ namespace Arcus
         void error(ErrorCode::ErrorCode error_code, const std::string& message);
         void fatalError(ErrorCode::ErrorCode error_code, const std::string& msg);
 
-        SocketState::SocketState state = SocketState::Initial;
-        SocketState::SocketState next_state = SocketState::Initial;
+        SocketState::SocketState state;
+        SocketState::SocketState next_state;
 
         std::string address;
-        uint port = 0;
+        uint port;
 
         std::thread* thread;
 
@@ -106,7 +113,7 @@ namespace Arcus
     // Report an error that should not cause the connection to abort.
     void Socket::Private::error(ErrorCode::ErrorCode error_code, const std::string& message)
     {
-        Error error{error_code, message};
+        Error error(error_code, message);
         last_error = error;
 
         for(auto listener : listeners)
@@ -118,7 +125,7 @@ namespace Arcus
     // Report an error that should cause the socket to go into an error state and abort the connection.
     void Socket::Private::fatalError(ErrorCode::ErrorCode error_code, const std::string& message)
     {
-        Error error{error_code, message};
+        Error error(error_code, message);
         error.setFatalError(true);
         last_error = error;
 

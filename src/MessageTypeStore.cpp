@@ -30,6 +30,8 @@ using namespace Arcus;
 class ErrorCollector : public google::protobuf::compiler::MultiFileErrorCollector
 {
 public:
+    ErrorCollector() : _error_count(0) { }
+
     void AddError(const std::string& filename, int line, int column, const std::string& message) override
     {
         _stream << "[" << filename << " (" << line << "," << column << ")] " << message << std::endl;
@@ -48,7 +50,7 @@ public:
 
 private:
     std::stringstream _stream;
-    int _error_count = 0;
+    int _error_count;
 };
 
 class MessageTypeStore::Private
@@ -83,7 +85,7 @@ bool Arcus::MessageTypeStore::hasType(uint type_id) const
 
 bool Arcus::MessageTypeStore::hasType(const std::string& type_name) const
 {
-    uint type_id = std::hash<std::string>{}(type_name);
+    uint type_id = std::hash<std::string>()(type_name);
     return hasType(type_id);
 }
 
@@ -91,7 +93,7 @@ MessagePtr Arcus::MessageTypeStore::createMessage(uint type_id) const
 {
     if(!hasType(type_id))
     {
-        return MessagePtr{};
+        return MessagePtr();
     }
 
     return MessagePtr(d->message_types[type_id]->New());
@@ -99,18 +101,18 @@ MessagePtr Arcus::MessageTypeStore::createMessage(uint type_id) const
 
 MessagePtr Arcus::MessageTypeStore::createMessage(const std::string& type_name) const
 {
-    uint type_id = std::hash<std::string>{}(type_name);
+    uint type_id = std::hash<std::string>()(type_name);
     return createMessage(type_id);
 }
 
 uint Arcus::MessageTypeStore::getMessageTypeId(const MessagePtr& message)
 {
-    return std::hash<std::string>{}(message->GetTypeName());
+    return std::hash<std::string>()(message->GetTypeName());
 }
 
 bool Arcus::MessageTypeStore::registerMessageType(const google::protobuf::Message* message_type)
 {
-    uint type_id = std::hash<std::string>{}(message_type->GetTypeName());
+    uint type_id = std::hash<std::string>()(message_type->GetTypeName());
 
     if(hasType(type_id))
     {
@@ -150,7 +152,7 @@ bool Arcus::MessageTypeStore::registerAllMessageTypes(const std::string& file_na
 
         auto message_type = d->message_factory->GetPrototype(message_type_descriptor);
 
-        uint type_id = std::hash<std::string>{}(message_type->GetTypeName());
+        uint type_id = std::hash<std::string>()(message_type->GetTypeName());
 
         d->message_types[type_id] = message_type;
         d->message_type_mapping[message_type_descriptor] = type_id;

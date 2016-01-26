@@ -44,6 +44,7 @@ namespace Arcus
     class ARCUS_EXPORT SocketListener
     {
     public:
+        SocketListener() : _socket(nullptr) { }
         virtual ~SocketListener() { }
 
         /**
@@ -80,7 +81,7 @@ namespace Arcus
         // This is automatically called by the socket when Socket::addListener() is called.
         void setSocket(Socket* socket);
 
-        Socket* _socket = nullptr;
+        Socket* _socket;
     };
 }
 

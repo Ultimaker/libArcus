@@ -43,10 +43,6 @@ namespace Arcus
         Socket();
         virtual ~Socket();
 
-        // Copy and assignment is not supported.
-        Socket(const Socket&) = delete;
-        Socket& operator=(const Socket& other) = delete;
-
         /**
          * Get the socket state.
          *
@@ -144,6 +140,10 @@ namespace Arcus
         MessagePtr createMessage(const std::string& type_name);
 
     private:
+        // Copy and assignment is not supported.
+        Socket(const Socket&);
+        Socket& operator=(const Socket& other);
+
         class Private;
         const std::unique_ptr<Private> d;
     };

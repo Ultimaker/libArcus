@@ -111,7 +111,7 @@
         }
 
         MessagePtr msg = message->getSharedMessage();
-        *sipCppPtr = new MessagePtr{msg};
+        *sipCppPtr = new MessagePtr(msg);
         return 1;
     }
 

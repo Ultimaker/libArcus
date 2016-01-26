@@ -43,6 +43,16 @@ namespace Arcus
                 Dispatch ///< Process the message and parse it into a protobuf message.
             };
 
+            WireMessage()
+                : state(MessageState::Header)
+                , size(0)
+                , received_size(0)
+                , valid(true)
+                , type(0)
+                , data(nullptr)
+            {
+            }
+
             inline ~WireMessage()
             {
                 if(size > 0 && data)
@@ -52,17 +62,17 @@ namespace Arcus
             }
 
             // Current message state.
-            MessageState state = MessageState::Header;
+            MessageState state;
             // Size of the message.
-            uint size = 0;
+            uint size;
             // Amount of bytes received so far.
-            uint received_size = 0;
+            uint received_size;
             // Is this a potentially valid message?
-            bool valid = true;
+            bool valid;
             // The type of message.
-            uint type = 0;
+            uint type;
             // The data of the message.
-            char* data = nullptr;
+            char* data;
 
             // Return how many bytes are remaining for this message to be complete.
             inline int getRemainingSize() const

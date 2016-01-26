@@ -21,10 +21,12 @@
 using namespace Arcus;
 
 Arcus::Error::Error()
+    : _error_code(ErrorCode::UnknownError), _fatal_error(false)
 {
 }
 
 Arcus::Error::Error(ErrorCode::ErrorCode error_code, const std::string& error_message)
+    : _error_code(ErrorCode::UnknownError), _fatal_error(false)
 {
     _error_code = error_code;
     _error_message = error_message;
@@ -57,9 +59,9 @@ void Arcus::Error::setFatalError(bool fatal)
 
 std::ostream & operator<<(std::ostream& stream, const Arcus::Error& error)
 {
-    static std::string error_start{"Arcus Error ("};
-    static std::string fatal_error_start{"Arcus Fatal Error ("};
-    static std::string message_separator{"): "};
+    static std::string error_start("Arcus Error (");
+    static std::string fatal_error_start("Arcus Fatal Error (");
+    static std::string message_separator("): ");
 
     stream << (error.isFatalError() ? fatal_error_start : error_start) << std::to_string(static_cast<int>(error.getErrorCode())) << message_separator << error.getErrorMessage();
     return stream;

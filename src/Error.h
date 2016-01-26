@@ -60,8 +60,6 @@ namespace Arcus
          */
         Error(ErrorCode::ErrorCode error_code, const std::string& error_message);
 
-        Error(const Error& error) = default;
-        Error& operator=(const Error& other) = default;
 
         /**
          * Get the error code of this error.
@@ -85,13 +83,13 @@ namespace Arcus
         void setFatalError(bool fatal);
 
     private:
-        ErrorCode::ErrorCode _error_code = ErrorCode::UnknownError;
+        ErrorCode::ErrorCode _error_code;
         std::string _error_message;
-        bool _fatal_error = false;
+        bool _fatal_error;
     };
 }
 
 // Output the error to a stream.
-std::ostream& operator<<(std::ostream& stream, const Arcus::Error& error);
+ARCUS_EXPORT std::ostream& operator<<(std::ostream& stream, const Arcus::Error& error);
 
 #endif //ARCUS_ERROR_H
