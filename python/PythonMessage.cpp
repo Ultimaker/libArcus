@@ -199,7 +199,7 @@ int PythonMessage::repeatedMessageCount(const std::string& field_name) const
     return _reflection->FieldSize(*_message, field);
 }
 
-PythonMessage* Arcus::PythonMessage::getRepeatedMessage(const std::string& field_name, int index) const
+PythonMessage* Arcus::PythonMessage::getRepeatedMessage(const std::string& field_name, int index)
 {
     auto field = _descriptor->FindFieldByName(field_name);
     if(!field)

@@ -40,7 +40,7 @@ public:
 
     PythonMessage* addRepeatedMessage(const std::string& field_name);
     int repeatedMessageCount(const std::string& field_name) const;
-    PythonMessage* getRepeatedMessage(const std::string& field_name, int index) const;
+    PythonMessage* getRepeatedMessage(const std::string& field_name, int index);
 
     int getEnumValue(const std::string& enum_value) const;
 

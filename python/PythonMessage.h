@@ -83,7 +83,7 @@ namespace Arcus
          *
          * \return An instance of PythonMessage wrapping the specified repeated message.
          */
-        PythonMessage* getRepeatedMessage(const std::string& field_name, int index) const;
+        PythonMessage* getRepeatedMessage(const std::string& field_name, int index);
 
         /**
          * Get the value of a certain enumeration.
