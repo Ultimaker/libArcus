@@ -57,12 +57,16 @@ void Arcus::Error::setFatalError(bool fatal)
     _fatal_error = fatal;
 }
 
-std::ostream & operator<<(std::ostream& stream, const Arcus::Error& error)
+std::string Arcus::Error::toString() const
 {
     static std::string error_start("Arcus Error (");
     static std::string fatal_error_start("Arcus Fatal Error (");
     static std::string message_separator("): ");
 
-    stream << (error.isFatalError() ? fatal_error_start : error_start) << std::to_string(static_cast<int>(error.getErrorCode())) << message_separator << error.getErrorMessage();
-    return stream;
+    return (isFatalError() ? fatal_error_start : error_start) + std::to_string(static_cast<int>(getErrorCode())) + message_separator + getErrorMessage();
+}
+
+std::ostream & operator<<(std::ostream& stream, const Arcus::Error& error)
+{
+    return stream << error.toString();
 }

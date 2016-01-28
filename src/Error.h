@@ -42,6 +42,7 @@ namespace Arcus
             UnknownMessageTypeError, ///< Received a message with an unknown message type.
             ParseFailedError, ///< Parsing the received message failed.
             ConnectionResetError, ///< The connection was reset by peer.
+            MessageRegistrationFailedError, ///< Message registration failed.
         };
     }
 
@@ -81,6 +82,10 @@ namespace Arcus
          * Set whether this should be considered a fatal error.
          */
         void setFatalError(bool fatal);
+        /**
+         * Convert the error to a string that can be printed.
+         */
+        std::string toString() const;
 
     private:
         ErrorCode::ErrorCode _error_code;
