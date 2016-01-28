@@ -135,6 +135,17 @@ bool Arcus::Private::PlatformSocket::close()
     return result == 0;
 }
 
+bool Arcus::Private::PlatformSocket::shutdown()
+{
+    int result = 0;
+    #ifdef _WIN32
+        result = ::shutdown(_socket_id, SD_BOTH);
+    #else
+        result = ::shutdown(_socket_id, SHUT_RDWR);
+    #endif
+    return result == 0;
+}
+
 void Arcus::Private::PlatformSocket::flush()
 {
     char* buffer = new char[256];

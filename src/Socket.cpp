@@ -151,7 +151,11 @@ void Socket::listen(const std::string& address, int port)
 void Socket::close()
 {
     d->next_state = SocketState::Closing;
-    d->platform_socket.close();
+    if(!d->platform_socket.close())
+    {
+        d->platform_socket.shutdown();
+    }
+
     if(d->thread)
     {
         d->thread->join();

@@ -81,6 +81,15 @@ namespace Arcus
              * \return true if successful, false if not.
              */
             bool close();
+            /**
+             * Shutdown the socket.
+             *
+             * This will force the socket to close even when it is waiting for something like
+             * accept().
+             *
+             * \return true if successful, false if not.
+             */
+            bool shutdown();
 
             /**
              * Flush all waiting data and discard it.
