@@ -70,6 +70,7 @@ namespace Arcus
             : state(SocketState::Initial)
             , next_state(SocketState::Initial)
             , port(0)
+            , thread(nullptr)
         {
         }
 
