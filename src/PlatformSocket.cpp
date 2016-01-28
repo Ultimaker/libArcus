@@ -137,7 +137,13 @@ bool Arcus::Private::PlatformSocket::close()
 
 void Arcus::Private::PlatformSocket::flush()
 {
+    char* buffer = new char[256];
+    std::size_t num = 0;
 
+    while(num > 0)
+    {
+        num = ::recv(_socket_id, buffer, 256, MSG_DONTWAIT);
+    }
 }
 
 int Arcus::Private::PlatformSocket::writeInt32(int32_t data)
