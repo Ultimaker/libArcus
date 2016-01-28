@@ -28,7 +28,7 @@ public:
 
     Socket* getSocket();
 
-    virtual void stateChanged(SocketState::SocketState newState) = 0;
-    virtual void messageReceived() = 0;
-    virtual void error(const Error& error) = 0;
+    virtual void stateChanged(SocketState::SocketState newState) = 0 /HoldGIL/;
+    virtual void messageReceived() = 0 /HoldGIL/;
+    virtual void error(const Error& error) = 0 /HoldGIL/;
 };
