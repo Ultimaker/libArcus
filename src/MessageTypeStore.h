@@ -77,6 +77,8 @@ namespace Arcus
          */
         uint getMessageTypeId(const MessagePtr& message);
 
+        std::string getErrorMessages() const;
+
         /**
          * Register a message type.
          *

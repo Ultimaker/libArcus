@@ -110,6 +110,11 @@ uint Arcus::MessageTypeStore::getMessageTypeId(const MessagePtr& message)
     return std::hash<std::string>()(message->GetTypeName());
 }
 
+std::string Arcus::MessageTypeStore::getErrorMessages() const
+{
+    return d->error_collector->getAllErrors();
+}
+
 bool Arcus::MessageTypeStore::registerMessageType(const google::protobuf::Message* message_type)
 {
     uint type_id = std::hash<std::string>()(message_type->GetTypeName());

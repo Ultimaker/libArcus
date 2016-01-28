@@ -68,15 +68,23 @@ bool Socket::registerAllMessageTypes(const std::string& file_name)
 {
     if(file_name.empty())
     {
+        d->error(ErrorCode::MessageRegistrationFailedError, "Empty file name");
         return false;
     }
 
     if(d->state != SocketState::Initial)
     {
+        d->error(ErrorCode::MessageRegistrationFailedError, "Socket is not in initial state");
         return false;
     }
 
-    return d->message_types.registerAllMessageTypes(file_name);
+    if(!d->message_types.registerAllMessageTypes(file_name))
+    {
+        d->error(ErrorCode::MessageRegistrationFailedError, d->message_types.getErrorMessages());
+        return false;
+    }
+
+    return true;
 }
 
 void Socket::addListener(SocketListener* listener)
