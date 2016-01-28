@@ -129,7 +129,7 @@ bool Arcus::Private::PlatformSocket::close()
     #ifdef _WIN32
         result = ::closesocket(_socket_id);
     #else
-        result = ::shutdown(_socket_id, SHUT_RDWR);
+        result = ::close(_socket_id);
     #endif
 
     return result == 0;
