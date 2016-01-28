@@ -17,6 +17,7 @@
 import threading
 import struct
 import socket
+import sys #debugging
 import time
 
 ##  Raised when an unknown message type is received.
