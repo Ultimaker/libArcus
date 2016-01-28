@@ -100,7 +100,10 @@ PyObject* Arcus::PythonMessage::__getattr__(const std::string& field_name) const
                 Py_RETURN_FALSE;
             }
         case FieldDescriptor::TYPE_BYTES:
-            return PyBytes_FromString(_reflection->GetString(*_message, field).c_str());
+        {
+            std::string data = _reflection->GetString(*_message, field);
+            return PyBytes_FromStringAndSize(data.c_str(), data.size());
+        }
         case FieldDescriptor::TYPE_STRING:
             return PyUnicode_FromString(_reflection->GetString(*_message, field).c_str());
         case FieldDescriptor::TYPE_ENUM:
@@ -157,8 +160,14 @@ void Arcus::PythonMessage::__setattr__(const std::string& field_name, PyObject* 
             }
             break;
         case FieldDescriptor::TYPE_BYTES:
-            _reflection->SetString(_message, field, std::string(PyBytes_AsString(value)));
+        {
+            Py_buffer buffer;
+            PyObject_GetBuffer(value, &buffer, PyBUF_SIMPLE);
+
+            std::string str(reinterpret_cast<char*>(buffer.buf), buffer.len);
+            _reflection->SetString(_message, field, str);
             break;
+        }
         case FieldDescriptor::TYPE_STRING:
             _reflection->SetString(_message, field, PyUnicode_AsUTF8(value));
             break;
