@@ -21,11 +21,6 @@ class Listener(Arcus.SocketListener):
                 print("  Object ID:", obj.id)
                 print("  Polygon Count:", obj.repeatedMessageCount("polygons"))
 
-                #for p in range(obj.repeatedMessageCount("polygons")):
-                    #poly = obj.getRepeatedMessage("polygons", p)
-                    #print("    Polygon Type:", poly.type)
-                    #print("    Polygon Size:", len(poly.points))
-
     def error(self, error):
         print(error)
 
