@@ -128,7 +128,7 @@ namespace Arcus
         void sendMessage(MessagePtr message);
 
         /**
-         * Remove the next pending message from the queue.
+         * Remove and return the next pending message from the queue.
          */
         MessagePtr takeNextMessage();
 

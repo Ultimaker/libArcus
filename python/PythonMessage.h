@@ -16,8 +16,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ARCUS_MESSAGE_PTR_H
-#define ARCUS_MESSAGE_PTR_H
+#ifndef ARCUS_PYTHON_MESSAGE_H
+#define ARCUS_PYTHON_MESSAGE_H
 
 #include <Python.h>
 #include "Types.h"
@@ -37,7 +37,7 @@ namespace Arcus
      * A simple wrapper around a Protobuf message so it can be used from Python.
      *
      * This class wraps a Protobuf message and makes it possible to get and set
-     * values from the message. Message properties are exposed as Python protoperties
+     * values from the message. Message properties are exposed as Python properties
      * so can be set using things like `message.data = b"something"` from Python.
      *
      * Repeated messages are supported, using addRepeatedMessage, repeatedMessageCount
@@ -68,7 +68,7 @@ namespace Arcus
          *
          * \param field_name The name of the field to add a message to.
          *
-         * \return An instance of PythonMessage wrapping the new Message in the field.
+         * \return A pointer to an instance of PythonMessage wrapping the new Message in the field.
          */
         PythonMessage* addRepeatedMessage(const std::string& field_name);
         /**
@@ -81,7 +81,7 @@ namespace Arcus
          * \param field_name The name of a repeated message field to get an instance from.
          * \param index The index of the item to get in the repeated field.
          *
-         * \return An instance of PythonMessage wrapping the specified repeated message.
+         * \return A pointer to an instance of PythonMessage wrapping the specified repeated message.
          */
         PythonMessage* getRepeatedMessage(const std::string& field_name, int index);
 

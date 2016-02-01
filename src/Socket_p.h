@@ -106,9 +106,16 @@ namespace Arcus
 
         Error last_error;
 
-        std::chrono::system_clock::time_point lastKeepAliveSent;
+        std::chrono::system_clock::time_point last_keep_alive_sent;
 
-        static const int keepAliveRate = 500; //Number of milliseconds between sending keepalive packets
+        static const int keep_alive_rate = 500; //Number of milliseconds between sending keepalive packets
+
+        // This value determines when protobuf should warn about very large messages.
+        static const int message_size_warning = 400 * 1048576;
+
+        // This value determines when protobuf should error out because the message is too large.
+        // Due to the way Protobuf is implemented, messages large than 512MiB will cause issues.
+        static const int message_size_maximum = 500 * 1048576;
     };
 
     // Report an error that should not cause the connection to abort.
@@ -425,7 +432,7 @@ namespace Arcus
 
         google::protobuf::io::ArrayInputStream array(wire_message->data, wire_message->size);
         google::protobuf::io::CodedInputStream stream(&array);
-        stream.SetTotalBytesLimit(500 * 1048576, 384 * 1048576); //Set size limit to 500MiB, warn at 368MiB
+        stream.SetTotalBytesLimit(message_size_maximum, message_size_warning);
         if(!message->ParseFromCodedStream(&stream))
         {
             error(ErrorCode::ParseFailedError, "Failed to parse message");
@@ -446,9 +453,9 @@ namespace Arcus
     void Socket::Private::checkConnectionState()
     {
         auto now = std::chrono::system_clock::now();
-        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastKeepAliveSent);
+        auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(now - last_keep_alive_sent);
 
-        if(diff.count() > keepAliveRate)
+        if(diff.count() > keep_alive_rate)
         {
             int32_t keepalive = 0;
             if(platform_socket.writeInt32(keepalive) == -1)
@@ -456,9 +463,7 @@ namespace Arcus
                 error(ErrorCode::ConnectionResetError, "Connection reset by peer");
                 next_state = SocketState::Closing;
             }
-            lastKeepAliveSent = now;
+            last_keep_alive_sent = now;
         }
     }
 }
-
-
