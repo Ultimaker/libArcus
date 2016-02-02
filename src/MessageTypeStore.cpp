@@ -136,7 +136,19 @@ bool Arcus::MessageTypeStore::registerAllMessageTypes(const std::string& file_na
     {
         d->error_collector = std::make_shared<ErrorCollector>();
         d->source_tree = std::make_shared<google::protobuf::compiler::DiskSourceTree>();
-        d->source_tree->MapPath("/", "/");
+        #ifndef _WIN32
+            d->source_tree->MapPath("/", "/");
+        #else
+            // Because of silly DiskSourceTree, we need to make sure absolute paths to
+            // the protocol file are properly mapped.
+            for(auto letter : std::string("abcdefghijklmnopqrstuvwxyz"))
+            {
+                std::string lc(1, letter);
+                std::string uc(1, toupper(letter));
+                d->source_tree->MapPath(lc + ":/", lc + ":\\");
+                d->source_tree->MapPath(uc + ":/", uc + ":\\");
+            }
+        #endif
         d->importer = std::make_shared<google::protobuf::compiler::Importer>(d->source_tree.get(), d->error_collector.get());
     }
 
