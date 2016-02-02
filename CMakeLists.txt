@@ -13,7 +13,7 @@ find_package(Protobuf ${REQUIRED_PROTOBUF_VERSION} REQUIRED)
 if(BUILD_PYTHON)
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
     find_package(SIP REQUIRED)
-    include_directories(python/ src/ ${SIP_INCLUDE_DIR})
+    include_directories(python/ src/ ${PYTHON_INCLUDE_DIR} ${SIP_INCLUDE_DIR})
 endif()
 
 if(NOT ${CMAKE_VERSION} VERSION_LESS 3.1)
