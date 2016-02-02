@@ -1,7 +1,7 @@
 /*
  * This file is part of libArcus
  *
- * Copyright (C) 2015 Ultimaker b.v. <a.hiemstra@ultimaker.com>
+ * Copyright (C) 2016 Ultimaker b.v. <a.hiemstra@ultimaker.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -16,18 +16,19 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "SocketListener.h"
-
-#include "Socket.h"
-
-using namespace Arcus;
-
-Socket* SocketListener::getSocket() const
+class SocketListener
 {
-    return _socket;
-}
+    %TypeHeaderCode
+    #include "SocketListener.h"
+    %End
 
-void SocketListener::setSocket(Socket* socket)
-{
-    _socket = socket;
-}
+public:
+    SocketListener();
+    virtual ~SocketListener();
+
+    Socket* getSocket();
+
+    virtual void stateChanged(SocketState::SocketState newState) = 0 /HoldGIL/;
+    virtual void messageReceived() = 0 /HoldGIL/;
+    virtual void error(const Error& error) = 0 /HoldGIL/;
+};

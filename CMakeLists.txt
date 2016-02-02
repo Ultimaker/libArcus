@@ -3,15 +3,17 @@ cmake_minimum_required(VERSION 2.8.12)
 
 include(CMakePackageConfigHelpers)
 
-option(INSTALL_PYTHON_PACKAGE "Install the Python parts of Arcus" ON)
+option(BUILD_PYTHON "Build " ON)
 option(BUILD_EXAMPLES "Build the example programs" ON)
 option(BUILD_STATIC "Build as a static library" OFF)
 
 set(REQUIRED_PROTOBUF_VERSION 3.0.0)
 find_package(Protobuf ${REQUIRED_PROTOBUF_VERSION} REQUIRED)
 
-if(INSTALL_PYTHON_PACKAGE)
-    find_package(PythonInterp 3.4.0 REQUIRED)
+if(BUILD_PYTHON)
+    set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+    find_package(SIP REQUIRED)
+    include_directories(python/ src/ ${SIP_INCLUDE_DIR})
 endif()
 
 if(NOT ${CMAKE_VERSION} VERSION_LESS 3.1)
@@ -27,6 +29,9 @@ endif()
 set(arcus_SRCS
     src/Socket.cpp
     src/SocketListener.cpp
+    src/MessageTypeStore.cpp
+    src/PlatformSocket.cpp
+    src/Error.cpp
 )
 
 set(arcus_HDRS
@@ -34,19 +39,35 @@ set(arcus_HDRS
     src/SocketListener.h
     src/Types.h
     src/ArcusExport.h
+    src/MessageTypeStore.h
+    src/Error.h
 )
 
-set(ARCUS_VERSION 15.09.81)
-set(ARCUS_SOVERSION 1)
+set(ARCUS_VERSION 1.0.0)
+set(ARCUS_SOVERSION 2)
+
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 if(BUILD_STATIC)
     add_library(Arcus STATIC ${arcus_SRCS})
-    target_link_libraries(Arcus PRIVATE pthread)
+    if(NOT WIN32 OR CMAKE_COMPILER_IS_GNUCXX)
+        target_link_libraries(Arcus PRIVATE pthread)
+    endif()
 else()
     add_library(Arcus SHARED ${arcus_SRCS})
 endif()
 
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
+if(BUILD_PYTHON)
+    set(SIP_EXTRA_FILES_DEPEND python/SocketListener.sip python/Types.sip python/PythonMessage.sip python/Error.sip)
+    set(SIP_EXTRA_SOURCE_FILES python/PythonMessage.cpp)
+    set(SIP_EXTRA_OPTIONS -g) # -g means always release the GIL before calling C++ methods.
+    if(APPLE OR WIN32)
+        set(PYTHON_SITE_PACKAGES_DIR lib/python3.4/site-packages CACHE STRING "Directory to install Python bindings to")
+    else()
+        set(PYTHON_SITE_PACKAGES_DIR lib/python3/dist-packages CACHE STRING "Directory to install Python bindings to")
+    endif()
+    add_sip_python_module(Arcus python/Socket.sip Arcus)
+endif()
 
 target_include_directories(Arcus PUBLIC
     ${PROTOBUF_INCLUDE_DIR}
@@ -94,13 +115,5 @@ install(FILES
     ${CMAKE_BINARY_DIR}/ArcusConfigVersion.cmake
     DESTINATION lib/cmake/Arcus
 )
-
-if(INSTALL_PYTHON_PACKAGE)
-    if(APPLE OR WIN32)
-        install(FILES python/Arcus/__init__.py DESTINATION lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages/Arcus)
-    else()
-        install(FILES python/Arcus/__init__.py DESTINATION lib/python${PYTHON_VERSION_MAJOR}/dist-packages/Arcus)
-    endif()
-endif()
 
 include(CPackConfig.cmake)

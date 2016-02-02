@@ -10,8 +10,10 @@ protobuf_generate_cpp(example_PB_SRCS example_PB_HDRS "example.proto")
 
 add_executable(example ${example_SRCS} ${example_PB_SRCS})
 target_link_libraries(example Arcus)
-target_link_libraries(example pthread)
-set_target_properties(example PROPERTIES COMPILE_FLAGS "-std=c++11")
+if(NOT WIN32 OR CMAKE_COMPILER_IS_GNUCXX)
+    target_link_libraries(example pthread)
+    set_target_properties(example PROPERTIES COMPILE_FLAGS "-std=c++11")
+endif()
 
 add_custom_command(
     OUTPUT example_pb2.py

@@ -1,7 +1,7 @@
 Arcus
 =====
 
-This library contains a C++ and Python3 class for creating a socket in a thread
+This library contains C++ code and Python3 bindings for creating a socket in a thread
 and using this socket to send and receive messages based on the Protocol Buffers
 library. It is designed to facilitate the communication between Cura and its
 backend and similar code.
@@ -57,8 +57,8 @@ Building
 ========
 
 To build the library, you need CMake and Protobuf installed (see below). In addition, if the
-Python module should be installed, you need a python interpreter available. Only
-Python 3 is supported.
+Python module should be installed, you need a python interpreter available withh the sip tool
+installed. Only Python 3 is supported.
 
 Building the library can be done with:
 
@@ -68,28 +68,41 @@ Building the library can be done with:
 - make install
 
 This will install to CMake's default install prefix, /usr/local. To change the
-prefix, set CMAKE_INSTALL_PREFIX. By default, it will install the Python module
-to $prefix/$libdir/python$version/site-packages, where $libdir is an architecture
-dependant library directory and $version is the major and minor Python version.
-To change this destination, set PYTHON_SITE_PACKAGES_DIR. To disable installing
-the Python module completely, set INSTALL_PYTHON_PACKAGE to off. By default, the
-examples directory is also built. To disable this, set BUILD_EXAMPLES to off.
+prefix, set CMAKE_INSTALL_PREFIX. By default, the examples directory is also built.
+To disable this, set BUILD_EXAMPLES to off.
+
+To disable building the Python bindings, set BUILD_PYTHON to OFF. They will be installed
+into $prefix/lib/python3.4/site-packages on Mac OSX and Windows and to 
+$prefix/lib/python3/dist-packages on Linux. To override this directory, set 
+PYTHON_SITE_PACKAGES_DIR.
+
+Building the Python bindings on 64-bit Windows requires you to build with Microsoft Visual
+C++ since the module will fail to import if built with MinGW.
 
 Using the Socket
 ================
 
 The socket assumes a very simple and strict wire protocol: one 32-bit integer with
-a type ID, one 32-bit integer with the message size, then a byte array containing
-the message as serialized by Protobuf. The receiving side checks for these fields
-and will deserialize the message, after which it can be processed by the
-application.
+a header, one 32-bit integer with the message size, one 32-bit integer with a type id
+then a byte array containing the message as serialized by Protobuf. The receiving side
+checks for these fields and will deserialize the message, after which it can be processed 
+by the application.
 
-To send or receive messages, the message first needs to be registered on both
-sides with a call to `registerMessageType()`. Please note that the first
-parameter (type ID) is used to determine the message type on the receiving end,
-therefore it must correspond on both ends. The message type ID can be any
-positive (signed) integer larger than 0; type ID 0 is reserved for keep-alive
-messages.
+To send or receive messages, the message first needs to be registered on both sides with 
+a call to `registerMessageType()`. You can also register all messages from a Protobuf 
+ .proto file with a call to `registerAllMessageTypes()`. For the Python bindings, this 
+is the only supported way of registering since there are no Python classses for 
+individual message types.
+
+The Python bindings expose the same API as the Public C++ API, except for the missing
+`registerMessageType()` and the individual messages. The Python bindings wrap the
+messages in a class that exposes the message's properties as Python properties, and
+can thus be set the same way you would set any other Python property. 
+
+The exception is repeated fields. Currently, only repeated messages are supported, which
+can be created through the `addRepeatedMessage()` method. `repeatedMessageCount()` will
+return the number of repeated messages on an object and `getRepeatedMessage()` will get
+a certain instance of a repeated message. See python/PythonMessage.h for more details.
 
 Origin of the Name
 ==================

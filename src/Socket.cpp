@@ -20,11 +20,10 @@
 #include "Socket_p.h"
 
 #include <algorithm>
-#include <typeinfo>
 
 using namespace Arcus;
 
-Socket::Socket() : d(new SocketPrivate)
+Socket::Socket() : d(new Private)
 {
 }
 
@@ -34,44 +33,58 @@ Socket::~Socket()
     {
         if(d->state != SocketState::Closed || d->state != SocketState::Error)
         {
-            d->nextState = SocketState::Closing;
-            if(d->thread)
-            {
-                d->thread->join();
-                d->thread = nullptr;
-            }
+            close();
         }
         delete d->thread;
     }
 }
 
-SocketState::State Socket::state() const
+SocketState::SocketState Socket::getState() const
 {
     return d->state;
 }
 
-std::string Socket::errorString() const
+Error Socket::getLastError() const
 {
-    return d->errorString;
+    return d->last_error;
 }
 
 void Socket::clearError()
 {
-    d->errorString.clear();
+    d->last_error = Error();
 }
 
-void Socket::registerMessageType(int type, const google::protobuf::Message* messageType)
+bool Socket::registerMessageType(const google::protobuf::Message* message_type)
 {
     if(d->state != SocketState::Initial)
     {
-        return;
+        return false;
     }
 
-    if(type <= 0)
-        throw new std::bad_typeid();
+    return d->message_types.registerMessageType(message_type);
+}
 
-    d->messageTypes[type] = messageType;
-    d->messageTypeMapping[messageType->GetDescriptor()] = type;
+bool Socket::registerAllMessageTypes(const std::string& file_name)
+{
+    if(file_name.empty())
+    {
+        d->error(ErrorCode::MessageRegistrationFailedError, "Empty file name");
+        return false;
+    }
+
+    if(d->state != SocketState::Initial)
+    {
+        d->error(ErrorCode::MessageRegistrationFailedError, "Socket is not in initial state");
+        return false;
+    }
+
+    if(!d->message_types.registerAllMessageTypes(file_name))
+    {
+        d->error(ErrorCode::MessageRegistrationFailedError, d->message_types.getErrorMessages());
+        return false;
+    }
+
+    return true;
 }
 
 void Socket::addListener(SocketListener* listener)
@@ -105,15 +118,16 @@ void Socket::connect(const std::string& address, int port)
 
     d->address = address;
     d->port = port;
-    d->nextState = SocketState::Connecting;
     d->thread = new std::thread([&]() { d->run(); });
+    d->next_state = SocketState::Connecting;
 }
 
 void Socket::reset()
 {
-    if (d->state != SocketState::Closed &&
-        d->state != SocketState::Error)
+    if (d->state != SocketState::Closed && d->state != SocketState::Error)
+    {
         return;
+    }
 
     if(d->thread)
     {
@@ -122,21 +136,26 @@ void Socket::reset()
     }
 
     d->state = SocketState::Initial;
-    d->nextState = SocketState::Initial;
-    d->errorString = "";
+    d->next_state = SocketState::Initial;
+    clearError();
 }
 
 void Socket::listen(const std::string& address, int port)
 {
     d->address = address;
     d->port = port;
-    d->nextState = SocketState::Opening;
     d->thread = new std::thread([&]() { d->run(); });
+    d->next_state = SocketState::Opening;
 }
 
 void Socket::close()
 {
-    d->nextState = SocketState::Closing;
+    d->next_state = SocketState::Closing;
+    if(!d->platform_socket.close())
+    {
+        d->platform_socket.shutdown();
+    }
+
     if(d->thread)
     {
         d->thread->join();
@@ -147,8 +166,10 @@ void Socket::close()
 void Socket::sendMessage(MessagePtr message)
 {
     if(!message)
+    {
         return;
-    
+    }
+
     std::lock_guard<std::mutex> lock(d->sendQueueMutex);
     d->sendQueue.push_back(message);
 }
@@ -166,4 +187,9 @@ MessagePtr Socket::takeNextMessage()
     {
         return nullptr;
     }
+}
+
+MessagePtr Arcus::Socket::createMessage(const std::string& type)
+{
+    return d->message_types.createMessage(type);
 }

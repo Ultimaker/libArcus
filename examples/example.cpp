@@ -23,16 +23,23 @@ int main(int argc, char** argv)
 {
     Arcus::Socket socket;
 
-    socket.registerMessageType(2, &Example::ObjectList::default_instance());
-    socket.registerMessageType(5, &Example::ProgressUpdate::default_instance());
-    socket.registerMessageType(6, &Example::SlicedObjectList::default_instance());
+    socket.registerMessageType(&Example::ObjectList::default_instance());
+    socket.registerMessageType(&Example::ProgressUpdate::default_instance());
+    socket.registerMessageType(&Example::SlicedObjectList::default_instance());
 
     std::cout << "Connecting to server\n";
     socket.connect("127.0.0.1", 56789);
 
+    while(socket.getState() != Arcus::SocketState::Connected)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    std::cout << "Connected to server\n";
+
     while(true)
     {
-        if(socket.state() == Arcus::SocketState::Connected)
+        if(socket.getState() == Arcus::SocketState::Connected)
         {
             auto message = socket.takeNextMessage();
             if(message)
@@ -41,26 +48,33 @@ int main(int argc, char** argv)
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(250));
         }
-        else if(socket.state() == Arcus::SocketState::Closed || socket.state() == Arcus::SocketState::Error)
+        else if(socket.getState() == Arcus::SocketState::Closed || socket.getState() == Arcus::SocketState::Error)
         {
-            if(!socket.errorString().empty())
+            if(socket.getLastError().isValid())
             {
-                std::cout << "An error occurred: " << socket.errorString() << std::endl;
+                std::cout << "An error occurred: " << socket.getLastError() << std::endl;
             }
             break;
         }
+        else if(socket.getLastError().isValid())
+        {
+            std::cout << socket.getLastError() << std::endl;
+        }
     }
 
+    socket.close();
     return 0;
 }
 
 void handleMessage(Arcus::Socket& socket, Arcus::MessagePtr message)
 {
     // (Dynamicly) cast the message to one of our types. If this works (does not return a nullptr), we've found the right type.
-    auto objectList = dynamic_cast<Example::ObjectList*>(message.get()); 
+    auto objectList = dynamic_cast<Example::ObjectList*>(message.get());
     if(objectList)
     {
         objects.clear();
+
+        std::cout << "Received object list containing " << objectList->objects_size() << " objects" << std::endl;
 
         for(auto objectDesc : objectList->objects())
         {
@@ -79,10 +93,11 @@ void handleMessage(Arcus::Socket& socket, Arcus::MessagePtr message)
             auto slicedObject = msg->add_objects();
             slicedObject->set_id(object.id);
 
-            for(int i = 0; i < 100; ++i)
+            for(int i = 0; i < 1000; ++i)
             {
                 auto polygon = slicedObject->add_polygons();
-                polygon->set_points("abcdefghijklmnopqrstuvwxyz");
+                polygon->set_type(i % 2 == 0 ? Example::Polygon_Type_InnerType : Example::Polygon_Type_OuterType);
+                polygon->set_points(object.vertices);
             }
 
             auto update = std::make_shared<Example::ProgressUpdate>();
