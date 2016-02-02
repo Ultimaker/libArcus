@@ -52,6 +52,7 @@ if(BUILD_STATIC)
     add_library(Arcus STATIC ${arcus_SRCS})
     if(NOT WIN32 OR CMAKE_COMPILER_IS_GNUCXX)
         target_link_libraries(Arcus PRIVATE pthread)
+        set_target_properties(Arcus PROPERTIES COMPILE_FLAGS -fPIC
     endif()
 else()
     add_library(Arcus SHARED ${arcus_SRCS})
