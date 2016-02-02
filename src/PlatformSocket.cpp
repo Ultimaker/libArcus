@@ -35,6 +35,10 @@
     #define MSG_NOSIGNAL 0x0 //Don't request NOSIGNAL on systems where this is not implemented.
 #endif
 
+#ifndef MSG_DONTWAIT
+    #define MSG_DONTWAIT 0x0
+#endif
+
 using namespace Arcus::Private;
 
 #ifdef _WIN32
