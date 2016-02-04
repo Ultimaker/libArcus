@@ -84,9 +84,17 @@ namespace Arcus
          */
         bool isValid() const;
         /**
+         * The error code as reported by the platform.
+         */
+        int getNativeErrorCode() const;
+        /**
          * Set whether this should be considered a fatal error.
          */
         void setFatalError(bool fatal);
+        /**
+         * Set the native error code, if any.
+         */
+        void setNativeErrorCode(int code);
         /**
          * Convert the error to a string that can be printed.
          */
@@ -96,6 +104,7 @@ namespace Arcus
         ErrorCode::ErrorCode _error_code;
         std::string _error_message;
         bool _fatal_error;
+        int _native_error_code;
     };
 }
 
