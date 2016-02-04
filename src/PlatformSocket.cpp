@@ -194,10 +194,17 @@ int Arcus::Private::PlatformSocket::readBytes(std::size_t size, char* output)
 
 bool Arcus::Private::PlatformSocket::setReceiveTimeout(int timeout)
 {
-    timeval t;
-    t.tv_sec = 0;
-    t.tv_usec = timeout * 1000;
-    ::setsockopt(_socket_id, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&t), sizeof(t));
+    int result = 0;
+    #ifdef _WIN32
+        result = ::setsockopt(_socket_id, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&timeout), sizeof(timeout));
+        return result != SOCKET_ERROR;
+    #else
+        timeval t;
+        t.tv_sec = 0;
+        t.tv_usec = timeout * 1000;
+        result = ::setsockopt(_socket_id, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&t), sizeof(t));
+        return result != 0;
+    #endif
 }
 
 int Arcus::Private::PlatformSocket::getNativeErrorCode()
