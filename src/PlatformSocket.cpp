@@ -29,6 +29,7 @@
     #include <arpa/inet.h>
     #include <unistd.h>
     #include <signal.h>
+    #include <errno.h>
 #endif
 
 #ifndef MSG_NOSIGNAL
