@@ -41,7 +41,6 @@ class Error
 {
     %TypeHeaderCode
     #include "Error.h"
-    #include <sstream>
     %End
 
 public:
@@ -57,8 +56,6 @@ public:
 
     PyObject* __repr__();
     %MethodCode
-    std::stringstream stream;
-    stream << *sipCpp;
-    return PyUnicode_FromString(stream.str().c_str());
+    return PyUnicode_FromString(sipCpp->toString().c_str());
     %End
 };
