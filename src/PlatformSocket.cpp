@@ -217,7 +217,7 @@ int Arcus::Private::PlatformSocket::readBytes(std::size_t size, char* output)
             return 0;
         }
     #else
-        if(errno == EAGAIN)
+        if(num <= 0 && errno == EAGAIN)
         {
             return 0;
         }
@@ -237,7 +237,7 @@ bool Arcus::Private::PlatformSocket::setReceiveTimeout(int timeout)
         t.tv_sec = 0;
         t.tv_usec = timeout * 1000;
         result = ::setsockopt(_socket_id, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&t), sizeof(t));
-        return result != 0;
+        return result == 0;
     #endif
 }
 
