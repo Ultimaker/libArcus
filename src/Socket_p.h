@@ -142,6 +142,8 @@ namespace Arcus
     void Socket::Private::error(ErrorCode::ErrorCode error_code, const std::string& message)
     {
         Error error(error_code, message);
+        error.setNativeErrorCode(platform_socket.getNativeErrorCode());
+
         last_error = error;
 
         for(auto listener : listeners)
@@ -155,6 +157,8 @@ namespace Arcus
     {
         Error error(error_code, message);
         error.setFatalError(true);
+        error.setNativeErrorCode(platform_socket.getNativeErrorCode());
+
         last_error = error;
 
         platform_socket.close();
