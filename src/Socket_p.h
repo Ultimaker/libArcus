@@ -76,6 +76,7 @@ namespace Arcus
             : state(SocketState::Initial)
             , next_state(SocketState::Initial)
             , port(0)
+            , sending(false)
             , thread(nullptr)
         {
         }
@@ -97,6 +98,8 @@ namespace Arcus
 
         std::string address;
         uint port;
+
+        volatile bool sending;
 
         std::thread* thread;
 
@@ -244,6 +247,7 @@ namespace Arcus
                     //unlock the queue before performing the send.
                     std::list<MessagePtr> messagesToSend;
                     sendQueueMutex.lock();
+                    sending = true;
                     while(sendQueue.size() > 0)
                     {
                         messagesToSend.push_back(sendQueue.front());
@@ -255,6 +259,8 @@ namespace Arcus
                     {
                         sendMessage(message);
                     }
+
+                    sending = false;
 
                     receiveNextMessage();
 

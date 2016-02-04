@@ -155,6 +155,12 @@ void Socket::listen(const std::string& address, int port)
 
 void Socket::close()
 {
+    // Wait with closing until we properly clear the send queue.
+    while(d->sendQueue.size() > 0 || d->sending)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
     d->next_state = SocketState::Closing;
     if(!d->platform_socket.close())
     {
