@@ -149,7 +149,7 @@ namespace Arcus
              *
              * \param timeout The amount of time in milliseconds to wait for data.
              */
-            void setReceiveTimeout(int timeout);
+            bool setReceiveTimeout(int timeout);
             /**
              * Return the last error code as reported by the underlying platform.
              */

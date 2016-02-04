@@ -192,7 +192,7 @@ int Arcus::Private::PlatformSocket::readBytes(std::size_t size, char* output)
     return ::recv(_socket_id, output, size, 0);
 }
 
-void Arcus::Private::PlatformSocket::setReceiveTimeout(int timeout)
+bool Arcus::Private::PlatformSocket::setReceiveTimeout(int timeout)
 {
     timeval t;
     t.tv_sec = 0;
