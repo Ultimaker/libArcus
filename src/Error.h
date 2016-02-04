@@ -43,6 +43,8 @@ namespace Arcus
             ParseFailedError, ///< Parsing the received message failed.
             ConnectionResetError, ///< The connection was reset by peer.
             MessageRegistrationFailedError, ///< Message registration failed.
+            InvalidStateError, ///< Socket is in an invalid state.
+            InvalidMessageError, ///< Message being handled is a nullptr or otherwise invalid.
             #ifdef ARCUS_DEBUG
             Debug, //Debug messages
             #endif
