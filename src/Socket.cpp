@@ -172,6 +172,7 @@ void Socket::sendMessage(MessagePtr message)
 {
     if(!message)
     {
+        d->error(ErrorCode::InvalidMessageError, "Message cannot be nullptr");
         return;
     }
 
