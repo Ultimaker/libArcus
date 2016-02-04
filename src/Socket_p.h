@@ -162,7 +162,6 @@ namespace Arcus
         last_error = error;
 
         platform_socket.close();
-        current_message.reset();
         next_state = SocketState::Error;
 
         for(auto listener : listeners)
@@ -348,6 +347,7 @@ namespace Arcus
             {
                 // Someone might be speaking to us in a different protocol?
                 error(ErrorCode::ReceiveFailedError, "Header mismatch");
+                current_message.reset();
                 platform_socket.flush();
                 return;
             }
@@ -355,6 +355,7 @@ namespace Arcus
             if(major_version != VERSION_MAJOR)
             {
                 error(ErrorCode::ReceiveFailedError, "Protocol version mismatch");
+                current_message.reset();
                 platform_socket.flush();
                 return;
             }
@@ -362,6 +363,7 @@ namespace Arcus
             if(minor_version != VERSION_MINOR)
             {
                 error(ErrorCode::ReceiveFailedError, "Protocol version mismatch");
+                current_message.reset();
                 platform_socket.flush();
                 return;
             }
@@ -381,6 +383,7 @@ namespace Arcus
             else if(result == -1)
             {
                 error(ErrorCode::ReceiveFailedError, "Size invalid");
+                current_message.reset();
                 platform_socket.flush();
                 return;
             }
@@ -388,6 +391,7 @@ namespace Arcus
             if(size < 0)
             {
                 error(ErrorCode::ReceiveFailedError, "Size invalid");
+                current_message.reset();
                 platform_socket.flush();
                 return;
             }
@@ -420,6 +424,7 @@ namespace Arcus
             catch (std::bad_alloc&)
             {
                 // Either way we're in trouble.
+                current_message.reset();
                 fatalError(ErrorCode::ReceiveFailedError, "Out of memory");
                 return;
             }
@@ -437,6 +442,7 @@ namespace Arcus
             {
                 error(ErrorCode::ReceiveFailedError, "Could not receive data for message");
                 current_message.reset();
+                return;
             }
             else
             {
