@@ -49,7 +49,7 @@ bool Arcus::Error::isFatalError() const
 
 bool Arcus::Error::isValid() const
 {
-    return _error_code != ErrorCode::UnknownError && !_error_message.empty();
+    return _error_code != ErrorCode::UnknownError || !_error_message.empty();
 }
 
 int Arcus::Error::getNativeErrorCode() const
