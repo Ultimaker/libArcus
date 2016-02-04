@@ -180,6 +180,22 @@ int Arcus::Private::PlatformSocket::readInt32(int32_t* output)
 
     if(num != 4)
     {
+        #ifdef _WIN32
+            if(num == WSAETIMEDOUT)
+            {
+                return 0;
+            }
+            else if(WSAGetLastError() == WSAETIMEDOUT)
+            {
+                return 0;
+            }
+        #else
+            if(errno == EAGAIN)
+            {
+                return 0;
+            }
+        #endif
+
         return -1;
     }
 
@@ -189,7 +205,25 @@ int Arcus::Private::PlatformSocket::readInt32(int32_t* output)
 
 int Arcus::Private::PlatformSocket::readBytes(std::size_t size, char* output)
 {
-    return ::recv(_socket_id, output, size, 0);
+    std::size_t num = ::recv(_socket_id, output, size, 0);
+
+    #ifdef _WIN32
+        if(num == WSAETIMEDOUT)
+        {
+            return 0;
+        }
+        else if(num == -1 && WSAGetLastError() == WSAETIMEDOUT)
+        {
+            return 0;
+        }
+    #else
+        if(errno == EAGAIN)
+        {
+            return 0;
+        }
+    #endif
+
+    return num;
 }
 
 bool Arcus::Private::PlatformSocket::setReceiveTimeout(int timeout)
