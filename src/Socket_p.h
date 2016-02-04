@@ -374,13 +374,12 @@ namespace Arcus
         {
             int32_t size = 0;
             result = platform_socket.readInt32(&size);
-            if(result == -1)
+            if(result == 0)
             {
-                #ifndef _WIN32
-                if (errno == EAGAIN)
-                    return;
-                #endif
-
+                return;
+            }
+            else if(result == -1)
+            {
                 error(ErrorCode::ReceiveFailedError, "Size invalid");
                 platform_socket.flush();
                 return;
@@ -402,12 +401,13 @@ namespace Arcus
         {
             int32_t type = 0;
             result = platform_socket.readInt32(&type);
-            if(result == -1)
+            if(result == 0)
             {
-                #ifndef _WIN32
-                if (errno == EAGAIN)
-                    return;
-                #endif
+                return;
+            }
+            else if(result == -1)
+            {
+                error(ErrorCode::ReceiveFailedError, "Receiving type failed");
                 current_message->valid = false;
             }
 
@@ -435,12 +435,8 @@ namespace Arcus
 
             if(result == -1)
             {
-            #ifndef _WIN32
-                if(errno != EAGAIN)
-            #endif
-                {
-                    current_message.reset();
-                }
+                error(ErrorCode::ReceiveFailedError, "Could not receive data for message");
+                current_message.reset();
             }
             else
             {
