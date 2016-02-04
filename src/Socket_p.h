@@ -56,8 +56,10 @@
 #define ARCUS_SIGNATURE 0x2BAD
 #define SIG(n) (((n) & 0xffff0000) >> 16)
 
-#ifndef MSG_NOSIGNAL
-	#define MSG_NOSIGNAL 0x0 //Don't request NOSIGNAL on systems where this is not implemented.
+#ifdef ARCUS_DEBUG
+    #define DEBUG(message) debug(message)
+#else
+    #define DEBUG(message)
 #endif
 
 /**
@@ -83,8 +85,10 @@ namespace Arcus
         void receiveNextMessage();
         void handleMessage(const std::shared_ptr<WireMessage>& wire_message);
         void checkConnectionState();
-        void error(std::string msg);
 
+        #ifdef ARCUS_DEBUG
+        void debug(const std::string& message);
+        #endif
         void error(ErrorCode::ErrorCode error_code, const std::string& message);
         void fatalError(ErrorCode::ErrorCode error_code, const std::string& msg);
 
@@ -122,6 +126,17 @@ namespace Arcus
         // Due to the way Protobuf is implemented, messages large than 512MiB will cause issues.
         static const int message_size_maximum = 500 * 1048576;
     };
+
+    #ifdef ARCUS_DEBUG
+    void Socket::Private::debug(const std::string& message)
+    {
+        Error error(ErrorCode::Debug, std::string("[DEBUG] ") + message);
+        for(auto listener : listeners)
+        {
+            listener->error(error);
+        }
+    }
+    #endif
 
     // Report an error that should not cause the connection to abort.
     void Socket::Private::error(ErrorCode::ErrorCode error_code, const std::string& message)

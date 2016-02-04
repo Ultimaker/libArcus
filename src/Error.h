@@ -43,6 +43,9 @@ namespace Arcus
             ParseFailedError, ///< Parsing the received message failed.
             ConnectionResetError, ///< The connection was reset by peer.
             MessageRegistrationFailedError, ///< Message registration failed.
+            #ifdef ARCUS_DEBUG
+            Debug, //Debug messages
+            #endif
         };
     }
 

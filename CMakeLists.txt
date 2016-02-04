@@ -84,6 +84,10 @@ if(WIN32)
     target_link_libraries(Arcus PUBLIC Ws2_32)
 endif()
 
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
+    add_definitions(-DARCUS_DEBUG)
+endif()
+
 set_target_properties(Arcus PROPERTIES
     FRAMEWORK FALSE
     VERSION ${ARCUS_VERSION}
