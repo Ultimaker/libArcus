@@ -196,6 +196,7 @@ namespace Arcus
                         }
                         else
                         {
+                            DEBUG("Socket connected");
                             next_state = SocketState::Connected;
                         }
                     }
@@ -232,6 +233,7 @@ namespace Arcus
                         }
                         else
                         {
+                            DEBUG("Socket connected");
                             next_state = SocketState::Connected;
                         }
                     }
@@ -296,13 +298,15 @@ namespace Arcus
             return;
         }
 
-        if(platform_socket.writeInt32(message->ByteSize()) == -1)
+        int32_t message_size = message->ByteSize();
+        if(platform_socket.writeInt32(message_size) == -1)
         {
             error(ErrorCode::SendFailedError, "Could not send message size");
             return;
         }
 
-        if(platform_socket.writeInt32(message_types.getMessageTypeId(message)) == -1)
+        uint32_t type_id = message_types.getMessageTypeId(message);
+        if(platform_socket.writeInt32(type_id) == -1)
         {
             error(ErrorCode::SendFailedError, "Could not send message type");
             return;
@@ -313,6 +317,7 @@ namespace Arcus
         {
             error(ErrorCode::SendFailedError, "Could not send message data");
         }
+        DEBUG(std::string("Sending message of type ") + std::to_string(type_id) + " and size " + std::to_string(message_size));
     }
 
     // Handle receiving data until we have a proper message.
@@ -331,7 +336,9 @@ namespace Arcus
             platform_socket.readInt32(&header);
 
             if(header == 0) // Keep-alive, just return
+            {
                 return;
+            }
 
             int signature = (header & 0xffff0000) >> 16;
             int major_version = (header & 0x0000ff00) >> 8;
@@ -359,6 +366,7 @@ namespace Arcus
                 return;
             }
 
+            DEBUG("Incoming message, header ok");
             current_message->state = WireMessage::MessageState::Size;
         }
 
@@ -385,6 +393,7 @@ namespace Arcus
                 return;
             }
 
+            DEBUG(std::string("Incoming message size: ") + std::to_string(size));
             current_message->size = size;
             current_message->state = WireMessage::MessageState::Type;
         }
@@ -415,6 +424,7 @@ namespace Arcus
                 return;
             }
 
+            DEBUG(std::string("Incoming message type: ") + std::to_string(real_type));
             current_message->type = real_type;
             current_message->state = WireMessage::MessageState::Data;
         }
@@ -435,6 +445,9 @@ namespace Arcus
             else
             {
                 current_message->received_size = current_message->received_size + result;
+
+                DEBUG("Received " + std::to_string(result) + " bytes data");
+
                 if(current_message->isComplete())
                 {
                     if(!current_message->valid)
@@ -460,6 +473,7 @@ namespace Arcus
     {
         if(!message_types.hasType(wire_message->type))
         {
+            DEBUG(std::string("Received message type: ") + std::to_string(wire_message->type));
             error(ErrorCode::UnknownMessageTypeError, "Unknown message type");
             return;
         }
@@ -474,6 +488,8 @@ namespace Arcus
             error(ErrorCode::ParseFailedError, "Failed to parse message");
             return;
         }
+
+        DEBUG(std::string("Received a message of type ") + std::to_string(wire_message->type) + " and size " + std::to_string(wire_message->size));
 
         receiveQueueMutex.lock();
         receiveQueue.push_back(message);
@@ -502,7 +518,4 @@ namespace Arcus
             last_keep_alive_sent = now;
         }
     }
-
 }
-
-
