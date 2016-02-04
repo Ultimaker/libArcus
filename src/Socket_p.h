@@ -417,7 +417,7 @@ namespace Arcus
             {
                 current_message->allocateData();
             }
-            catch (std::bad_alloc& ba)
+            catch (std::bad_alloc&)
             {
                 // Either way we're in trouble.
                 fatalError(ErrorCode::ReceiveFailedError, "Out of memory");
