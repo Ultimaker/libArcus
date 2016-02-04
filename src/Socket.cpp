@@ -58,6 +58,7 @@ bool Socket::registerMessageType(const google::protobuf::Message* message_type)
 {
     if(d->state != SocketState::Initial)
     {
+        d->error(ErrorCode::InvalidStateError, "Socket is not in initial state");
         return false;
     }
 
@@ -91,6 +92,7 @@ void Socket::addListener(SocketListener* listener)
 {
     if(d->state != SocketState::Initial)
     {
+        d->error(ErrorCode::InvalidStateError, "Socket is not in initial state");
         return;
     }
 
@@ -102,6 +104,7 @@ void Socket::removeListener(SocketListener* listener)
 {
     if(d->state != SocketState::Initial)
     {
+        d->error(ErrorCode::InvalidStateError, "Socket is not in initial state");
         return;
     }
 
@@ -113,6 +116,7 @@ void Socket::connect(const std::string& address, int port)
 {
     if(d->state != SocketState::Initial || d->thread != nullptr)
     {
+        d->error(ErrorCode::InvalidStateError, "Socket is not in initial state");
         return;
     }
 
@@ -126,6 +130,7 @@ void Socket::reset()
 {
     if (d->state != SocketState::Closed && d->state != SocketState::Error)
     {
+        d->error(ErrorCode::InvalidStateError, "Socket is not in closed or error state");
         return;
     }
 
