@@ -190,8 +190,14 @@ namespace Arcus
                     }
                     else
                     {
-                        platform_socket.setReceiveTimeout(250);
-                        next_state = SocketState::Connected;
+                        if(!platform_socket.setReceiveTimeout(250))
+                        {
+                            fatalError(ErrorCode::ConnectFailedError, "Failed to set socket receive timeout");
+                        }
+                        else
+                        {
+                            next_state = SocketState::Connected;
+                        }
                     }
                     break;
                 }
@@ -220,8 +226,14 @@ namespace Arcus
                     }
                     else
                     {
-                        platform_socket.setReceiveTimeout(250);
-                        next_state = SocketState::Connected;
+                        if(!platform_socket.setReceiveTimeout(250))
+                        {
+                            fatalError(ErrorCode::AcceptFailedError, "Could not set receive timeout of socket");
+                        }
+                        else
+                        {
+                            next_state = SocketState::Connected;
+                        }
                     }
                     break;
                 }
