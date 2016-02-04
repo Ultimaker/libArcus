@@ -199,3 +199,12 @@ void Arcus::Private::PlatformSocket::setReceiveTimeout(int timeout)
     t.tv_usec = timeout * 1000;
     ::setsockopt(_socket_id, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&t), sizeof(t));
 }
+
+int Arcus::Private::PlatformSocket::getNativeErrorCode()
+{
+    #ifdef _WIN32
+        return WSAGetLastError();
+    #else
+        return errno;
+    #endif
+}
