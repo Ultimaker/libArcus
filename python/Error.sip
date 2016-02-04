@@ -29,7 +29,11 @@ namespace ErrorCode
         ReceiveFailedError,
         UnknownMessageTypeError,
         ParseFailedError,
-        ConnectionResetError
+        ConnectionResetError,
+        MessageRegistrationFailedError,
+        InvalidStateError,
+        InvalidMessageError,
+        Debug,
     };
 };
 
