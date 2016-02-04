@@ -3,6 +3,8 @@
 #include <thread>
 
 #include "../src/Socket.h"
+#include "../src/SocketListener.h"
+#include "../src/Error.h"
 
 #include "example.pb.h"
 
@@ -13,6 +15,24 @@ public:
     std::string vertices;
     std::string normals;
     std::string indices;
+};
+
+class Listener : public Arcus::SocketListener
+{
+public:
+    void stateChanged(Arcus::SocketState::SocketState new_state)
+    {
+        std::cout << "State Changed: " << new_state << std::endl;
+    }
+
+    void messageReceived()
+    {
+    }
+
+    void error(const Arcus::Error& new_error)
+    {
+        std::cout << new_error << std::endl;
+    }
 };
 
 std::vector<Object> objects;
@@ -26,6 +46,8 @@ int main(int argc, char** argv)
     socket.registerMessageType(&Example::ObjectList::default_instance());
     socket.registerMessageType(&Example::ProgressUpdate::default_instance());
     socket.registerMessageType(&Example::SlicedObjectList::default_instance());
+
+    socket.addListener(new Listener());
 
     std::cout << "Connecting to server\n";
     socket.connect("127.0.0.1", 56789);
@@ -50,15 +72,7 @@ int main(int argc, char** argv)
         }
         else if(socket.getState() == Arcus::SocketState::Closed || socket.getState() == Arcus::SocketState::Error)
         {
-            if(socket.getLastError().isValid())
-            {
-                std::cout << "An error occurred: " << socket.getLastError() << std::endl;
-            }
             break;
-        }
-        else if(socket.getLastError().isValid())
-        {
-            std::cout << socket.getLastError() << std::endl;
         }
     }
 
@@ -105,6 +119,8 @@ void handleMessage(Arcus::Socket& socket, Arcus::MessagePtr message)
             update->set_amount((float(++progress) / float(objects.size())) * 100.f);
             socket.sendMessage(update);
         }
+
+        std::cout << "Sending SlicedObjectList" << std::endl;
         socket.sendMessage(msg);
 
         return;

@@ -30,7 +30,10 @@ socket = Arcus.Socket()
 
 print("Registering message types")
 
-socket.registerAllMessageTypes(os.path.dirname(os.path.abspath(__file__)) + "/example.proto")
+path = os.path.dirname(os.path.abspath(__file__)).replace("\\", "/")
+if  not socket.registerAllMessageTypes(path + "/example.proto"):
+    print("Failed to register messages:", socket.getLastError())
+
 
 print("Creating listener")
 
@@ -63,11 +66,13 @@ for i in range(10):
         obj.normals = b'abcdefghijklmnopqrstuvwxyz' * 100
         obj.indices = b'abcdefghijklmnopqrstuvwxyz' * 100
 
+    print("Sending message containing", msg.repeatedMessageCount("objects"), "objects")
     socket.sendMessage(msg)
 
     time.sleep(1)
 
     if socket.getState() != Arcus.SocketState.Connected:
+        print("Socket lost connection, aborting!")
         break
 
 time.sleep(5) #Sleep for a bit more so we can receive replies to what we just sent.
