@@ -56,6 +56,8 @@
 #define ARCUS_SIGNATURE 0x2BAD
 #define SIG(n) (((n) & 0xffff0000) >> 16)
 
+#define SOCKET_CLOSE 0xf0f0f0f0
+
 #ifdef ARCUS_DEBUG
     #define DEBUG(message) debug(message)
 #else
@@ -75,8 +77,8 @@ namespace Arcus
         Private()
             : state(SocketState::Initial)
             , next_state(SocketState::Initial)
+            , received_close(false)
             , port(0)
-            , sending(false)
             , thread(nullptr)
         {
         }
@@ -96,10 +98,10 @@ namespace Arcus
         SocketState::SocketState state;
         SocketState::SocketState next_state;
 
+        bool received_close;
+
         std::string address;
         uint port;
-
-        volatile bool sending;
 
         std::thread* thread;
 
@@ -247,7 +249,6 @@ namespace Arcus
                     //unlock the queue before performing the send.
                     std::list<MessagePtr> messagesToSend;
                     sendQueueMutex.lock();
-                    sending = true;
                     while(sendQueue.size() > 0)
                     {
                         messagesToSend.push_back(sendQueue.front());
@@ -260,8 +261,6 @@ namespace Arcus
                         sendMessage(message);
                     }
 
-                    sending = false;
-
                     receiveNextMessage();
 
                     if(next_state != SocketState::Error)
@@ -273,6 +272,58 @@ namespace Arcus
                 }
                 case SocketState::Closing:
                 {
+                    if(!received_close)
+                    {
+                        // We want to close the socket.
+                        // First, flush the send queue so it is empty.
+                        std::list<MessagePtr> messagesToSend;
+                        sendQueueMutex.lock();
+                        while(sendQueue.size() > 0)
+                        {
+                            messagesToSend.push_back(sendQueue.front());
+                            sendQueue.pop_front();
+                        }
+                        sendQueueMutex.unlock();
+
+                        for(auto message : messagesToSend)
+                        {
+                            sendMessage(message);
+                        }
+
+                        // Communicate to the other side that we want to close.
+                        platform_socket.writeInt32(SOCKET_CLOSE);
+                        // Disable further writing to the socket.
+                        platform_socket.shutdown(PlatformSocket::ShutdownDirection::ShutdownWrite);
+
+                        // Wait until we receive confirmation from the other side to actually close.
+                        int32_t data = 0;
+                        while(data != SOCKET_CLOSE && next_state == SocketState::Closing)
+                        {
+                            if(platform_socket.readInt32(&data) == -1)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // The other side requested a close. Drop all pending messages
+                        // since the other socket will not process them anyway.
+                        sendQueueMutex.lock();
+                        sendQueue.clear();
+                        sendQueueMutex.unlock();
+
+                        // Send confirmation to the other side that we received their close
+                        // request and are also closing down.
+                        platform_socket.writeInt32(SOCKET_CLOSE);
+                        // Prevent further writing to the socket.
+                        platform_socket.shutdown(PlatformSocket::ShutdownDirection::ShutdownWrite);
+
+                        // At this point the socket can safely be closed, assuming that SOCKET_CLOSE
+                        // is the last data received from the other socket and everything was received
+                        // in order (which should be guaranteed by TCP).
+                    }
+
                     platform_socket.close();
                     next_state = SocketState::Closed;
                     break;
@@ -342,6 +393,13 @@ namespace Arcus
 
             if(header == 0) // Keep-alive, just return
             {
+                return;
+            }
+            else if(header == SOCKET_CLOSE)
+            {
+                // We received a close request from the other socket, so close this socket as well.
+                next_state = SocketState::Closing;
+                received_close = true;
                 return;
             }
 

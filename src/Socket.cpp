@@ -155,21 +155,43 @@ void Socket::listen(const std::string& address, int port)
 
 void Socket::close()
 {
-    // Wait with closing until we properly clear the send queue.
-    while(d->sendQueue.size() > 0 || d->sending)
+    if(d->state == SocketState::Initial)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        d->error(ErrorCode::InvalidStateError, "Cannot close a socket in initial state");
+        return;
     }
 
-    d->next_state = SocketState::Closing;
-    if(!d->platform_socket.close())
+    if(d->state == SocketState::Closed || d->state == SocketState::Error)
     {
-        d->platform_socket.shutdown();
+        // Silently ignore this, as calling close on an already closed socket should be fine.
+        return;
+    }
+
+    if(d->state == SocketState::Connected)
+    {
+        // Make the socket request close.
+        d->next_state = SocketState::Closing;
+
+        // Wait with closing until we properly clear the send queue.
+        while(d->state == SocketState::Closing)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
+    else
+    {
+        // We are still in an unconnected state but want to abort any connection
+        // attempt. So disable any communication on the socket to make sure calls
+        // like accept() exit, then close the socket.
+        d->platform_socket.shutdown(PlatformSocket::ShutdownDirection::ShutdownBoth);
+        d->platform_socket.close();
+        d->next_state = SocketState::Closed;
     }
 
     if(d->thread)
     {
         d->thread->join();
+        delete d->thread;
         d->thread = nullptr;
     }
 }
