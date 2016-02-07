@@ -62,9 +62,9 @@ for i in range(10):
     for i in range(100):
         obj = msg.addRepeatedMessage("objects")
         obj.id = i
-        obj.vertices = b'abcdefghijklmnopqrstuvwxyz' * 100
-        obj.normals = b'abcdefghijklmnopqrstuvwxyz' * 100
-        obj.indices = b'abcdefghijklmnopqrstuvwxyz' * 100
+        obj.vertices = b'abcdefghijklmnopqrstuvwxyz' * 10
+        obj.normals = b'abcdefghijklmnopqrstuvwxyz' * 10
+        obj.indices = b'abcdefghijklmnopqrstuvwxyz' * 10
 
     print("Sending message containing", msg.repeatedMessageCount("objects"), "objects")
     socket.sendMessage(msg)
