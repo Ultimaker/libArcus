@@ -32,6 +32,16 @@ namespace Arcus
         class PlatformSocket
         {
         public:
+            /**
+             * Which connection direction should be shutdown?
+             */
+            enum class ShutdownDirection
+            {
+                ShutdownRead, ///< Shutdown reads from the connection.
+                ShutdownWrite, ///< Shutdown writes to the connection.
+                ShutdownBoth, ///< Shutdown the connection both ways.
+            };
+
             PlatformSocket();
             ~PlatformSocket();
 
@@ -84,12 +94,11 @@ namespace Arcus
             /**
              * Shutdown the socket.
              *
-             * This will force the socket to close even when it is waiting for something like
-             * accept().
+             * \param direction The direction to shutdown.
              *
              * \return true if successful, false if not.
              */
-            bool shutdown();
+            bool shutdown(ShutdownDirection direction);
 
             /**
              * Flush all waiting data and discard it.

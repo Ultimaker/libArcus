@@ -140,15 +140,34 @@ bool Arcus::Private::PlatformSocket::close()
     return result == 0;
 }
 
-bool Arcus::Private::PlatformSocket::shutdown()
+bool Arcus::Private::PlatformSocket::shutdown(PlatformSocket::ShutdownDirection direction)
 {
-    int result = 0;
-    #ifdef _WIN32
-        result = ::shutdown(_socket_id, SD_BOTH);
-    #else
-        result = ::shutdown(_socket_id, SHUT_RDWR);
-    #endif
-    return result == 0;
+    int flag = 0;
+    switch(direction)
+    {
+        case ShutdownDirection::ShutdownRead:
+        #ifdef _WIN32
+            flag = SD_RECEIVE;
+        #else
+            flag = SHUT_RD;
+        #endif
+            break;
+        case ShutdownDirection::ShutdownWrite:
+        #ifdef _WIN32
+            flag = SD_SEND;
+        #else
+            flag = SHUT_WR;
+        #endif
+            break;
+        case ShutdownDirection::ShutdownBoth:
+        #ifdef _WIN32
+            flag = SD_BOTH;
+        #else
+            flag = SHUT_RDWR;
+        #endif
+    }
+
+    return (::shutdown(_socket_id, flag) == 0);
 }
 
 void Arcus::Private::PlatformSocket::flush()
