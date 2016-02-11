@@ -17,6 +17,7 @@
  */
 
 #include "Error.h"
+#include <iostream>
 
 using namespace Arcus;
 
