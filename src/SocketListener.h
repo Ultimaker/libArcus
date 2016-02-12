@@ -26,6 +26,7 @@
 namespace Arcus
 {
     class Socket;
+    class Error;
 
     /**
      * Interface for socket event listeners.
@@ -43,26 +44,20 @@ namespace Arcus
     class ARCUS_EXPORT SocketListener
     {
     public:
-        SocketListener();
-        virtual ~SocketListener();
+        SocketListener() : _socket(nullptr) { }
+        virtual ~SocketListener() { }
 
         /**
          * \return The socket this listener is listening to.
          */
-        Socket* socket() const;
-        /**
-         * Set the socket this listener is listening to.
-         *
-         * This is automatically called by the socket when Socket::addListener() is called.
-         */
-        void setSocket(Socket* socket);
+        Socket* getSocket() const;
 
         /**
          * Called whenever the socket's state changes.
          *
-         * \param new_state The new state of the socket.
+         * \param newState The new state of the socket.
          */
-        virtual void stateChanged(SocketState::State new_state) = 0;
+        virtual void stateChanged(SocketState::SocketState newState) = 0;
         /**
          * Called whenever a new message has been received and
          * correctly parsed.
@@ -76,10 +71,17 @@ namespace Arcus
          *
          * \param errorMessage The error message.
          */
-        virtual void error(std::string error_message) = 0;
+        virtual void error(const Error& error) = 0;
 
     private:
-        Socket* m_socket;
+        // So we can call setSocket from Socket without making it public interface.
+        friend class Socket;
+
+        // Set the socket this listener is listening to.
+        // This is automatically called by the socket when Socket::addListener() is called.
+        void setSocket(Socket* socket);
+
+        Socket* _socket;
     };
 }
 

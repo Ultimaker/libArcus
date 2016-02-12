@@ -28,7 +28,6 @@
 
 # Standard CMake build dir
 build
-*.cmake
 *.make
 Makefile
 CMakeCache.txt

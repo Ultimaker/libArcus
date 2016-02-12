@@ -17,6 +17,7 @@
 import threading
 import struct
 import socket
+import sys #debugging
 import time
 
 ##  Raised when an unknown message type is received.
@@ -293,7 +294,7 @@ class Socket(threading.Thread):
         self._message_type = self._receiveInt32()
 
         data = self._receiveBytes(self._message_size)
-        if not data:
+        if type(data) == bool and not data:
             return
 
         if len(data) != self._message_size:

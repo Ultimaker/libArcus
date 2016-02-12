@@ -29,5 +29,12 @@ message SlicedObject {
 }
 
 message Polygon {
-    bytes points = 1;
+    enum Type
+    {
+        InnerType = 0;
+        OuterType = 1;
+    }
+
+    Type type = 1;
+    bytes points = 2;
 }
