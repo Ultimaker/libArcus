@@ -56,7 +56,7 @@ else:
     print("Could not establish a connection:", socket.getLastError())
     exit(1)
 
-for i in range(10):
+while True:
     msg = socket.createMessage("Example.ObjectList")
 
     for i in range(100):

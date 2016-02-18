@@ -6,6 +6,7 @@ include(CMakePackageConfigHelpers)
 option(BUILD_PYTHON "Build " ON)
 option(BUILD_EXAMPLES "Build the example programs" ON)
 option(BUILD_STATIC "Build as a static library" OFF)
+option(BUILD_TESTS "Build unit and integration tests" ON)
 
 set(REQUIRED_PROTOBUF_VERSION 3.0.0)
 find_package(Protobuf ${REQUIRED_PROTOBUF_VERSION} REQUIRED)
@@ -100,6 +101,11 @@ set_target_properties(Arcus PROPERTIES
 
 if(BUILD_EXAMPLES)
     add_subdirectory(examples)
+endif()
+
+if(BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
 endif()
 
 install(TARGETS Arcus

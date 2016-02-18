@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+package Test;
+
+message Integer32
+{
+    int32 value = 1;
+}
+
+message Integer64
+{
+    int64 value = 1;
+}
+
+message Float
+{
+    float value = 1;
+}
+
+message String
+{
+    string value = 1;
+}
+
+message Bytes
+{
+    bytes value = 1;
+}
+
+message Enum
+{
+    enum ValueType
+    {
+        FirstValue = 0;
+        SecondValue = 1;
+        ThirdValue = 2;
+        FourthValue = 3;
+        FifthValue = 4;
+    }
+
+    ValueType value = 1;
+}
+
+message RepeatedMessageList
+{
+    repeated RepeatedMessage messages = 1;
+}
+
+message RepeatedMessage
+{
+    string value = 1;
+}
