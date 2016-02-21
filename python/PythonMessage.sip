@@ -28,7 +28,7 @@ public:
     std::string getTypeName() const;
 
     bool __hasattr__(const std::string&) const /AllowNone/;
-    PyObject* __getattr__(const std::string&) const /AllowNone/;
+    PyObject* __getattr__(const std::string&) const /AllowNone, HoldGIL/;
     void __setattr__(const std::string&, PyObject*) /AllowNone/;
     %MethodCode
     sipCpp->__setattr__(*a0, a1);
