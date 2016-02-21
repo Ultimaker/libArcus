@@ -37,6 +37,11 @@ Socket::~Socket()
         }
         delete d->thread;
     }
+
+    for(auto listener : d->listeners)
+    {
+        delete listener;
+    }
 }
 
 SocketState::SocketState Socket::getState() const
