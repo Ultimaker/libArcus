@@ -87,7 +87,14 @@
 
     sipTransferObj = Py_None;
 
-    return sipConvertFromNewType(message, message_type, sipTransferObj);
+    PyObject* msg = sipConvertFromType(message, message_type, sipTransferObj);
+    if(!msg)
+    {
+        delete message;
+        return NULL;
+    }
+
+    return msg;
 %End
 
 %ConvertToTypeCode
@@ -102,7 +109,9 @@
     if(sipCanConvertToType(sipPy, message_type, SIP_NOT_NONE))
     {
         int iserr = 0;
-        PythonMessage* message = reinterpret_cast<PythonMessage*>(sipConvertToType(sipPy, message_type, NULL, 0, NULL, &iserr));
+        int state = 0;
+
+        PythonMessage* message = reinterpret_cast<PythonMessage*>(sipConvertToType(sipPy, message_type, NULL, 0, &state, &iserr));
 
         if(iserr != 0)
         {
@@ -112,10 +121,11 @@
 
         MessagePtr msg = message->getSharedMessage();
         *sipCppPtr = new MessagePtr(msg);
-        return 1;
+
+        sipReleaseType(message, message_type, state);
     }
 
-    return 0;
+    return sipGetState(sipTransferObj);
 %End
 
 };
