@@ -26,6 +26,12 @@ namespace Arcus
 {
     namespace Private
     {
+        #ifdef _WIN32
+            typedef int socket_size;
+        #else
+            typedef ssize_t socket_size;
+        #endif
+
         /**
          * Private class that wraps the platform C API for dealing with Sockets.
          */
@@ -117,7 +123,7 @@ namespace Arcus
              *
              * \return The amount of bytes written (4) or -1 if an error occurred.
              */
-            int writeInt32(int32_t data);
+            socket_size writeInt32(int32_t data);
             /**
              * Write data to the the socket.
              *
@@ -126,7 +132,7 @@ namespace Arcus
              *
              * \return The amount of bytes written, or -1 if an error occurred.
              */
-            int writeBytes(std::size_t size, const char* data);
+            socket_size writeBytes(std::size_t size, const char* data);
             /**
              * Read a 32-bit integer from the socket.
              *
@@ -136,7 +142,7 @@ namespace Arcus
              *
              * \note This call will block if the amount of data waiting to be read is less than 4.
              */
-            int readInt32(int32_t* output);
+            socket_size readInt32(int32_t* output);
             /**
              * Read an amount of bytes from the socket.
              *
@@ -147,7 +153,7 @@ namespace Arcus
              *
              * \note This call will block if the amount of data waiting to be read is less than size.
              */
-            int readBytes(std::size_t size, char* output);
+            socket_size readBytes(std::size_t size, char* output);
 
             /**
              * Set the timeout for the read-related methods.
