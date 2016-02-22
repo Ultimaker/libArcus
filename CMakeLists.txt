@@ -7,6 +7,8 @@ option(BUILD_PYTHON "Build " ON)
 option(BUILD_EXAMPLES "Build the example programs" ON)
 option(BUILD_STATIC "Build as a static library" OFF)
 
+option(MSVC_STATIC_RUNTIME "Link the MSVC runtime statically" OFF)
+
 set(REQUIRED_PROTOBUF_VERSION 3.0.0)
 find_package(Protobuf ${REQUIRED_PROTOBUF_VERSION} REQUIRED)
 
@@ -61,6 +63,16 @@ if(BUILD_STATIC)
     endif()
 else()
     add_library(Arcus SHARED ${arcus_SRCS})
+endif()
+
+if(MSVC_STATIC_RUNTIME)
+    foreach(flag_var
+            CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+            CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+    if(${flag_var} MATCHES "/MD")
+        string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
+    endif(${flag_var} MATCHES "/MD")
+    endforeach(flag_var)
 endif()
 
 if(BUILD_PYTHON)
