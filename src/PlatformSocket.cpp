@@ -173,7 +173,7 @@ bool Arcus::Private::PlatformSocket::shutdown(PlatformSocket::ShutdownDirection 
 void Arcus::Private::PlatformSocket::flush()
 {
     char* buffer = new char[256];
-    std::size_t num = 0;
+    socket_size num = 0;
 
     while(num > 0)
     {
@@ -181,22 +181,22 @@ void Arcus::Private::PlatformSocket::flush()
     }
 }
 
-int Arcus::Private::PlatformSocket::writeInt32(int32_t data)
+socket_size Arcus::Private::PlatformSocket::writeInt32(int32_t data)
 {
     uint32_t temp = htonl(data);
-    int sent_size = ::send(_socket_id, reinterpret_cast<const char*>(&temp), 4, MSG_NOSIGNAL);
+    socket_size sent_size = ::send(_socket_id, reinterpret_cast<const char*>(&temp), 4, MSG_NOSIGNAL);
     return sent_size;
 }
 
-int Arcus::Private::PlatformSocket::writeBytes(std::size_t size, const char* data)
+socket_size Arcus::Private::PlatformSocket::writeBytes(std::size_t size, const char* data)
 {
     return ::send(_socket_id, data, size, MSG_NOSIGNAL);
 }
 
-int Arcus::Private::PlatformSocket::readInt32(int32_t* output)
+socket_size Arcus::Private::PlatformSocket::readInt32(int32_t* output)
 {
     int32_t buffer;
-    std::size_t num = ::recv(_socket_id, reinterpret_cast<char*>(&buffer), 4, 0);
+    socket_size num = ::recv(_socket_id, reinterpret_cast<char*>(&buffer), 4, 0);
 
     if(num != 4)
     {
@@ -223,9 +223,9 @@ int Arcus::Private::PlatformSocket::readInt32(int32_t* output)
     return num;
 }
 
-int Arcus::Private::PlatformSocket::readBytes(std::size_t size, char* output)
+socket_size Arcus::Private::PlatformSocket::readBytes(std::size_t size, char* output)
 {
-    std::size_t num = ::recv(_socket_id, output, size, 0);
+    socket_size num = ::recv(_socket_id, output, size, 0);
 
     #ifdef _WIN32
         if(num == WSAETIMEDOUT)

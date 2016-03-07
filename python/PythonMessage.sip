@@ -23,10 +23,12 @@ class PythonMessage
     %End
 
 public:
+    virtual ~PythonMessage();
+
     std::string getTypeName() const;
 
     bool __hasattr__(const std::string&) const /AllowNone/;
-    PyObject* __getattr__(const std::string&) const /AllowNone/;
+    PyObject* __getattr__(const std::string&) const /AllowNone, HoldGIL/;
     void __setattr__(const std::string&, PyObject*) /AllowNone/;
     %MethodCode
     sipCpp->__setattr__(*a0, a1);
@@ -38,13 +40,12 @@ public:
     return 0;
     %End
 
-    PythonMessage* addRepeatedMessage(const std::string& field_name);
+    PythonMessage* addRepeatedMessage(const std::string& field_name) /TransferBack/;
     int repeatedMessageCount(const std::string& field_name) const;
-    PythonMessage* getRepeatedMessage(const std::string& field_name, int index);
+    PythonMessage* getRepeatedMessage(const std::string& field_name, int index) /TransferBack/;
 
     int getEnumValue(const std::string& enum_value) const;
 
 private:
     PythonMessage();
-    virtual ~PythonMessage();
 };
