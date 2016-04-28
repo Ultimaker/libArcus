@@ -238,7 +238,6 @@ int Arcus::PythonMessage::getEnumValue(const std::string& enum_value) const
     auto field = _descriptor->FindEnumValueByName(enum_value);
     if(!field)
     {
-        PyErr_SetString(PyExc_AttributeError, enum_value.c_str());
         return -1;
     }
 
