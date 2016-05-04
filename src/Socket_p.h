@@ -23,7 +23,6 @@
 #include <unordered_map>
 #include <deque>
 #include <iostream>
-#include <atomic>
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -79,7 +78,6 @@ namespace Arcus
             : state(SocketState::Initial)
             , next_state(SocketState::Initial)
             , received_close(false)
-            , sending(false)
             , port(0)
             , thread(nullptr)
         {
@@ -101,7 +99,6 @@ namespace Arcus
         SocketState::SocketState next_state;
 
         bool received_close;
-        std::atomic_bool sending;
 
         std::string address;
         uint port;
@@ -251,7 +248,6 @@ namespace Arcus
                     //Get all the messages from the queue and store them in a temporary array so we can
                     //unlock the queue before performing the send.
                     std::list<MessagePtr> messagesToSend;
-                    sending.store(true);
                     sendQueueMutex.lock();
                     while(sendQueue.size() > 0)
                     {
@@ -264,7 +260,6 @@ namespace Arcus
                     {
                         sendMessage(message);
                     }
-                    sending.store(false);
 
                     receiveNextMessage();
 
@@ -282,7 +277,6 @@ namespace Arcus
                         // We want to close the socket.
                         // First, flush the send queue so it is empty.
                         std::list<MessagePtr> messagesToSend;
-                        sending.store(true);
                         sendQueueMutex.lock();
                         while(sendQueue.size() > 0)
                         {
@@ -295,7 +289,6 @@ namespace Arcus
                         {
                             sendMessage(message);
                         }
-                        sending.store(false);
 
                         // Communicate to the other side that we want to close.
                         platform_socket.writeInt32(SOCKET_CLOSE);
