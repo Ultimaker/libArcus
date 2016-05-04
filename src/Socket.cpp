@@ -1,4 +1,4 @@
-`/*
+/*
  * This file is part of libArcus
  *
  * Copyright (C) 2015 Ultimaker b.v. <a.hiemstra@ultimaker.com>
@@ -183,14 +183,7 @@ void Socket::close()
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-            if(d->sendQueue.size() > 0)
-            {
-                continue;
-            }
-
-            // In certain situations, the socket seems to stall on recv. Since this
-            // can deadlock the close() call, we need to force close the socket after
-            // a timeout.
+            // In certain situations, the socket seems to stall on recv. 
             timeout += 100;
             if(timeout > 1000)
             {
