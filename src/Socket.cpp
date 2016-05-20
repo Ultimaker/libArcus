@@ -177,29 +177,10 @@ void Socket::close()
         // Make the socket request close.
         d->next_state = SocketState::Closing;
 
-        int timeout = 0;
         // Wait with closing until we properly clear the send queue.
-        while(d->next_state == SocketState::Closing || d->state == SocketState::Closing)
+        while(d->state == SocketState::Closing)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-            // Do not check for timeout if we are still busy sending messages.
-            if(d->sendQueue.size() > 0 || d->sending.load())
-            {
-                continue;
-            }
-
-            // In certain situations, the socket seems to stall on recv. Since this
-            // can deadlock the close() call, we need to force close the socket after
-            // a timeout.
-            timeout += 100;
-            if(timeout > 1000)
-            {
-                d->error(ErrorCode::ReceiveFailedError, "Failed to cleanly close socket, force closing it");
-                d->platform_socket.shutdown(PlatformSocket::ShutdownDirection::ShutdownBoth);
-                d->platform_socket.close();
-                d->next_state = SocketState::Error;
-            }
         }
     }
     else
