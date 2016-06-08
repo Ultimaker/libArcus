@@ -49,3 +49,7 @@ __pycache__
 
 # Netbeans project files
 nbproject/*
+
+# Eclipse+PyDev
+.project
+.pydevproject
