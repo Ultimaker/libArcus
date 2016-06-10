@@ -5,6 +5,7 @@ services:
 
 before_script:
   - docker build .
+  - docker run ubuntu:xenial apt-get build-dep libarcus
 
 script:
   - docker run ubuntu:xenial cmake .
