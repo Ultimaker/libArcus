@@ -1,4 +1,5 @@
 FROM ubuntu:xenial
 MAINTAINER Thomas Karl Pietrowski <thopiekar@googlemail.com>
 
-RUN apt-get install debhelper
+RUN add-apt-repository ppa:thopiekar/cura
+RUN apt-get update
