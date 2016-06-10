@@ -7,7 +7,11 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -y install software-properties-common
 RUN DEBIAN_FRONTEND=noninteractive add-apt-repository --enable-source -y ppa:thopiekar/cura-master
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y update
 
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y install icecc
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y build-dep -y libarcus
+
 RUN mkdir -p /build
 COPY [".", "/build"]
-RUN ls -la
 WORKDIR /build
+RUN ls -la

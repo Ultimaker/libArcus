@@ -5,9 +5,6 @@ services:
 
 before_script:
   - docker build -t cura-builder:xenial .
-  - docker run cura-builder:xenial apt-get build-dep -y libarcus
 
 script:
-  - docker run cura-builder:xenial cmake .
-  - docker run cura-builder:xenial make .
-#  - docker run cura-builder:xenial make tests
+  - docker run cura-builder:xenial sh -c "cmake . ; make"
