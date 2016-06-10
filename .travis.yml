@@ -3,5 +3,10 @@ sudo: required
 services:
   - docker
 
+before_script:
+  - docker build .
+
 script:
-  - docker build -t Dockerfile .
+  - docker run ubuntu:xenial cmake .
+  - docker run ubuntu:xenial make .
+  - docker run ubuntu:xenial make tests
