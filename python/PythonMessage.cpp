@@ -215,6 +215,17 @@ int PythonMessage::repeatedMessageCount(const std::string& field_name) const
     return _reflection->FieldSize(*_message, field);
 }
 
+PythonMessage* Arcus::PythonMessage::getMessage(const std::string& field_name)
+{
+    auto field = _descriptor->FindFieldByName(field_name);
+    if(!field)
+    {
+        PyErr_SetString(PyExc_AttributeError, field_name.c_str());
+        return nullptr;
+    }
+    return new PythonMessage(_reflection->MutableMessage(_message, field));
+}
+
 PythonMessage* Arcus::PythonMessage::getRepeatedMessage(const std::string& field_name, int index)
 {
     auto field = _descriptor->FindFieldByName(field_name);

@@ -71,10 +71,12 @@ namespace Arcus
          * \return A pointer to an instance of PythonMessage wrapping the new Message in the field.
          */
         PythonMessage* addRepeatedMessage(const std::string& field_name);
+
         /**
          * Get the number of messages in a repeated message field.
          */
         int repeatedMessageCount(const std::string& field_name) const;
+
         /**
          * Get a specific instance of a message in a repeated message field.
          *
@@ -84,6 +86,15 @@ namespace Arcus
          * \return A pointer to an instance of PythonMessage wrapping the specified repeated message.
          */
         PythonMessage* getRepeatedMessage(const std::string& field_name, int index);
+
+        /**
+         * Get a specific instance of a message in a message field.
+         *
+         * \param field_name The name of a repeated message field to get an instance from.
+         *
+         * \return A pointer to an instance of PythonMessage wrapping the specified repeated message.
+         */
+        PythonMessage* getMessage(const std::string& field_name);
 
         /**
          * Get the value of a certain enumeration.
