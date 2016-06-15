@@ -7,6 +7,10 @@
 import sys
 import os.path
 
+def fail(msg="Unable to determine your sip configuration."):
+    print(msg)
+    sys.exit(1)
+
 try:
     # Try the old sipconfig. Many Linux distros still ship this in their packages.
     import sipconfig
@@ -21,32 +25,35 @@ try:
 
 except ImportError:
     try:
-        # Collect the info from the sip module and guess the rest.
-        import sip
-        from distutils import sysconfig
-        
-        sip_version = sip.SIP_VERSION
-        sip_version_str = sip.SIP_VERSION_STR
-        
-        exe = sys.executable
-        if exe is None:
-            sys.exit(1)
-        base_path = os.path.dirname(exe)
-        sip_bin = os.path.join(base_path, "Lib\\site-packages\\PyQt5\\sip.exe")
-        if not os.path.exists(sip_bin):
-            sys.exit(1)
-                
-        sip_inc_dir = os.path.join(base_path, "Lib\\site-packages\\PyQt5\\include\\")
-        if not os.path.exists(sip_inc_dir):
-            sys.exit(1)
+        if sys.platform == "win32":
+            # Collect the info from the sip module and guess the rest.
+            import sip
+            from distutils import sysconfig
+            
+            sip_version = sip.SIP_VERSION
+            sip_version_str = sip.SIP_VERSION_STR
+            
+            exe = sys.executable
+            if exe is None:
+                fail()
+            base_path = os.path.dirname(exe)
+            sip_bin = os.path.join(base_path, "Lib\\site-packages\\PyQt5\\sip.exe")
+            if not os.path.exists(sip_bin):
+                fail()
+                    
+            sip_inc_dir = os.path.join(base_path, "Lib\\site-packages\\PyQt5\\include\\")
+            if not os.path.exists(sip_inc_dir):
+                fail()
 
-        default_sip_dir = os.path.join(base_path, "Lib\\site-packages\\PyQt5\\sip\\")
-        if not os.path.exists(default_sip_dir):
-            sys.exit(1)
-        
+            default_sip_dir = os.path.join(base_path, "Lib\\site-packages\\PyQt5\\sip\\")
+            if not os.path.exists(default_sip_dir):
+                fail()
+        else:
+            fail("Unable to import sipconfig and determine your sip configuration.")
+
     except ImportError:
-        sys.exit(1)
-        
+        fail("Unable to import sipconfig and determine your sip configuration.")
+
 print("sip_version:%06.0x" % sip_version)
 print("sip_version_num:%d" % sip_version)
 print("sip_version_str:%s" % sip_version_str)
