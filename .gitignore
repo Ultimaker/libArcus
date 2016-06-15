@@ -8,8 +8,8 @@
 *.so
 *.dylib
 *.dll
-*.so.0.1.0
-*.so.0
+*.so.1.0.0
+*.so.2
 
 # Compiled Static libraries
 *.lai
