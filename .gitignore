@@ -53,3 +53,7 @@ nbproject/*
 # Eclipse+PyDev
 .project
 .pydevproject
+
+# SIP generated code
+/python/sipArcuspart*.cpp
+/python/sipAPIArcus.h
