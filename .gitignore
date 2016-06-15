@@ -1,3 +1,9 @@
+# CMake
+ArcusConfig.cmake
+ArcusConfigVersion.cmake
+cmake_install.cmake
+CPackSourceConfig.cmake
+
 # Compiled Object files
 *.slo
 *.lo
