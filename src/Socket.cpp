@@ -152,6 +152,12 @@ void Socket::reset()
 
 void Socket::listen(const std::string& address, int port)
 {
+    if(d->state != SocketState::Initial || d->thread != nullptr)
+    {
+        d->error(ErrorCode::InvalidStateError, "Socket is not in initial state");
+        return;
+    }
+    
     d->address = address;
     d->port = port;
     d->thread = new std::thread([&]() { d->run(); });
