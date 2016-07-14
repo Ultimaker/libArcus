@@ -110,3 +110,7 @@ Origin of the Name
 The name Arcus is from the Roman god Arcus. This god is the roman equivalent of
 the goddess Iris, who is the personification of the rainbow and the messenger
 of the gods.
+
+Java
+====
+There is a Java port of libArcus, which can be found [here](https://github.com/Ocarthon/libArcus-Java).
