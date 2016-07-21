@@ -22,7 +22,7 @@ if(BUILD_PYTHON)
     else()
         set(PYTHON_SITE_PACKAGES_DIR lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages CACHE STRING "Directory to install Python bindings to")
     endif()
-    include_directories(python/ src/ ${PYTHON_INCLUDE_DIR} ${SIP_INCLUDE_DIR})
+    include_directories(python/ src/ ${SIP_INCLUDE_DIR} ${PYTHON_INCLUDE_DIR})
 endif()
 
 if(NOT ${CMAKE_VERSION} VERSION_LESS 3.1)
