@@ -292,25 +292,18 @@ namespace Arcus
 
                         // Communicate to the other side that we want to close.
                         platform_socket.writeInt32(SOCKET_CLOSE);
+                        // Disable further writing to the socket.
+                        platform_socket.shutdown(PlatformSocket::ShutdownDirection::ShutdownWrite);
 
-                        #ifndef __APPLE__
-                          // This block is disabled on OSX since it hangs.
-                          // It might not even be needed on other OSen.
-                          
-                          // Disable further writing to the socket.
-                          platform_socket.shutdown(PlatformSocket::ShutdownDirection::ShutdownWrite);
-                          
-                          // Wait until we receive confirmation from the other side to actually close.
-                          int32_t data = 0;
-                          while(data != SOCKET_CLOSE && next_state == SocketState::Closing)
-                          {
-                              int32_t result = platform_socket.readInt32(&data);
-                              if(result == -1)
-                              {
-                                  break;
-                              }
-                          }
-                        #endif
+                        // Wait until we receive confirmation from the other side to actually close.
+                        int32_t data = 0;
+                        while(data != SOCKET_CLOSE && next_state == SocketState::Closing)
+                        {
+                            if(platform_socket.readInt32(&data) == -1)
+                            {
+                                break;
+                            }
+                        }
                     }
                     else
                     {
