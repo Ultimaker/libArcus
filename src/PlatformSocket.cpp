@@ -195,6 +195,10 @@ socket_size Arcus::Private::PlatformSocket::writeBytes(std::size_t size, const c
 
 socket_size Arcus::Private::PlatformSocket::readInt32(int32_t* output)
 {
+    #ifndef _WIN32
+        errno = 0;
+    #endif
+
     int32_t buffer;
     socket_size num = ::recv(_socket_id, reinterpret_cast<char*>(&buffer), 4, 0);
 
@@ -225,6 +229,10 @@ socket_size Arcus::Private::PlatformSocket::readInt32(int32_t* output)
 
 socket_size Arcus::Private::PlatformSocket::readBytes(std::size_t size, char* output)
 {
+    #ifndef _WIN32
+        errno = 0;
+    #endif
+
     socket_size num = ::recv(_socket_id, output, size, 0);
 
     #ifdef _WIN32
