@@ -18,7 +18,7 @@ C++
 5. $ ```$ make```
 6. $ ```# make install```  
    (Please note the ```#```. It indicates the need of superuser, as known as root, priviliges.)
-7. (In case the shared library cannot be loaded, you can try "sudo ldconfig" on Linux systems)
+7. (In case the shared library cannot be loaded, you can try ```sudo ldconfig``` on Linux systems)
 
 Python
 
@@ -36,12 +36,12 @@ C++
 1. Download and install MinGW-get from http://sourceforge.net/projects/mingw/files/Installer/mingw-get/
 2. With MinGW-get, install the MSYS package for MinGW
 3. With MinGW-get, install msys-autogen, msys-automake, msys-libtool
-4. Download ProtoBuf from https://github.com/google/protobuf (tested with version 3.0.0-alpha-1)
+4. Download ProtoBuf from https://github.com/google/protobuf (tested with version 3.0.0)
 5. Extract ProtoBuf to ```.../MinGW/msys/1.0/local```
-6. Launch .../MinGW/msys/1.0/msys.bat (run as administrator!)
+6. Launch ```.../MinGW/msys/1.0/msys.bat``` (run as administrator!)
 7. Open a terminal and navigate to ```.../MinGW/msys/1.0/local/protobuf-3.0.0-alpha-1```
-8. $ ./autogen.sh
-	8.1. If at this point you are getting errors of missing AM_PROG_AR, you must make sure the ar.exe binary is installed and the newest stable version.
+8. ```$ ./autogen.sh```
+   1. If at this point you are getting errors of missing AM_PROG_AR, you must make sure the ```ar.exe``` binary is installed and the newest stable version.
 9. ```$ ./configure```
 10. ```$ mingw32-make```
 11. ```$ mingw32-make install```
