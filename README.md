@@ -46,11 +46,11 @@ C++
 11. $ mingw32-make install
 
 Python
+(Make sure to use the latest Python-3 version, e.g. Python >= 3.4)
 
-(Make sure to use the latest Python-3 version, e.g. Python 3.4.1)
-12. $ cd python
-13. $ python setup.py build
-14. $ python setup.py install
+1. $ cd python
+2. $ python setup.py build
+3. $ python setup.py install
 
 Building
 ========
