@@ -15,9 +15,10 @@ find_package(Protobuf ${REQUIRED_PROTOBUF_VERSION} REQUIRED)
 
 if(BUILD_PYTHON)
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-    if(APPLE OR WIN32)
-        set(PYTHON_SITE_PACKAGES_DIR lib/python3.4/site-packages CACHE STRING "Directory to install Python bindings to")
-    else()
+    find_package(SIP REQUIRED)
+    set(PYTHON_SITE_PACKAGES_DIR lib/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages CACHE STRING "Directory to install Python bindings to")
+    if(EXISTS /etc/debian_version)
+        # Running on a debian-based system, which requires special handling for python modules.
         set(PYTHON_SITE_PACKAGES_DIR lib/python3/dist-packages CACHE STRING "Directory to install Python bindings to")
     endif()
     include_directories(python/ src/ ${PYTHON_INCLUDE_DIR} ${SIP_INCLUDE_DIR})
