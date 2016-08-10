@@ -24,6 +24,11 @@
 # Redistribution and use is allowed according to the terms of the BSD license.
 # For details see the accompanying COPYING-CMAKE-SCRIPTS file.
 
+if(APPLE)
+    # Workaround for broken FindPythonLibs. It will always find Python 2.7 libs on OSX
+    set(CMAKE_FIND_FRAMEWORK LAST)
+endif()
+
 find_package(PythonInterp 3.4.0 REQUIRED)
 find_package(PythonLibs 3.4.0 REQUIRED)
 
