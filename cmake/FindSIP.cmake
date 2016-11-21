@@ -40,8 +40,10 @@ ELSE(SIP_VERSION)
   FIND_FILE(_find_sip_py FindSIP.py PATHS ${CMAKE_MODULE_PATH})
 
   SET(ENV{PYTHONPATH} ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE_PACKAGES_DIR})
-  EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${_find_sip_py} OUTPUT_VARIABLE sip_config)
-  IF(sip_config)
+  EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${_find_sip_py}
+                  OUTPUT_VARIABLE sip_config
+                  RESULT_VARIABLE sip_config_returncode)
+  IF(sip_config_returncode EQUAL 0)
     STRING(REGEX REPLACE "^sip_version:([^\n]+).*$" "\\1" SIP_VERSION ${sip_config})
     STRING(REGEX REPLACE ".*\nsip_version_num:([^\n]+).*$" "\\1" SIP_VERSION_NUM ${sip_config})
     STRING(REGEX REPLACE ".*\nsip_version_str:([^\n]+).*$" "\\1" SIP_VERSION_STR ${sip_config})
@@ -49,7 +51,7 @@ ELSE(SIP_VERSION)
     STRING(REGEX REPLACE ".*\ndefault_sip_dir:([^\n]+).*$" "\\1" SIP_DEFAULT_SIP_DIR ${sip_config})
     STRING(REGEX REPLACE ".*\nsip_inc_dir:([^\n]+).*$" "\\1" SIP_INCLUDE_DIR ${sip_config})
     SET(SIP_FOUND TRUE)
-  ENDIF(sip_config)
+  ENDIF(sip_config_returncode EQUAL 0)
 
   IF(SIP_FOUND)
     IF(NOT SIP_FIND_QUIETLY)
