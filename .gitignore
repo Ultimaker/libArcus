@@ -60,6 +60,9 @@ nbproject/*
 .project
 .pydevproject
 
+# PyCharm
+.idea
+
 # SIP generated code
 /python/sipArcuspart*.cpp
 /python/sipAPIArcus.h
