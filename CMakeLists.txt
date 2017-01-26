@@ -10,8 +10,7 @@ option(BUILD_STATIC "Build as a static library" OFF)
 
 option(MSVC_STATIC_RUNTIME "Link the MSVC runtime statically" OFF)
 
-set(REQUIRED_PROTOBUF_VERSION 3.0.0)
-find_package(Protobuf ${REQUIRED_PROTOBUF_VERSION} REQUIRED)
+find_package(Protobuf 3.0.0 REQUIRED NO_MODULE)
 
 if(BUILD_PYTHON)
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -85,12 +84,12 @@ if(BUILD_PYTHON)
 endif()
 
 target_include_directories(Arcus PUBLIC
-    ${PROTOBUF_INCLUDE_DIR}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 target_link_libraries(Arcus PUBLIC
-    ${PROTOBUF_LIBRARY}
+    protobuf::libprotobuf
+    protobuf::libprotoc
 )
 
 if(WIN32)
