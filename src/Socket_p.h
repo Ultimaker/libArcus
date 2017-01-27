@@ -553,7 +553,7 @@ namespace Arcus
         stream.SetTotalBytesLimit(message_size_maximum, message_size_warning);
         if(!message->ParseFromCodedStream(&stream))
         {
-            error(ErrorCode::ParseFailedError, "Failed to parse message");
+            error(ErrorCode::ParseFailedError, "Failed to parse message:" + std::string(wire_message->data));
             return;
         }
 
