@@ -89,7 +89,7 @@ endif()
 target_include_directories(Arcus PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    ${Protobuf_INCLUDE_DIRS}
+    ${Protobuf_INCLUDE_DIR}
 )
 target_link_libraries(Arcus PUBLIC ${Protobuf_LIBRARIES})
 
