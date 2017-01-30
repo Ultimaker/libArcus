@@ -11,8 +11,8 @@ option(BUILD_STATIC "Build as a static library" OFF)
 option(MSVC_STATIC_RUNTIME "Link the MSVC runtime statically" OFF)
 
 find_package(Protobuf 3.0.0 REQUIRED)
-if(NOT DEFINED PROTOBUF_LIBRARIES) # For compatibility between FindProtobuf and ProtobufConfig
-    set(PROTOBUF_LIBRARIES protobuf::libprotobuf protobuf::libprotoc)
+if(NOT DEFINED Protobuf_LIBRARIES) # For compatibility between FindProtobuf and ProtobufConfig
+    set(Protobuf_LIBRARIES protobuf::libprotobuf protobuf::libprotoc)
 endif()
 
 if(BUILD_PYTHON)
@@ -89,8 +89,9 @@ endif()
 target_include_directories(Arcus PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    ${Protobuf_INCLUDE_DIRS}
 )
-target_link_libraries(Arcus PUBLIC ${PROTOBUF_LIBRARIES})
+target_link_libraries(Arcus PUBLIC ${Protobuf_LIBRARIES})
 
 if(WIN32)
     add_definitions(-D_WIN32_WINNT=0x0600) # Declare we require Vista or higher, this allows us to use IPv6 functions.
