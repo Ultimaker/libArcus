@@ -297,7 +297,7 @@ namespace Arcus
                         platform_socket.shutdown(PlatformSocket::ShutdownDirection::ShutdownWrite);
 
                         // Wait until we receive confirmation from the other side to actually close.
-                        int32_t data = 0;
+                        uint32_t data = 0;
                         while(data != SOCKET_CLOSE && next_state == SocketState::Closing)
                         {
                             if(platform_socket.readInt32(&data) == -1)
@@ -349,14 +349,14 @@ namespace Arcus
     // Send a message to the connected socket.
     void Socket::Private::sendMessage(const MessagePtr& message)
     {
-        int32_t header = (ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | (VERSION_MINOR);
+        uint32_t header = (ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | (VERSION_MINOR);
         if(platform_socket.writeInt32(header) == -1)
         {
             error(ErrorCode::SendFailedError, "Could not send message header");
             return;
         }
 
-        int32_t message_size = message->ByteSize();
+        uint32_t message_size = message->ByteSize();
         if(platform_socket.writeInt32(message_size) == -1)
         {
             error(ErrorCode::SendFailedError, "Could not send message size");
@@ -390,7 +390,7 @@ namespace Arcus
 
         if(current_message->state == WireMessage::MessageState::Header)
         {
-            int32_t header = 0;
+            uint32_t header = 0;
             platform_socket.readInt32(&header);
 
             if(header == 0) // Keep-alive, just return
@@ -440,21 +440,13 @@ namespace Arcus
 
         if(current_message->state == WireMessage::MessageState::Size)
         {
-            int32_t size = 0;
+            uint32_t size = 0;
             result = platform_socket.readInt32(&size);
             if(result == 0)
             {
                 return;
             }
             else if(result == -1)
-            {
-                error(ErrorCode::ReceiveFailedError, "Size invalid");
-                current_message.reset();
-                platform_socket.flush();
-                return;
-            }
-
-            if(size < 0)
             {
                 error(ErrorCode::ReceiveFailedError, "Size invalid");
                 current_message.reset();
@@ -469,7 +461,7 @@ namespace Arcus
 
         if (current_message->state == WireMessage::MessageState::Type)
         {
-            int32_t type = 0;
+            uint32_t type = 0;
             result = platform_socket.readInt32(&type);
             if(result == 0)
             {
