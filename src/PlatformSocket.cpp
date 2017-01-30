@@ -236,11 +236,7 @@ socket_size Arcus::Private::PlatformSocket::readBytes(std::size_t size, char* ou
     socket_size num = ::recv(_socket_id, output, size, 0);
 
     #ifdef _WIN32
-        if(num == WSAETIMEDOUT)
-        {
-            return 0;
-        }
-        else if(num == -1 && WSAGetLastError() == WSAETIMEDOUT)
+        if(WSAGetLastError() == WSAETIMEDOUT)
         {
             return 0;
         }
