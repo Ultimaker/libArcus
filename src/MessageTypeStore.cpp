@@ -34,15 +34,15 @@ using namespace Arcus;
  * of std::hash differs between compilers, we need to make sure we use the same
  * implementation everywhere.
  */
-uint hash(const std::string& input)
+uint32_t hash(const std::string& input)
 {
     const char* data = input.c_str();
-    uint length = input.size();
-    uint result = static_cast<uint>(2166136261UL);
+    uint32_t length = input.size();
+    uint32_t result = static_cast<uint32_t>(2166136261UL);
     for(; length; --length)
     {
-        result ^= static_cast<uint>(*data++);
-        result *= static_cast<uint>(16777619UL);
+        result ^= static_cast<uint32_t>(*data++);
+        result *= static_cast<uint32_t>(16777619UL);
     }
     return result;
 }
@@ -93,7 +93,7 @@ Arcus::MessageTypeStore::~MessageTypeStore()
 {
 }
 
-bool Arcus::MessageTypeStore::hasType(uint type_id) const
+bool Arcus::MessageTypeStore::hasType(uint32_t type_id) const
 {
     if(d->message_types.find(type_id) != d->message_types.end())
     {
@@ -105,11 +105,11 @@ bool Arcus::MessageTypeStore::hasType(uint type_id) const
 
 bool Arcus::MessageTypeStore::hasType(const std::string& type_name) const
 {
-    uint type_id = hash(type_name);
+    uint32_t type_id = hash(type_name);
     return hasType(type_id);
 }
 
-MessagePtr Arcus::MessageTypeStore::createMessage(uint type_id) const
+MessagePtr Arcus::MessageTypeStore::createMessage(uint32_t type_id) const
 {
     if(!hasType(type_id))
     {
@@ -121,11 +121,11 @@ MessagePtr Arcus::MessageTypeStore::createMessage(uint type_id) const
 
 MessagePtr Arcus::MessageTypeStore::createMessage(const std::string& type_name) const
 {
-    uint type_id = hash(type_name);
+    uint32_t type_id = hash(type_name);
     return createMessage(type_id);
 }
 
-uint Arcus::MessageTypeStore::getMessageTypeId(const MessagePtr& message)
+uint32_t Arcus::MessageTypeStore::getMessageTypeId(const MessagePtr& message)
 {
     return hash(message->GetTypeName());
 }
@@ -137,7 +137,7 @@ std::string Arcus::MessageTypeStore::getErrorMessages() const
 
 bool Arcus::MessageTypeStore::registerMessageType(const google::protobuf::Message* message_type)
 {
-    uint type_id = hash(message_type->GetTypeName());
+    uint32_t type_id = hash(message_type->GetTypeName());
 
     if(hasType(type_id))
     {
@@ -189,7 +189,7 @@ bool Arcus::MessageTypeStore::registerAllMessageTypes(const std::string& file_na
 
         auto message_type = d->message_factory->GetPrototype(message_type_descriptor);
 
-        uint type_id = hash(message_type->GetTypeName());
+        uint32_t type_id = hash(message_type->GetTypeName());
 
         d->message_types[type_id] = message_type;
         d->message_type_mapping[message_type_descriptor] = type_id;

@@ -41,7 +41,7 @@ namespace Arcus
          *
          * \return true if the message type was registered, false if not.
          */
-        bool hasType(uint type_id) const;
+        bool hasType(uint32_t type_id) const;
         /**
          * Check if a certain message type was registered.
          *
@@ -58,7 +58,7 @@ namespace Arcus
          *
          * \return A new instance of a Message or an invalid pointer if type_id was an invalid type.
          */
-        MessagePtr createMessage(uint type_id) const;
+        MessagePtr createMessage(uint32_t type_id) const;
         /**
          * Create a Message instance of a certain type.
          *
@@ -75,7 +75,7 @@ namespace Arcus
          *
          * \return The type id of the message.
          */
-        uint getMessageTypeId(const MessagePtr& message);
+        uint32_t getMessageTypeId(const MessagePtr& message);
 
         std::string getErrorMessages() const;
 
