@@ -123,7 +123,7 @@ namespace Arcus
              *
              * \return The amount of bytes written (4) or -1 if an error occurred.
              */
-            socket_size writeInt32(uint32_t data);
+            socket_size writeInt32(int32_t data);
             /**
              * Write data to the the socket.
              *
@@ -142,7 +142,7 @@ namespace Arcus
              *
              * \note This call will block if the amount of data waiting to be read is less than 4.
              */
-            socket_size readInt32(uint32_t* output);
+            socket_size readInt32(int32_t* output);
             /**
              * Read an amount of bytes from the socket.
              *
