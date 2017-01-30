@@ -10,10 +10,11 @@ option(BUILD_STATIC "Build as a static library" OFF)
 
 option(MSVC_STATIC_RUNTIME "Link the MSVC runtime statically" OFF)
 
+# We want to have access to protobuf_generate_cpp and other FindProtobuf features.
+# However, if ProtobufConfig is used instead, there is a CMake option that controls
+# this, which defaults to OFF. We need to force this option to ON instead.
+set(protobuf_MODULE_COMPATIBLE ON CACHE "" INTERNAL FORCE)
 find_package(Protobuf 3.0.0 REQUIRED)
-if(NOT DEFINED Protobuf_LIBRARIES) # For compatibility between FindProtobuf and ProtobufConfig
-    set(Protobuf_LIBRARIES protobuf::libprotobuf protobuf::libprotoc)
-endif()
 
 if(BUILD_PYTHON)
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -89,9 +90,9 @@ endif()
 target_include_directories(Arcus PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    ${Protobuf_INCLUDE_DIR}
+    ${PROTOBUF_INCLUDE_DIR}
 )
-target_link_libraries(Arcus PUBLIC ${Protobuf_LIBRARIES})
+target_link_libraries(Arcus PUBLIC ${PROTOBUF_LIBRARIES})
 
 if(WIN32)
     add_definitions(-D_WIN32_WINNT=0x0600) # Declare we require Vista or higher, this allows us to use IPv6 functions.
