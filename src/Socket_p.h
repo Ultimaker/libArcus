@@ -496,7 +496,7 @@ namespace Arcus
         {
             result = platform_socket.readBytes(current_message->getRemainingSize(), &current_message->data[current_message->received_size]);
 
-            if(result < 0)
+            if(result == -1)
             {
                 error(ErrorCode::ReceiveFailedError, "Could not receive data for message");
                 current_message.reset();
