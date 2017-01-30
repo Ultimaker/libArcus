@@ -181,7 +181,7 @@ void Arcus::Private::PlatformSocket::flush()
     }
 }
 
-socket_size Arcus::Private::PlatformSocket::writeUInt32(uint32_t data)
+socket_size Arcus::Private::PlatformSocket::writeInt32(uint32_t data)
 {
     uint32_t temp = htonl(data);
     socket_size sent_size = ::send(_socket_id, reinterpret_cast<const char*>(&temp), 4, MSG_NOSIGNAL);
@@ -193,7 +193,7 @@ socket_size Arcus::Private::PlatformSocket::writeBytes(std::size_t size, const c
     return ::send(_socket_id, data, size, MSG_NOSIGNAL);
 }
 
-socket_size Arcus::Private::PlatformSocket::readUInt32(uint32_t* output)
+socket_size Arcus::Private::PlatformSocket::readInt32(uint32_t* output)
 {
     #ifndef _WIN32
         errno = 0;

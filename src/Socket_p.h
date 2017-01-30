@@ -291,7 +291,7 @@ namespace Arcus
                         }
 
                         // Communicate to the other side that we want to close.
-                        platform_socket.writeUInt32(SOCKET_CLOSE);
+                        platform_socket.writeInt32(SOCKET_CLOSE);
                         // Disable further writing to the socket.
                         error(ErrorCode::Debug, "We got a request to close the socket.");
                         platform_socket.shutdown(PlatformSocket::ShutdownDirection::ShutdownWrite);
@@ -300,7 +300,7 @@ namespace Arcus
                         uint32_t data = 0;
                         while(data != SOCKET_CLOSE && next_state == SocketState::Closing)
                         {
-                            if(platform_socket.readUInt32(&data) == -1)
+                            if(platform_socket.readInt32(&data) == -1)
                             {
                                 break;
                             }
@@ -316,7 +316,7 @@ namespace Arcus
 
                         // Send confirmation to the other side that we received their close
                         // request and are also closing down.
-                        platform_socket.writeUInt32(SOCKET_CLOSE);
+                        platform_socket.writeInt32(SOCKET_CLOSE);
                         // Prevent further writing to the socket.
                         platform_socket.shutdown(PlatformSocket::ShutdownDirection::ShutdownWrite);
 
@@ -350,21 +350,21 @@ namespace Arcus
     void Socket::Private::sendMessage(const MessagePtr& message)
     {
         uint32_t header = (ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | (VERSION_MINOR);
-        if(platform_socket.writeUInt32(header) == -1)
+        if(platform_socket.writeInt32(header) == -1)
         {
             error(ErrorCode::SendFailedError, "Could not send message header");
             return;
         }
 
         uint32_t message_size = message->ByteSize();
-        if(platform_socket.writeUInt32(message_size) == -1)
+        if(platform_socket.writeInt32(message_size) == -1)
         {
             error(ErrorCode::SendFailedError, "Could not send message size");
             return;
         }
 
         uint32_t type_id = message_types.getMessageTypeId(message);
-        if(platform_socket.writeUInt32(type_id) == -1)
+        if(platform_socket.writeInt32(type_id) == -1)
         {
             error(ErrorCode::SendFailedError, "Could not send message type");
             return;
@@ -391,7 +391,7 @@ namespace Arcus
         if(current_message->state == WireMessage::MessageState::Header)
         {
             uint32_t header = 0;
-            platform_socket.readUInt32(&header);
+            platform_socket.readInt32(&header);
 
             if(header == 0) // Keep-alive, just return
             {
@@ -441,7 +441,7 @@ namespace Arcus
         if(current_message->state == WireMessage::MessageState::Size)
         {
             uint32_t size = 0;
-            result = platform_socket.readUInt32(&size);
+            result = platform_socket.readInt32(&size);
             if(result == 0)
             {
                 return;
@@ -462,7 +462,7 @@ namespace Arcus
         if (current_message->state == WireMessage::MessageState::Type)
         {
             uint32_t type = 0;
-            result = platform_socket.readUInt32(&type);
+            result = platform_socket.readInt32(&type);
             if(result == 0)
             {
                 return;
@@ -570,7 +570,7 @@ namespace Arcus
         if(diff.count() > keep_alive_rate)
         {
             int32_t keepalive = 0;
-            if(platform_socket.writeUInt32(keepalive) == -1)
+            if(platform_socket.writeInt32(keepalive) == -1)
             {
                 error(ErrorCode::ConnectionResetError, "Connection reset by peer");
                 next_state = SocketState::Closing;

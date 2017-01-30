@@ -117,13 +117,13 @@ namespace Arcus
             void flush();
 
             /**
-             * Write an unsigned 32-bit integer to the socket.
+             * Write a 32-bit integer to the socket.
              *
              * \param data The integer to write. Will be converted from local endianness to network endianness.
              *
              * \return The amount of bytes written (4) or -1 if an error occurred.
              */
-            socket_size writeUInt32(uint32_t data);
+            socket_size writeInt32(uint32_t data);
             /**
              * Write data to the the socket.
              *
@@ -134,7 +134,7 @@ namespace Arcus
              */
             socket_size writeBytes(std::size_t size, const char* data);
             /**
-             * Read an unsigned 32-bit integer from the socket.
+             * Read a 32-bit integer from the socket.
              *
              * \param output A pointer to an integer that will be written to.
              *
@@ -142,7 +142,7 @@ namespace Arcus
              *
              * \note This call will block if the amount of data waiting to be read is less than 4.
              */
-            socket_size readUInt32(uint32_t* output);
+            socket_size readInt32(uint32_t* output);
             /**
              * Read an amount of bytes from the socket.
              *
