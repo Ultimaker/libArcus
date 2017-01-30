@@ -64,18 +64,18 @@ namespace Arcus
             // Current message state.
             MessageState state;
             // Size of the message.
-            uint32_t size;
+            uint size;
             // Amount of bytes received so far.
-            uint32_t received_size;
+            uint received_size;
             // Is this a potentially valid message?
             bool valid;
             // The type of message.
-            uint32_t type;
+            uint type;
             // The data of the message.
             char* data;
 
             // Return how many bytes are remaining for this message to be complete.
-            inline uint32_t getRemainingSize() const
+            inline int getRemainingSize() const
             {
                 return size - received_size;
             }

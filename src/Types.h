@@ -33,7 +33,7 @@ namespace google
 namespace Arcus
 {
     // Convenience typedef so uint can be used.
-    typedef uint32_t uint;
+    typedef unsigned int uint;
     // Convenience typedef for standard message argument.
     typedef std::shared_ptr<google::protobuf::Message> MessagePtr;
 
