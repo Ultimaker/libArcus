@@ -12,9 +12,10 @@ C++
 
 1. Be sure to have libtool installed.
 2. Download ```protobuf``` >= 3.0.0 from https://github.com/google/protobuf/releases (download ZIP and unZIP at desired location, or clone the repo). The protocol buffer is used for communication between the CuraEngine and the GUI.
-3. Run ```$ autogen.sh``` from the protobuf directory: 
-   $ ```$ ./autogen.sh```
-4. $ ```$ ./configure```
+3. Compile protobuf from the protobuf directory: 
+   $ ```$ mkdir build && cd build```
+4. Open CMAKE GUI and disable building of tests: 
+   $ ```$ cmake-gui```
 5. $ ```$ make```
 6. $ ```# make install```  
    (Please note the ```#```. It indicates the need of superuser, as known as root, priviliges.)
