@@ -8,8 +8,6 @@ backend and similar code.
 
 Installing Protobuf
 -------------------
-C++
-
 1. Be sure to have libtool installed.
 2. Download ```protobuf``` >= 3.0.0 from https://github.com/google/protobuf/releases (download ZIP and unZIP at desired location, or clone the repo). The protocol buffer is used for communication between the CuraEngine and the GUI.
 3. Compile protobuf from the protobuf directory: 
@@ -20,13 +18,6 @@ C++
 6. $ ```# make install```  
    (Please note the ```#```. It indicates the need of superuser, as known as root, priviliges.)
 7. (In case the shared library cannot be loaded, you can try ```sudo ldconfig``` on Linux systems)
-
-Python
-
-1. Navigate to protobuf-master/python
-2. ```# apt-get install python3-setuptools```
-3. ```# python3 setup.py build ```
-4. ```# python3 setup.py install```
 
 Installing Protobuf on Windows
 ------------------------------
@@ -46,13 +37,6 @@ C++
 9. ```$ ./configure```
 10. ```$ mingw32-make```
 11. ```$ mingw32-make install```
-
-Python
-(Make sure to use the latest Python-3 version, e.g. Python >= 3.4)
-
-1. ```$ cd python```
-2. ```$ python setup.py build```
-3. ```$ python setup.py install```
 
 Building
 ========
