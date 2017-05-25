@@ -1,6 +1,3 @@
-
-include_directories(example ${CMAKE_CURRENT_BINARY_DIR})
-
 set(example_SRCS
     example.cpp
     example_pb2.py
