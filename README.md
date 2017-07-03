@@ -12,9 +12,10 @@ Installing Protobuf
 2. Download ```protobuf``` >= 3.0.0 from https://github.com/google/protobuf/releases (download ZIP and unZIP at desired location, or clone the repo). The protocol buffer is used for communication between the CuraEngine and the GUI.
 3. Compile protobuf from the protobuf directory, or install a system-maintained version of protobuf 3 if you can get one
 4. $ ```cd protobuf-<version>```
-5. $ ```mkdir build;cd build```
-6. $ ```$ make```
-7. $ ```$ sudo make install```
+5. $ ```./autogen```
+6. $ ```./configure```
+7. $ ```make```
+8. $ ```sudo make install```
 
 Installing Protobuf on Windows
 ------------------------------
