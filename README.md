@@ -10,14 +10,11 @@ Installing Protobuf
 -------------------
 1. Be sure to have libtool installed.
 2. Download ```protobuf``` >= 3.0.0 from https://github.com/google/protobuf/releases (download ZIP and unZIP at desired location, or clone the repo). The protocol buffer is used for communication between the CuraEngine and the GUI.
-3. Compile protobuf from the protobuf directory: 
-   $ ```$ mkdir build && cd build```
-4. Open CMAKE GUI and disable building of tests: 
-   $ ```$ cmake-gui```
-5. $ ```$ make```
-6. $ ```# make install```  
-   (Please note the ```#```. It indicates the need of superuser, as known as root, priviliges.)
-7. (In case the shared library cannot be loaded, you can try ```sudo ldconfig``` on Linux systems)
+3. Compile protobuf from the protobuf directory, or install a system-maintained version of protobuf 3 if you can get one
+4. $ ```cd protobuf-<version>```
+5. $ ```mkdir build;cd build```
+6. $ ```$ make```
+7. $ ```$ sudo make install```
 
 Installing Protobuf on Windows
 ------------------------------
@@ -41,24 +38,26 @@ C++
 Building
 ========
 
-To build the library, you need CMake and Protobuf installed (see below). In addition, if the
-Python module should be installed, you need a python interpreter available withh the sip tool
-installed. Only Python 3 is supported.
+To build the library, you need CMake and Protobuf 3 installed (see below). In addition, if the
+Python module should be installed, you need a python interpreter available with the sip tool
+installed. This means you have ```sip.h``` and ```/usr/bin/sip``` available on your system. You
+can modify cmake variables to point to a specific location for these files or install a system
+package that provides them to you at those locations. Only Python 3 is supported.
 
 Building the library can be done with:
 
 - ```$ mkdir build && cd build```
 - ```$ cmake ..```
 - ```$ make```
-- ```# make install```
+- ```$ sudo make install```
 
 This will install to CMake's default install prefix, ```/usr/local```. To change the
 prefix, set ```CMAKE_INSTALL_PREFIX```. By default, the examples directory is also built.
 To disable this, set BUILD_EXAMPLES to off.
 
 To disable building the Python bindings, set BUILD_PYTHON to OFF. They will be installed
-into ```$prefix/lib/python3.4/site-packages``` on Mac OSX and Windows and to 
-```$prefix/lib/python3/dist-packages``` on Linux. To override this directory, set 
+into ```$prefix/lib/python3.4/site-packages``` on Mac OSX and Windows and to
+```$prefix/lib/python3/dist-packages``` on Linux. To override this directory, set
 ```PYTHON_SITE_PACKAGES_DIR``` .
 
 Building the Python bindings on 64-bit Windows requires you to build with Microsoft Visual
