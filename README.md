@@ -6,42 +6,10 @@ and using this socket to send and receive messages based on the Protocol Buffers
 library. It is designed to facilitate the communication between Cura and its
 backend and similar code.
 
-Installing Protobuf
--------------------
-1. Be sure to have libtool installed.
-2. Download ```protobuf``` >= 3.0.0 from https://github.com/google/protobuf/releases (download ZIP and unZIP at desired location, or clone the repo). The protocol buffer is used for communication between the CuraEngine and the GUI.
-3. Compile protobuf from the protobuf directory: 
-   $ ```$ mkdir build && cd build```
-4. Open CMAKE GUI and disable building of tests: 
-   $ ```$ cmake-gui```
-5. $ ```$ make```
-6. $ ```# make install```  
-   (Please note the ```#```. It indicates the need of superuser, as known as root, priviliges.)
-7. (In case the shared library cannot be loaded, you can try ```sudo ldconfig``` on Linux systems)
-
-Installing Protobuf on Windows
-------------------------------
-C++
-
-(Make sure to use the latest MinGW stable version, e.g. MinGW 4.8.1)
-
-1. Download and install MinGW-get from http://sourceforge.net/projects/mingw/files/Installer/mingw-get/
-2. With MinGW-get, install the MSYS package for MinGW
-3. With MinGW-get, install msys-autogen, msys-automake, msys-libtool
-4. Download ProtoBuf from https://github.com/google/protobuf (tested with version 3.0.0)
-5. Extract ProtoBuf to ```.../MinGW/msys/1.0/local```
-6. Launch ```.../MinGW/msys/1.0/msys.bat``` (run as administrator!)
-7. Open a terminal and navigate to ```.../MinGW/msys/1.0/local/protobuf-3.0.0-alpha-1```
-8. ```$ ./autogen.sh```
-   1. If at this point you are getting errors of missing AM_PROG_AR, you must make sure the ```ar.exe``` binary is installed and the newest stable version.
-9. ```$ ./configure```
-10. ```$ mingw32-make```
-11. ```$ mingw32-make install```
-
 Building
 ========
 
-To build the library, you need CMake and Protobuf installed (see below). In addition, if the
+To build the library, you need [CMake](https://www.cmake.org) and [Protobuf 3](https://github.com/google/protobuf) installed. In addition, if the
 Python module should be installed, you need a python interpreter available withh the sip tool
 installed. Only Python 3 is supported.
 
