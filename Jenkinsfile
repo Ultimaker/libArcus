@@ -22,7 +22,7 @@ parallel_nodes(["linux && cura", "windows && cura"]) {
                 }
 
                 cmake '..', "-DCMAKE_PREFIX_PATH=\"${env.CURA_ENVIRONMENT_PATH}/${branch}\" -DCMAKE_BUILD_TYPE=Release ${extra_cmake_options}"
-                make
+                make('')
             }
         }
     }
