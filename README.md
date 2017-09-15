@@ -24,10 +24,10 @@ This will install to CMake's default install prefix, ```/usr/local```. To change
 prefix, set ```CMAKE_INSTALL_PREFIX```. By default, the examples directory is also built.
 To disable this, set BUILD_EXAMPLES to off.
 
-To disable building the Python bindings, set BUILD_PYTHON to OFF. They will be installed
-into ```$prefix/lib/python3.4/site-packages``` on Mac OSX and Windows and to 
-```$prefix/lib/python3/dist-packages``` on Linux. To override this directory, set 
-```PYTHON_SITE_PACKAGES_DIR``` .
+To disable building the Python bindings, set BUILD_PYTHON to OFF. They will be
+installed into ```$prefix/lib/python3/dist-packages``` on Debian-based systems
+and into ```$prefix/lib/python3.4/site-packages``` on other computers. To
+override this directory, set ```PYTHON_SITE_PACKAGES_DIR```.
 
 Building the Python bindings on 64-bit Windows requires you to build with Microsoft Visual
 C++ since the module will fail to import if built with MinGW.
