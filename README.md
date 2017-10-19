@@ -9,9 +9,12 @@ backend and similar code.
 Building
 ========
 
-To build the library, you need [CMake](https://www.cmake.org) and [Protobuf 3](https://github.com/google/protobuf) installed. In addition, if the
-Python module should be installed, you need a python interpreter available withh the sip tool
-installed. Only Python 3 is supported.
+To build the library, the following packages are needed:
+* [Protobuf 3](https://github.com/google/protobuf) (3.0+)
+* [CMake](https://www.cmake.org)
+To build the python bindings (default on, disable with -DBUILD_PYTHON=OFF) these additional libries are needed:
+* python3-dev (3.4+)
+* python3-sip-dev (4.16+)
 
 Building the library can be done with:
 
