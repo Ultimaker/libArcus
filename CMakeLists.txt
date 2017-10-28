@@ -16,6 +16,8 @@ option(MSVC_STATIC_RUNTIME "Link the MSVC runtime statically" OFF)
 set(protobuf_MODULE_COMPATIBLE ON CACHE "" INTERNAL FORCE)
 find_package(Protobuf 3.0.0 REQUIRED)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON) #Required if a patch to libArcus needs to be made via templates.
+
 if(BUILD_PYTHON)
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
     find_package(SIP REQUIRED)
