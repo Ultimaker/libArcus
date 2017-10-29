@@ -1,0 +1,10 @@
+sudo: required
+
+services:
+  - docker
+
+before_script:
+  - docker build -t cura-builder:xenial .
+
+script:
+  - docker run cura-builder:xenial sh -c "cmake . ; make"
