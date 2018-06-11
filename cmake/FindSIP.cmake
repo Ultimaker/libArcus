@@ -8,17 +8,12 @@
 #
 # This file defines the following variables:
 #
-# SIP_VERSION - The version of SIP found expressed as a 6 digit hex number
-#     suitable for comparision as a string.
-#
 # SIP_VERSION_STR - The version of SIP found as a human readable string.
 #
 # SIP_BINARY_PATH - Path and filename of the SIP command line executable.
 #
 # SIP_INCLUDE_DIR - Directory holding the SIP C++ header file.
 #
-# SIP_DEFAULT_SIP_DIR - Default directory where .sip files should be installed
-#     into.
 
 # Copyright (c) 2007, Simon Edwards <simon@simonzone.com>
 # Redistribution and use is allowed according to the terms of the BSD license.
@@ -32,38 +27,33 @@ endif()
 find_package(PythonInterp 3.4.0 REQUIRED)
 find_package(PythonLibs 3.4.0 REQUIRED)
 
-IF(SIP_VERSION)
-  # Already in cache, be silent
-  SET(SIP_FOUND TRUE)
-ELSE(SIP_VERSION)
+get_filename_component(PYTHON_BINARY_PATH ${PYTHON_EXECUTABLE} DIRECTORY)
 
-  FIND_FILE(_find_sip_py FindSIP.py PATHS ${CMAKE_MODULE_PATH})
+find_program(SIP_BINARY_PATH sip
+    HINTS ${PYTHON_BINARY_PATH} ${PYTHON_BINARY_PATH}/site-packages/PyQt5
+)
 
-  SET(ENV{PYTHONPATH} ${CMAKE_INSTALL_PREFIX}/${PYTHON_SITE_PACKAGES_DIR})
-  EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} ${_find_sip_py}
-                  OUTPUT_VARIABLE sip_config
-                  RESULT_VARIABLE sip_config_returncode)
-  IF(sip_config_returncode EQUAL 0)
-    STRING(REGEX REPLACE "^sip_version:([^\n]+).*$" "\\1" SIP_VERSION ${sip_config})
-    STRING(REGEX REPLACE ".*\nsip_version_num:([^\n]+).*$" "\\1" SIP_VERSION_NUM ${sip_config})
-    STRING(REGEX REPLACE ".*\nsip_version_str:([^\n]+).*$" "\\1" SIP_VERSION_STR ${sip_config})
-    STRING(REGEX REPLACE ".*\nsip_bin:([^\n]+).*$" "\\1" SIP_BINARY_PATH ${sip_config})
-    STRING(REGEX REPLACE ".*\ndefault_sip_dir:([^\n]+).*$" "\\1" SIP_DEFAULT_SIP_DIR ${sip_config})
-    STRING(REGEX REPLACE ".*\nsip_inc_dir:([^\n]+).*$" "\\1" SIP_INCLUDE_DIR ${sip_config})
-    SET(SIP_FOUND TRUE)
-  ENDIF(sip_config_returncode EQUAL 0)
+find_path(SIP_INCLUDE_DIR sip.h
+    HINTS ${PYTHON_INCLUDE_DIRS} ${PYTHON_BINARY_PATH}/site-packages/PyQt5
+)
 
-  IF(SIP_FOUND)
-    IF(NOT SIP_FIND_QUIETLY)
-      MESSAGE(STATUS "Found SIP version: ${SIP_VERSION_STR}")
-    ENDIF(NOT SIP_FIND_QUIETLY)
+execute_process(
+    COMMAND ${PYTHON_EXECUTABLE} -c "import sip; print(sip.SIP_VERSION_STR)"
+    RESULT_VARIABLE _process_status
+    OUTPUT_VARIABLE _process_output
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
 
-    include(${CMAKE_MODULE_PATH}/SIPMacros.cmake)
-  ELSE(SIP_FOUND)
-    IF(SIP_FIND_REQUIRED)
-      MESSAGE(FATAL_ERROR "Could not find SIP")
-    ENDIF(SIP_FIND_REQUIRED)
-  ENDIF(SIP_FOUND)
+if(${_process_status} EQUAL 0)
+    string(STRIP ${_process_output} SIP_VERSION_STR)
+endif()
 
-ENDIF(SIP_VERSION)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(Sip REQUIRED_VARS SIP_BINARY_PATH SIP_INCLUDE_DIR VERSION_VAR SIP_VERSION_STR)
+
+if(Sip_FOUND)
+    include(${CMAKE_CURRENT_LIST_DIR}/SIPMacros.cmake)
+endif()
+
+mark_as_advanced(SIP_BINARY_PATH SIP_INCLUDE_DIR SIP_VERSION_STR)
 
