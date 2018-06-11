@@ -30,11 +30,11 @@ find_package(PythonLibs 3.4.0 REQUIRED)
 get_filename_component(PYTHON_BINARY_PATH ${PYTHON_EXECUTABLE} DIRECTORY)
 
 find_program(SIP_BINARY_PATH sip
-    HINTS ${PYTHON_BINARY_PATH} ${PYTHON_BINARY_PATH}/site-packages/PyQt5
+    HINTS ${CMAKE_INSTALL_PREFIX}/bin ${PYTHON_BINARY_PATH} ${PYTHON_BINARY_PATH}/site-packages/PyQt5
 )
 
 find_path(SIP_INCLUDE_DIR sip.h
-    HINTS ${PYTHON_INCLUDE_DIRS} ${PYTHON_BINARY_PATH}/site-packages/PyQt5
+    HINTS ${CMAKE_INSTALL_PREFIX}/include ${PYTHON_INCLUDE_DIRS} ${PYTHON_BINARY_PATH}/site-packages/PyQt5
 )
 
 execute_process(
