@@ -48,7 +48,7 @@ namespace Arcus
          *
          * \return The current socket state.
          */
-        SocketState::SocketState getState() const;
+        virtual SocketState::SocketState getState() const;
 
         /**
          * Get the last error.
@@ -70,7 +70,7 @@ namespace Arcus
          * \param message_type An instance of the Message that will be used as factory object.
          *
          */
-        bool registerMessageType(const google::protobuf::Message* message_type);
+        virtual bool registerMessageType(const google::protobuf::Message* message_type);
 
         /**
          * Register all message types contained in a Protobuf protocol description file.
@@ -79,7 +79,7 @@ namespace Arcus
          *
          * \param file_name The absolute path to a Protobuf protocol file to load message types from.
          */
-        bool registerAllMessageTypes(const std::string& file_name);
+        virtual bool registerAllMessageTypes(const std::string& file_name);
 
         /**
          * Add a listener object that will be notified of socket events.
@@ -89,6 +89,7 @@ namespace Arcus
          * \param listener The listener to add.
          */
         void addListener(SocketListener* listener);
+
         /**
          * Remove a listener from the list of listeners.
          *
@@ -104,40 +105,42 @@ namespace Arcus
          * \param address The IP address to connect to.
          * \param port The port to connect to.
          */
-        void connect(const std::string& address, int port);
+        virtual void connect(const std::string& address, int port);
+
         /**
          * Listen for connections on an address and port.
          *
          * \param address The IP address to listen on.
          * \param port The port to listen on.
          */
-        void listen(const std::string& address, int port);
+        virtual void listen(const std::string& address, int port);
+
         /**
          * Close the connection and stop handling any messages.
          */
-        void close();
+        virtual void close();
 
         /**
          * Reset a socket for re-use. State must be Closed or Error
          */
-        void reset();
+        virtual void reset();
 
         /**
          * Send a message across the socket.
          */
-        void sendMessage(MessagePtr message);
+        virtual void sendMessage(MessagePtr message);
 
         /**
          * Remove and return the next pending message from the queue.
          */
-        MessagePtr takeNextMessage();
+        virtual MessagePtr takeNextMessage();
 
         /**
          * Create an instance of a Message class.
          *
          * \param type_name The type name of the Message type to create an instance of.
          */
-        MessagePtr createMessage(const std::string& type_name);
+        virtual MessagePtr createMessage(const std::string& type_name);
 
     private:
         // Copy and assignment is not supported.
