@@ -38,8 +38,14 @@ Socket::~Socket()
         delete d->thread;
     }
 
-    for(auto listener : d->listeners)
+    for(SocketListener* listener : d->listeners)
     {
+        /* If deleting the socket listener while another thread is reporting an
+         * error due to closing the socket, deleting the listener causes another
+         * error to report and this causes an infinite loop. Making sure the
+         * listener is dysfunctional before deleting it prevents this. */
+        listener->_socket = nullptr;
+
         delete listener;
     }
 }
