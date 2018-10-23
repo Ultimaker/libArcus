@@ -136,6 +136,11 @@ namespace Arcus
         virtual MessagePtr takeNextMessage();
 
         /**
+         * Remove and return the next pending message from the queue with condition blocking
+         */
+        virtual MessagePtr takeNextMessageBlocking();
+
+        /**
          * Create an instance of a Message class.
          *
          * \param type_name The type name of the Message type to create an instance of.

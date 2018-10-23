@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <deque>
 #include <iostream>
+#include <condition_variable>
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -115,6 +116,10 @@ namespace Arcus
         std::mutex sendQueueMutex;
         std::deque<MessagePtr> receiveQueue;
         std::mutex receiveQueueMutex;
+
+        std::mutex receiveQueueMutexBlock;
+        bool message_ready = false;
+        std::condition_variable socket_block_condition_variable;
 
         Arcus::Private::PlatformSocket platform_socket;
 
@@ -344,6 +349,8 @@ namespace Arcus
                 }
             }
         }
+        message_ready = true;
+        socket_block_condition_variable.notify_all();
     }
 
     // Send a message to the connected socket.
@@ -352,14 +359,14 @@ namespace Arcus
         uint32_t header = (ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | (VERSION_MINOR);
         if(platform_socket.writeUInt32(header) == -1)
         {
-            error(ErrorCode::SendFailedError, "Could not send message header");
+            error(ErrorCode::SendFailedError, "Could not send message header 555");
             return;
         }
 
         uint32_t message_size = message->ByteSize();
         if(platform_socket.writeUInt32(message_size) == -1)
         {
-            error(ErrorCode::SendFailedError, "Could not send message size");
+            error(ErrorCode::SendFailedError, "Could not send message size 2222");
             return;
         }
 
@@ -554,6 +561,8 @@ namespace Arcus
         receiveQueueMutex.lock();
         receiveQueue.push_back(message);
         receiveQueueMutex.unlock();
+
+        message_ready = true; // receeived a new message
 
         for(auto listener : listeners)
         {

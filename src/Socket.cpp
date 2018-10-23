@@ -18,6 +18,7 @@
 
 #include "Socket.h"
 #include "Socket_p.h"
+#include <condition_variable>
 
 #include <algorithm>
 
@@ -29,6 +30,13 @@ Socket::Socket() : d(new Private)
 
 Socket::~Socket()
 {
+    {
+        std::lock_guard<std::mutex> lk(d->receiveQueueMutexBlock);
+        d->message_ready = true;
+    }
+
+    d->socket_block_condition_variable.notify_all();
+
     if(d->thread)
     {
         if(d->state != SocketState::Closed || d->state != SocketState::Error)
@@ -172,6 +180,13 @@ void Socket::listen(const std::string& address, int port)
 
 void Socket::close()
 {
+    {
+        std::lock_guard<std::mutex> lk(d->receiveQueueMutexBlock);
+        d->message_ready = true;
+    }
+
+    d->socket_block_condition_variable.notify_all();
+
     if(d->state == SocketState::Initial)
     {
         d->error(ErrorCode::InvalidStateError, "Cannot close a socket in initial state");
@@ -236,6 +251,31 @@ MessagePtr Socket::takeNextMessage()
     }
     else
     {
+        return nullptr;
+    }
+}
+
+MessagePtr Socket::takeNextMessageBlocking()
+{
+
+    // Keep requirest wait until a new message received
+    std::unique_lock<std::mutex> lk(d->receiveQueueMutexBlock);
+
+    while (d->message_ready == false)
+    {
+        d->socket_block_condition_variable.wait(lk);
+    }
+
+    std::lock_guard<std::mutex> lock(d->receiveQueueMutex);
+    if(d->receiveQueue.size() > 0)
+    {
+        MessagePtr next = d->receiveQueue.front();
+        d->receiveQueue.pop_front();
+        return next;
+    }
+    else
+    {
+        d->message_ready = false;
         return nullptr;
     }
 }
