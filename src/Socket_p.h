@@ -118,7 +118,7 @@ namespace Arcus
         std::mutex receiveQueueMutex;
 
         std::mutex receiveQueueMutexBlock;
-        bool message_ready = false;
+        bool condition_message_ready = false;
         std::condition_variable socket_block_condition_variable;
 
         Arcus::Private::PlatformSocket platform_socket;
@@ -184,15 +184,8 @@ namespace Arcus
     void Socket::Private::run()
     {
 
-        std::cout << " WHILE START, STATE: "<< state <<std::endl;
-        std::fprintf(stdout, "WHILE START: OBJECT ID %lx\n", this);
-
         while(state != SocketState::Closed && state != SocketState::Error)
         {
-
-            std::cout << " WHILE RUN, STATE: "<< state <<std::endl;
-            std::fprintf(stdout, "WHILE RUN: OBJECT ID %lx\n", this);
-
             switch(state)
             {
                 case SocketState::Connecting:
@@ -360,7 +353,7 @@ namespace Arcus
 
         {
             std::lock_guard<std::mutex> lk(receiveQueueMutexBlock);
-            message_ready = true;
+            condition_message_ready = true;
         }
         socket_block_condition_variable.notify_all();
     }
@@ -574,14 +567,15 @@ namespace Arcus
         receiveQueue.push_back(message);
         receiveQueueMutex.unlock();
 
-        message_ready = true; // receeived a new message
-
         for(auto listener : listeners)
         {
             listener->messageReceived();
         }
 
-        message_ready = true;
+        {
+            std::lock_guard<std::mutex> lk(receiveQueueMutexBlock);
+            condition_message_ready = true;
+        }
         socket_block_condition_variable.notify_all();
     }
 

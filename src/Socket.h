@@ -136,7 +136,8 @@ namespace Arcus
         virtual MessagePtr takeNextMessage();
 
         /**
-         * Remove and return the next pending message from the queue with condition blocking
+         * Remove and return the next pending message from the queue with condition blocking.
+         * The Listener will have 'wait' mode untill a new message is received.
          */
         virtual MessagePtr takeNextMessageBlocking();
 
