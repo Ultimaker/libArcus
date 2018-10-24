@@ -354,7 +354,7 @@ namespace Arcus
             std::lock_guard<std::mutex> lk(receiveQueueMutexBlock);
             message_received_condition_variable = true;
         }
-        socket_block_condition_variable.notify_all();
+        socket_block_condition_variable.notify_one();
     }
 
     // Send a message to the connected socket.
@@ -575,7 +575,7 @@ namespace Arcus
             std::lock_guard<std::mutex> lk(receiveQueueMutexBlock);
             message_received_condition_variable = true;
         }
-        socket_block_condition_variable.notify_all();
+        socket_block_condition_variable.notify_one();
     }
 
     // Send a keepalive packet to check whether we are still connected.

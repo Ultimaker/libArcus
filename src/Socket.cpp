@@ -33,7 +33,7 @@ Socket::~Socket()
         std::lock_guard<std::mutex> lk(d->receiveQueueMutexBlock);
         d->message_received_condition_variable = true;
     }
-    d->socket_block_condition_variable.notify_all();
+    d->socket_block_condition_variable.notify_one();
 
     if(d->thread)
     {
@@ -182,7 +182,7 @@ void Socket::close()
         std::lock_guard<std::mutex> lk(d->receiveQueueMutexBlock);
         d->message_received_condition_variable = true;
     }
-    d->socket_block_condition_variable.notify_all();
+    d->socket_block_condition_variable.notify_one();
 
     if(d->state == SocketState::Initial)
     {
