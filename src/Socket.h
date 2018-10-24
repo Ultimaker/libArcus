@@ -131,15 +131,10 @@ namespace Arcus
         virtual void sendMessage(MessagePtr message);
 
         /**
-         * Remove and return the next pending message from the queue.
-         */
-        virtual MessagePtr takeNextMessage();
-
-        /**
          * Remove and return the next pending message from the queue with condition blocking.
          * The Listener will have 'wait' mode untill a new message is received.
          */
-        virtual MessagePtr takeNextMessageBlocking();
+        virtual MessagePtr takeNextMessage();
 
         /**
          * Create an instance of a Message class.

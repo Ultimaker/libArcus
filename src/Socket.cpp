@@ -239,21 +239,6 @@ void Socket::sendMessage(MessagePtr message)
 
 MessagePtr Socket::takeNextMessage()
 {
-    std::lock_guard<std::mutex> lock(d->receiveQueueMutex);
-    if(d->receiveQueue.size() > 0)
-    {
-        MessagePtr next = d->receiveQueue.front();
-        d->receiveQueue.pop_front();
-        return next;
-    }
-    else
-    {
-        return nullptr;
-    }
-}
-
-MessagePtr Socket::takeNextMessageBlocking()
-{
     // Set 'listener' in wait mode until a new message received
     std::unique_lock<std::mutex> lk(d->receiveQueueMutexBlock);
 
