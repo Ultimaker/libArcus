@@ -183,8 +183,16 @@ namespace Arcus
     // Thread run method.
     void Socket::Private::run()
     {
+
+        std::cout << " WHILE START, STATE: "<< state <<std::endl;
+        std::fprintf(stdout, "WHILE START: OBJECT ID %lx\n", this);
+
         while(state != SocketState::Closed && state != SocketState::Error)
         {
+
+            std::cout << " WHILE RUN, STATE: "<< state <<std::endl;
+            std::fprintf(stdout, "WHILE RUN: OBJECT ID %lx\n", this);
+
             switch(state)
             {
                 case SocketState::Connecting:
@@ -349,7 +357,11 @@ namespace Arcus
                 }
             }
         }
-        message_ready = true;
+
+        {
+            std::lock_guard<std::mutex> lk(receiveQueueMutexBlock);
+            message_ready = true;
+        }
         socket_block_condition_variable.notify_all();
     }
 
@@ -568,6 +580,9 @@ namespace Arcus
         {
             listener->messageReceived();
         }
+
+        message_ready = true;
+        socket_block_condition_variable.notify_all();
     }
 
     // Send a keepalive packet to check whether we are still connected.

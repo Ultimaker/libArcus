@@ -34,7 +34,6 @@ Socket::~Socket()
         std::lock_guard<std::mutex> lk(d->receiveQueueMutexBlock);
         d->message_ready = true;
     }
-
     d->socket_block_condition_variable.notify_all();
 
     if(d->thread)
@@ -258,7 +257,7 @@ MessagePtr Socket::takeNextMessage()
 MessagePtr Socket::takeNextMessageBlocking()
 {
 
-    // Keep requirest wait until a new message received
+    // Set 'listener' in wait mode until a new message received
     std::unique_lock<std::mutex> lk(d->receiveQueueMutexBlock);
 
     while (d->message_ready == false)
