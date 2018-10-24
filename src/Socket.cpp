@@ -18,7 +18,6 @@
 
 #include "Socket.h"
 #include "Socket_p.h"
-#include <condition_variable>
 
 #include <algorithm>
 
