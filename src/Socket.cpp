@@ -31,7 +31,7 @@ Socket::~Socket()
 {
     {
         std::lock_guard<std::mutex> lk(d->receiveQueueMutexBlock);
-        d->condition_message_ready = true;
+        d->message_received_condition_variable = true;
     }
     d->socket_block_condition_variable.notify_all();
 
@@ -180,9 +180,8 @@ void Socket::close()
 {
     {
         std::lock_guard<std::mutex> lk(d->receiveQueueMutexBlock);
-        d->condition_message_ready = true;
+        d->message_received_condition_variable = true;
     }
-
     d->socket_block_condition_variable.notify_all();
 
     if(d->state == SocketState::Initial)
@@ -255,11 +254,10 @@ MessagePtr Socket::takeNextMessage()
 
 MessagePtr Socket::takeNextMessageBlocking()
 {
-
     // Set 'listener' in wait mode until a new message received
     std::unique_lock<std::mutex> lk(d->receiveQueueMutexBlock);
 
-    while (d->condition_message_ready == false)
+    while (d->message_received_condition_variable == false)
     {
         d->socket_block_condition_variable.wait(lk);
     }
@@ -273,9 +271,9 @@ MessagePtr Socket::takeNextMessageBlocking()
     }
     else
     {
-        // For the next request the listener will get wait mode,
-        // The wait mode will be released only getting a new message
-        d->condition_message_ready = false;
+        // For the next request the listener will have 'wait' mode,
+        // The wait mode will be released only afeter receiving a new message
+        d->message_received_condition_variable = false;
         return nullptr;
     }
 }

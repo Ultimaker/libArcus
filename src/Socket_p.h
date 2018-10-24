@@ -118,7 +118,7 @@ namespace Arcus
         std::mutex receiveQueueMutex;
 
         std::mutex receiveQueueMutexBlock;
-        bool condition_message_ready = false;
+        bool message_received_condition_variable = false;
         std::condition_variable socket_block_condition_variable;
 
         Arcus::Private::PlatformSocket platform_socket;
@@ -183,7 +183,6 @@ namespace Arcus
     // Thread run method.
     void Socket::Private::run()
     {
-
         while(state != SocketState::Closed && state != SocketState::Error)
         {
             switch(state)
@@ -353,7 +352,7 @@ namespace Arcus
 
         {
             std::lock_guard<std::mutex> lk(receiveQueueMutexBlock);
-            condition_message_ready = true;
+            message_received_condition_variable = true;
         }
         socket_block_condition_variable.notify_all();
     }
@@ -364,14 +363,14 @@ namespace Arcus
         uint32_t header = (ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | (VERSION_MINOR);
         if(platform_socket.writeUInt32(header) == -1)
         {
-            error(ErrorCode::SendFailedError, "Could not send message header 555");
+            error(ErrorCode::SendFailedError, "Could not send message header");
             return;
         }
 
         uint32_t message_size = message->ByteSize();
         if(platform_socket.writeUInt32(message_size) == -1)
         {
-            error(ErrorCode::SendFailedError, "Could not send message size 2222");
+            error(ErrorCode::SendFailedError, "Could not send message size");
             return;
         }
 
@@ -574,7 +573,7 @@ namespace Arcus
 
         {
             std::lock_guard<std::mutex> lk(receiveQueueMutexBlock);
-            condition_message_ready = true;
+            message_received_condition_variable = true;
         }
         socket_block_condition_variable.notify_all();
     }
