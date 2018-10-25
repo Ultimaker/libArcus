@@ -227,7 +227,6 @@ void Socket::sendMessage(MessagePtr message)
 
 MessagePtr Socket::takeNextMessage(bool blocking)
 {
-    // Set 'listener' in wait mode until a new message received
     std::unique_lock<std::mutex> lk(d->receiveQueueMutexBlock);
 
     // Take the next message in the receive queue if available.
@@ -249,6 +248,8 @@ MessagePtr Socket::takeNextMessage(bool blocking)
 
     // For a blocking call, wait until the receive queue available signal gets triggered and fetch the first message
     // in the receive queue.
+    // Note that wait causes the current thread to block until the condition variable is notified or a spurious wakeup
+    // occurs, optionally looping until some predicate is satisfied. See https://en.cppreference.com/w/cpp/thread/condition_variable/wait
     d->message_received_condition_variable.wait(lk);
     lk.unlock();
     return takeNextMessage(blocking);
