@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <deque>
 #include <iostream>
+#include <condition_variable>
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -115,6 +116,9 @@ namespace Arcus
         std::mutex sendQueueMutex;
         std::deque<MessagePtr> receiveQueue;
         std::mutex receiveQueueMutex;
+
+        std::mutex receiveQueueMutexBlock;
+        std::condition_variable message_received_condition_variable;
 
         Arcus::Private::PlatformSocket platform_socket;
 
@@ -344,6 +348,8 @@ namespace Arcus
                 }
             }
         }
+
+        message_received_condition_variable.notify_all();
     }
 
     // Send a message to the connected socket.
@@ -559,6 +565,8 @@ namespace Arcus
         {
             listener->messageReceived();
         }
+
+        message_received_condition_variable.notify_all();
     }
 
     // Send a keepalive packet to check whether we are still connected.
