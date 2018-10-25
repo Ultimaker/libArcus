@@ -29,8 +29,6 @@ Socket::Socket() : d(new Private)
 
 Socket::~Socket()
 {
-    d->socket_block_condition_variable.notify_one();
-
     if(d->thread)
     {
         if(d->state != SocketState::Closed || d->state != SocketState::Error)
@@ -174,8 +172,6 @@ void Socket::listen(const std::string& address, int port)
 
 void Socket::close()
 {
-    d->socket_block_condition_variable.notify_one();
-
     if(d->state == SocketState::Initial)
     {
         d->error(ErrorCode::InvalidStateError, "Cannot close a socket in initial state");
