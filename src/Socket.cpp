@@ -29,10 +29,6 @@ Socket::Socket() : d(new Private)
 
 Socket::~Socket()
 {
-    {
-        std::lock_guard<std::mutex> lk(d->receiveQueueMutexBlock);
-        d->message_received_condition_variable = true;
-    }
     d->socket_block_condition_variable.notify_one();
 
     if(d->thread)
@@ -178,10 +174,6 @@ void Socket::listen(const std::string& address, int port)
 
 void Socket::close()
 {
-    {
-        std::lock_guard<std::mutex> lk(d->receiveQueueMutexBlock);
-        d->message_received_condition_variable = true;
-    }
     d->socket_block_condition_variable.notify_one();
 
     if(d->state == SocketState::Initial)
@@ -237,30 +229,33 @@ void Socket::sendMessage(MessagePtr message)
     d->sendQueue.push_back(message);
 }
 
-MessagePtr Socket::takeNextMessage()
+MessagePtr Socket::takeNextMessage(bool blocking)
 {
     // Set 'listener' in wait mode until a new message received
     std::unique_lock<std::mutex> lk(d->receiveQueueMutexBlock);
 
-    while (d->message_received_condition_variable == false)
+    // Take the next message in the receive queue if available.
     {
-        d->socket_block_condition_variable.wait(lk);
+        std::lock_guard<std::mutex> lock(d->receiveQueueMutex);
+        if(d->receiveQueue.size() > 0)
+        {
+            MessagePtr next = d->receiveQueue.front();
+            d->receiveQueue.pop_front();
+            return next;
+        }
     }
 
-    std::lock_guard<std::mutex> lock(d->receiveQueueMutex);
-    if(d->receiveQueue.size() > 0)
+    // If receive queue if empty and this is a non-blocking call, return nullptr immediately.
+    if (!blocking)
     {
-        MessagePtr next = d->receiveQueue.front();
-        d->receiveQueue.pop_front();
-        return next;
-    }
-    else
-    {
-        // For the next request the listener will have 'wait' mode,
-        // The wait mode will be released only afeter receiving a new message
-        d->message_received_condition_variable = false;
         return nullptr;
     }
+
+    // For a blocking call, wait until the receive queue available signal gets triggered and fetch the first message
+    // in the receive queue.
+    d->message_received_condition_variable.wait(lk);
+    lk.unlock();
+    return takeNextMessage(blocking);
 }
 
 MessagePtr Arcus::Socket::createMessage(const std::string& type)

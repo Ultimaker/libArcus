@@ -118,7 +118,7 @@ namespace Arcus
         std::mutex receiveQueueMutex;
 
         std::mutex receiveQueueMutexBlock;
-        bool message_received_condition_variable = false;
+        std::condition_variable message_received_condition_variable;
         std::condition_variable socket_block_condition_variable;
 
         Arcus::Private::PlatformSocket platform_socket;
@@ -352,7 +352,7 @@ namespace Arcus
 
         {
             std::lock_guard<std::mutex> lk(receiveQueueMutexBlock);
-            message_received_condition_variable = true;
+            message_received_condition_variable.notify_all();
         }
         socket_block_condition_variable.notify_one();
     }
@@ -573,7 +573,7 @@ namespace Arcus
 
         {
             std::lock_guard<std::mutex> lk(receiveQueueMutexBlock);
-            message_received_condition_variable = true;
+            message_received_condition_variable.notify_all();
         }
         socket_block_condition_variable.notify_one();
     }

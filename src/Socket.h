@@ -132,9 +132,11 @@ namespace Arcus
 
         /**
          * Remove and return the next pending message from the queue with condition blocking.
-         * The Listener will have 'wait' mode untill a new message is received.
+         * The Listener will have 'wait' mode until a new message is received.
+         *
+         * \param blocking If true, this function call will block until there is an available message.
          */
-        virtual MessagePtr takeNextMessage();
+        virtual MessagePtr takeNextMessage(bool blocking = false);
 
         /**
          * Create an instance of a Message class.
