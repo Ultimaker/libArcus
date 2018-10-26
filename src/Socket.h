@@ -132,10 +132,8 @@ namespace Arcus
 
         /**
          * Remove and return the next pending message from the queue with condition blocking.
-         *
-         * \param blocking If true, this function call will block until there is an available message.
          */
-        virtual MessagePtr takeNextMessage(bool blocking = false);
+        virtual MessagePtr takeNextMessage();
 
         /**
          * Create an instance of a Message class.
