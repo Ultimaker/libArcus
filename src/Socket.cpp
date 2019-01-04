@@ -258,7 +258,9 @@ MessagePtr Socket::takeNextMessage()
 
     MessagePtr result;  // null by default
     if (continue_to_take_next)
+    {
         result = takeNextMessage();
+    }
     return result;
 }
 
