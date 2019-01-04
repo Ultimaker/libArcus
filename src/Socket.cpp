@@ -181,6 +181,8 @@ void Socket::close()
     if(d->state == SocketState::Closed || d->state == SocketState::Error)
     {
         // Silently ignore this, as calling close on an already closed socket should be fine.
+        d->state = SocketState::Closed;
+        d->message_received_condition_variable.notify_all();
         return;
     }
 
@@ -211,6 +213,9 @@ void Socket::close()
         delete d->thread;
         d->thread = nullptr;
     }
+    // Notify all in case of closing because the waiting threads need to know
+    // that this socket has been closed and they should not wait any more.
+    d->message_received_condition_variable.notify_all();
 }
 
 void Socket::sendMessage(MessagePtr message)
