@@ -250,8 +250,16 @@ MessagePtr Socket::takeNextMessage()
     // Note that wait causes the current thread to block until the condition variable is notified or a spurious wakeup
     // occurs, optionally looping until some predicate is satisfied. See https://en.cppreference.com/w/cpp/thread/condition_variable/wait
     d->message_received_condition_variable.wait(lk);
+
+    // Only continue to fetch the next message if the socket is still operating normally.
+    bool continue_to_take_next = d->state != SocketState::Closed && d->state != SocketState::Error;
+
     lk.unlock();
-    return takeNextMessage();
+
+    MessagePtr result;  // null by default
+    if (continue_to_take_next)
+        result = takeNextMessage();
+    return result;
 }
 
 MessagePtr Arcus::Socket::createMessage(const std::string& type)
