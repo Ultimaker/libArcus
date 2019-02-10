@@ -22,7 +22,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON) #Required if a patch to libArcus needs t
 
 if(BUILD_PYTHON)
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-    find_package(Python3 REQUIRED)
+    find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
     find_package(SIP REQUIRED)
     if(NOT DEFINED LIB_SUFFIX)
         set(LIB_SUFFIX "")
