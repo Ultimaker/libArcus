@@ -1,5 +1,5 @@
 project(arcus)
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.12)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -22,17 +22,12 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON) #Required if a patch to libArcus needs t
 
 if(BUILD_PYTHON)
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+    find_package(Python3 REQUIRED)
     find_package(SIP REQUIRED)
     if(NOT DEFINED LIB_SUFFIX)
         set(LIB_SUFFIX "")
     endif()
-    if(EXISTS /etc/debian_version)
-        # Running on a debian-based system, which requires special handling for python modules.
-        set(PYTHON_SITE_PACKAGES_DIR lib${LIB_SUFFIX}/python3/dist-packages CACHE STRING "Directory to install Python bindings to")
-    else()
-        set(PYTHON_SITE_PACKAGES_DIR lib${LIB_SUFFIX}/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages CACHE STRING "Directory to install Python bindings to")
-    endif()
-    include_directories(python/ src/ ${SIP_INCLUDE_DIR} ${PYTHON_INCLUDE_DIR})
+    include_directories(python/ src/ ${SIP_INCLUDE_DIR} ${Python3_INCLUDE_DIRS})
 endif()
 
 if(NOT ${CMAKE_VERSION} VERSION_LESS 3.1)
