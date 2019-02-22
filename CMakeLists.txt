@@ -1,5 +1,5 @@
 project(arcus)
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.6)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -35,11 +35,7 @@ if(BUILD_PYTHON)
     include_directories(python/ src/ ${SIP_INCLUDE_DIR} ${PYTHON_INCLUDE_DIR})
 endif()
 
-if(NOT ${CMAKE_VERSION} VERSION_LESS 3.1)
-    set(CMAKE_CXX_STANDARD 11)
-else()
-    set(CMAKE_CXX_FLAGS "-std=c++11")
-endif()
+set(CMAKE_CXX_STANDARD 11)
 
 if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
