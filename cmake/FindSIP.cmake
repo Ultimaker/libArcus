@@ -43,12 +43,14 @@ execute_process(
 
 if(${_process_status} EQUAL 0)
     string(STRIP ${_process_output} SIP_VERSION_STR)
+else()
+    unset(SIP_VERSION_STR)
 endif()
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(Sip REQUIRED_VARS SIP_BINARY_PATH SIP_INCLUDE_DIR VERSION_VAR SIP_VERSION_STR)
+find_package_handle_standard_args(SIP REQUIRED_VARS SIP_BINARY_PATH SIP_INCLUDE_DIR SIP_VERSION_STR VERSION_VAR SIP_VERSION_STR)
 
-if(Sip_FOUND)
+if(SIP_FOUND)
     include(${CMAKE_CURRENT_LIST_DIR}/SIPMacros.cmake)
 endif()
 
