@@ -24,9 +24,6 @@ if(APPLE)
     set(CMAKE_FIND_FRAMEWORK LAST)
 endif()
 
-find_package(PythonInterp 3.4.0 REQUIRED)
-find_package(PythonLibs 3.4.0 REQUIRED)
-
 get_filename_component(PYTHON_BINARY_PATH ${PYTHON_EXECUTABLE} DIRECTORY)
 
 find_program(SIP_BINARY_PATH sip
