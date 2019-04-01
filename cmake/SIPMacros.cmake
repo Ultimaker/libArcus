@@ -19,7 +19,7 @@
 # The behaviour of the ADD_SIP_PYTHON_MODULE macro can be controlled by a
 # number of variables:
 #
-# SIP_INCLUDES - List of directories which SIP will scan through when looking
+# SIP_INCLUDE_DIRS - List of directories which SIP will scan through when looking
 #     for included .sip files. (Corresponds to the -I option for SIP.)
 #
 # SIP_TAGS - List of tags to define when running SIP. (Corresponds to the -t
@@ -35,7 +35,7 @@
 # SIP_EXTRA_OPTIONS - Extra command line options which should be passed on to
 #     SIP.
 
-SET(SIP_INCLUDES)
+SET(SIP_INCLUDE_DIRS)
 SET(SIP_TAGS)
 SET(SIP_CONCAT_PARTS 8)
 SET(SIP_DISABLE_FEATURES)
@@ -102,7 +102,7 @@ MACRO(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
         OUTPUT ${_sip_output_files}
         COMMAND ${CMAKE_COMMAND} -E echo ${message}
         COMMAND ${CMAKE_COMMAND} -E touch ${_sip_output_files}
-        COMMAND ${SIP_BINARY_PATH} ${_sip_tags} ${_sip_x} ${SIP_EXTRA_OPTIONS} -j ${SIP_CONCAT_PARTS} -c ${CMAKE_CURRENT_BINARY_DIR}/${_module_path} ${_sip_includes} ${_abs_module_sip}
+        COMMAND ${SIP_EXECUTABLE} ${_sip_tags} ${_sip_x} ${SIP_EXTRA_OPTIONS} -j ${SIP_CONCAT_PARTS} -c ${CMAKE_CURRENT_BINARY_DIR}/${_module_path} ${_sip_includes} ${_abs_module_sip}
         DEPENDS ${_abs_module_sip} ${SIP_EXTRA_FILES_DEPEND}
     )
     # not sure if type MODULE could be uses anywhere, limit to cygwin for now
@@ -112,7 +112,7 @@ MACRO(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
         ADD_LIBRARY(${_logical_name} SHARED ${_sip_output_files} ${SIP_EXTRA_SOURCE_FILES})
     ENDIF (CYGWIN OR APPLE)
     IF (NOT APPLE)
-        TARGET_LINK_LIBRARIES(${_logical_name} ${PYTHON_LIBRARIES})
+        TARGET_LINK_LIBRARIES(${_logical_name} ${Python3_LIBRARIES})
     ENDIF (NOT APPLE)
     TARGET_LINK_LIBRARIES(${_logical_name} ${EXTRA_LINK_LIBRARIES})
     IF (APPLE)
@@ -121,10 +121,9 @@ MACRO(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
     SET_TARGET_PROPERTIES(${_logical_name} PROPERTIES PREFIX "" OUTPUT_NAME ${_child_module_name})
 
     IF (WIN32)
-      SET_TARGET_PROPERTIES(${_logical_name} PROPERTIES SUFFIX ".pyd" IMPORT_PREFIX "_")
+        SET_TARGET_PROPERTIES(${_logical_name} PROPERTIES SUFFIX ".pyd" IMPORT_PREFIX "_")
     ENDIF (WIN32)
 
-    INSTALL(TARGETS ${_logical_name} DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/${_parent_module_path}")
+    INSTALL(TARGETS ${_logical_name} DESTINATION "${Python3_SITELIB}/${_parent_module_path}")
 
 ENDMACRO(ADD_SIP_PYTHON_MODULE)
-

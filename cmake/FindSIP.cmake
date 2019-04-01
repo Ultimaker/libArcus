@@ -8,11 +8,11 @@
 #
 # This file defines the following variables:
 #
-# SIP_VERSION_STR - The version of SIP found as a human readable string.
+# SIP_VERSION - SIP version.
 #
-# SIP_BINARY_PATH - Path and filename of the SIP command line executable.
+# SIP_EXECUTABLE - Path to the SIP executable.
 #
-# SIP_INCLUDE_DIR - Directory holding the SIP C++ header file.
+# SIP_INCLUDE_DIRS - The SIP include directories.
 #
 
 # Copyright (c) 2007, Simon Edwards <simon@simonzone.com>
@@ -24,35 +24,62 @@ if(APPLE)
     set(CMAKE_FIND_FRAMEWORK LAST)
 endif()
 
-get_filename_component(PYTHON_BINARY_PATH ${PYTHON_EXECUTABLE} DIRECTORY)
+# FIXME: Remove the code for CMake <3.12 once we have switched over completely.
+# FindPython3 is a new module since CMake 3.12. It deprecates FindPythonInterp and FindPythonLibs. The FindPython3
+# module is copied from the CMake repository here so in CMake <3.12 we can still use it.
+if(${CMAKE_VERSION} VERSION_LESS 3.12)
+    # Use FindPythonInterp and FindPythonLibs for CMake <3.12
+    find_package(PythonInterp 3 REQUIRED)
+    find_package(PythonLibs 3 REQUIRED)
 
-find_program(SIP_BINARY_PATH sip
-    HINTS ${CMAKE_PREFIX_PATH}/bin ${CMAKE_INSTALL_PREFIX}/bin ${PYTHON_BINARY_PATH} ${PYTHON_BINARY_PATH}/site-packages/PyQt5
+    # Define variables that are available in FindPython3, so there's no need to branch off in the later part.
+    set(Python3_EXECUTABLE ${PYTHON_EXECUTABLE})
+    set(Python3_INCLUDE_DIRS ${PYTHON_INCLUDE_DIRS})
+    set(Python3_LIBRARIES ${PYTHON_LIBRARIES})
+
+    execute_process(
+        COMMAND ${Python3_EXECUTABLE} -c
+                "import distutils.sysconfig; print(distutils.sysconfig.get_python_lib(plat_specific=False,standard_lib=False))"
+        RESULT_VARIABLE _process_status
+        OUTPUT_VARIABLE _process_output
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    if(${_process_status} EQUAL 0)
+        string(STRIP ${_process_output} Python3_SITELIB)
+    else()
+        message(FATAL_ERROR "Failed to get Python3_SITELIB. Error: ${_process_output}")
+    endif()
+else()
+    # Use FindPython3 for CMake >=3.12
+    find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+endif()
+
+get_filename_component(_python_binary_path ${Python3_EXECUTABLE} DIRECTORY)
+
+find_program(SIP_EXECUTABLE sip
+    HINTS ${CMAKE_PREFIX_PATH}/bin ${CMAKE_INSTALL_PATH}/bin ${_python_binary_path} ${Python3_SITELIB}/PyQt5
 )
 
-find_path(SIP_INCLUDE_DIR sip.h
-    HINTS ${CMAKE_PREFIX_PATH}/include ${CMAKE_INSTALL_PREFIX}/include ${PYTHON_INCLUDE_DIRS} ${PYTHON_BINARY_PATH}/site-packages/PyQt5
+find_path(SIP_INCLUDE_DIRS sip.h
+    HINTS ${CMAKE_PREFIX_PATH}/include ${CMAKE_INSTALL_PATH}/include ${Python3_INCLUDE_DIRS} ${Python3_SITELIB}/PyQt5
 )
 
 execute_process(
-    COMMAND ${PYTHON_EXECUTABLE} -c "import sip; print(sip.SIP_VERSION_STR)"
+    COMMAND ${Python3_EXECUTABLE} -c "import sip; print(sip.SIP_VERSION_STR)"
     RESULT_VARIABLE _process_status
     OUTPUT_VARIABLE _process_output
     OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 if(${_process_status} EQUAL 0)
-    string(STRIP ${_process_output} SIP_VERSION_STR)
-else()
-    unset(SIP_VERSION_STR)
+    string(STRIP ${_process_output} SIP_VERSION)
 endif()
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(SIP REQUIRED_VARS SIP_BINARY_PATH SIP_INCLUDE_DIR SIP_VERSION_STR VERSION_VAR SIP_VERSION_STR)
+find_package_handle_standard_args(SIP REQUIRED_VARS SIP_EXECUTABLE SIP_INCLUDE_DIRS VERSION_VAR SIP_VERSION)
 
 if(SIP_FOUND)
     include(${CMAKE_CURRENT_LIST_DIR}/SIPMacros.cmake)
 endif()
 
-mark_as_advanced(SIP_BINARY_PATH SIP_INCLUDE_DIR SIP_VERSION_STR)
-
+mark_as_advanced(SIP_EXECUTABLE SIP_INCLUDE_DIRS SIP_VERSION)

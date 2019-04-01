@@ -21,25 +21,26 @@ find_package(Protobuf 3.0.0 REQUIRED)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON) #Required if a patch to libArcus needs to be made via templates.
 
 if(BUILD_PYTHON)
-    set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+    list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
 
-    # Use FindPython 3 because if we use 3.4 for instance, it will prefer 3.4, even if there is another
-    # Python (say 3.5) in CMAKE_PREFIX_PATH which also meets the requirement. We prefer the Python in
-    # CMAKE_PREFIX_PATH if set for our building process, so we specify Python 3 here.
-    find_package(PythonInterp 3 REQUIRED)
-    find_package(PythonLibs 3 REQUIRED)
+    # FIXME: Remove the code for CMake <3.12 once we have switched over completely.
+    # FindPython3 is a new module since CMake 3.12. It deprecates FindPythonInterp and FindPythonLibs. The FindPython3
+    # module is copied from the CMake repository here so in CMake <3.12 we can still use it.
+    if(${CMAKE_VERSION} VERSION_LESS 3.12)
+        # Use FindPythonInterp and FindPythonLibs for CMake <3.12
+        find_package(PythonInterp 3 REQUIRED)
+        find_package(PythonLibs 3 REQUIRED)
+    else()
+        # Use FindPython3 for CMake >=3.12
+        find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+    endif()
 
     find_package(SIP REQUIRED)
     if(NOT DEFINED LIB_SUFFIX)
         set(LIB_SUFFIX "")
     endif()
-    if(EXISTS /etc/debian_version)
-        # Running on a debian-based system, which requires special handling for python modules.
-        set(PYTHON_SITE_PACKAGES_DIR lib${LIB_SUFFIX}/python3/dist-packages CACHE STRING "Directory to install Python bindings to")
-    else()
-        set(PYTHON_SITE_PACKAGES_DIR lib${LIB_SUFFIX}/python${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}/site-packages CACHE STRING "Directory to install Python bindings to")
-    endif()
-    include_directories(python/ src/ ${SIP_INCLUDE_DIR} ${PYTHON_INCLUDE_DIR})
+
+    include_directories(python/ src/ ${SIP_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
 endif()
 
 set(CMAKE_CXX_STANDARD 11)
