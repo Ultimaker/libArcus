@@ -25,12 +25,11 @@ if(APPLE)
 endif()
 
 # FIXME: Remove the code for CMake <3.12 once we have switched over completely.
-# FindPython3 is a new module since CMake 3.12. It deprecates FindPythonInterp and FindPythonLibs. The FindPython3
-# module is copied from the CMake repository here so in CMake <3.12 we can still use it.
+# FindPython3 is a new module since CMake 3.12. It deprecates FindPythonInterp and FindPythonLibs.
 if(${CMAKE_VERSION} VERSION_LESS 3.12)
     # Use FindPythonInterp and FindPythonLibs for CMake <3.12
-    find_package(PythonInterp 3 REQUIRED)
-    find_package(PythonLibs 3 REQUIRED)
+    find_package(PythonInterp 3.4 REQUIRED)
+    find_package(PythonLibs 3.4 REQUIRED)
 
     # Define variables that are available in FindPython3, so there's no need to branch off in the later part.
     set(Python3_EXECUTABLE ${PYTHON_EXECUTABLE})
@@ -51,7 +50,7 @@ if(${CMAKE_VERSION} VERSION_LESS 3.12)
     endif()
 else()
     # Use FindPython3 for CMake >=3.12
-    find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+    find_package(Python3 3.4 REQUIRED COMPONENTS Interpreter Development)
 endif()
 
 get_filename_component(_python_binary_path ${Python3_EXECUTABLE} DIRECTORY)
