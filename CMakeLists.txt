@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.6)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+include(GenerateExportHeader)
 
 option(BUILD_PYTHON "Build " ON)
 option(BUILD_EXAMPLES "Build the example programs" ON)
@@ -121,7 +122,16 @@ set_target_properties(Arcus PROPERTIES
     SOVERSION ${ARCUS_SOVERSION}
     PUBLIC_HEADER "${arcus_HDRS}"
     DEFINE_SYMBOL MAKE_ARCUS_LIB
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN 1
 )
+
+generate_export_header(Arcus
+    EXPORT_FILE_NAME src/ArcusExport.h
+)
+# This is required when building out-of-tree.
+# The compiler won't find the generated header otherwise.
+include_directories(${CMAKE_BINARY_DIR}/src)
 
 if(BUILD_EXAMPLES)
     add_subdirectory(examples)
