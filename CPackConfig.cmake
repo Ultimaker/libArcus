@@ -1,5 +1,5 @@
 set(CPACK_PACKAGE_VENDOR "Ultimaker")
-set(CPACK_PACKAGE_CONTACT "Arjen Hiemstra <a.hiemstra@ultimaker.com>")
+set(CPACK_PACKAGE_CONTACT "Ruben Dulek <r.dulek@ultimaker.com>")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "libArcus Communication library")
 if(NOT DEFINED CPACK_PACKAGE_VERSION)
   set(CPACK_PACKAGE_VERSION "15.05.91")
