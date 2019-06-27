@@ -124,6 +124,6 @@ MACRO(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
         SET_TARGET_PROPERTIES(${_logical_name} PROPERTIES SUFFIX ".pyd" IMPORT_PREFIX "_")
     ENDIF (WIN32)
 
-    INSTALL(TARGETS ${_logical_name} DESTINATION "${Python3_SITELIB}/${_parent_module_path}")
+    INSTALL(TARGETS ${_logical_name} DESTINATION "${Python3_SITEARCH}/${_parent_module_path}")
 
 ENDMACRO(ADD_SIP_PYTHON_MODULE)
