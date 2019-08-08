@@ -48,6 +48,19 @@ if(${CMAKE_VERSION} VERSION_LESS 3.12)
     else()
         message(FATAL_ERROR "Failed to get Python3_SITELIB. Error: ${_process_output}")
     endif()
+
+    execute_process(
+        COMMAND ${Python3_EXECUTABLE} -c
+                "import distutils.sysconfig; print(distutils.sysconfig.get_python_lib(plat_specific=True,standard_lib=False))"
+        RESULT_VARIABLE _process_status
+        OUTPUT_VARIABLE _process_output
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    if(${_process_status} EQUAL 0)
+        string(STRIP ${_process_output} Python3_SITEARCH)
+    else()
+        message(FATAL_ERROR "Failed to get Python3_SITEARCH. Error: ${_process_output}")
+    endif()
 else()
     # Use FindPython3 for CMake >=3.12
     find_package(Python3 3.4 REQUIRED COMPONENTS Interpreter Development)
