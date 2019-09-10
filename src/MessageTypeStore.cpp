@@ -73,7 +73,7 @@ private:
     int _error_count;
 };
 
-class MessageTypeStore::Private
+class ARCUS_NO_EXPORT MessageTypeStore::Private
 {
 public:
     std::unordered_map<uint, const google::protobuf::Message*> message_types;
