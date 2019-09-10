@@ -61,7 +61,6 @@ set(arcus_HDRS
     src/Socket.h
     src/SocketListener.h
     src/Types.h
-    src/MessageTypeStore.h
     src/Error.h
     ${CMAKE_CURRENT_BINARY_DIR}/src/ArcusExport.h
 )
