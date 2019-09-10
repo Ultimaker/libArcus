@@ -21,6 +21,7 @@
 
 #include <memory>
 
+#include "ArcusExport.h"
 #include "Types.h"
 
 namespace Arcus
