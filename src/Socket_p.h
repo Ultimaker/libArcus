@@ -72,7 +72,7 @@ namespace Arcus
 {
     using namespace Private;
 
-    class Socket::Private
+    class ARCUS_NO_EXPORT Socket::Private
     {
     public:
         Private()
