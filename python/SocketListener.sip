@@ -1,0 +1,34 @@
+/*
+ * This file is part of libArcus
+ *
+ * Copyright (C) 2016 Ultimaker b.v. <a.hiemstra@ultimaker.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License v3.0 as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License v3.0 for more details.
+ * You should have received a copy of the GNU Lesser General Public License v3.0
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+class SocketListener
+{
+    %TypeHeaderCode
+    #include "SocketListener.h"
+    %End
+
+public:
+    SocketListener();
+    virtual ~SocketListener();
+
+    Socket* getSocket();
+
+    virtual void stateChanged(SocketState::SocketState newState) = 0 /HoldGIL/;
+    virtual void messageReceived() = 0 /HoldGIL/;
+    virtual void error(const Error& error) = 0 /HoldGIL/;
+};

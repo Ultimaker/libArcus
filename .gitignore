@@ -1,0 +1,71 @@
+# CMake
+ArcusConfig.cmake
+ArcusConfigVersion.cmake
+cmake_install.cmake
+CPackSourceConfig.cmake
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+*.so.1.0.0
+*.so.2
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# KDevelop project files
+*kdev*
+*.kate-swp
+
+# Standard CMake build dir
+build
+*.make
+Makefile
+CMakeCache.txt
+install_manifest.txt
+CMakeFiles/*
+compile_commands.json
+examples/Makefile
+examples/CMakeFiles/*
+examples/example
+examples/example.pb.h
+examples/example.pb.cc
+examples/example_pb2.py
+
+# Python compile cache files
+*.pyc
+__pycache__
+/examples/cmake_install.cmake
+/CMakeFiles/CMakeRuleHashes.txt
+
+# Netbeans project files
+nbproject/*
+
+# Eclipse+PyDev
+.project
+.pydevproject
+
+# PyCharm
+.idea
+
+# SIP generated code
+/python/sipArcuspart*.cpp
+/python/sipAPIArcus.h
+
+# Generated headers
+/src/ArcusExport.h

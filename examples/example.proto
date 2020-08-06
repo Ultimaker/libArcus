@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package Example;
+
+message ObjectList {
+    repeated Object objects = 1;
+}
+
+message Object {
+    int32 id = 1;
+    bytes vertices = 2; //An array of 3 floats.
+    bytes normals = 3; //An array of 3 floats.
+    bytes indices = 4; //An array of ints.
+}
+
+message ProgressUpdate {
+    int32 objectId = 1;
+    int32 amount = 2;
+}
+
+message SlicedObjectList {
+    repeated SlicedObject objects = 1;
+}
+
+message SlicedObject {
+    int32 id = 1;
+
+    repeated Polygon polygons = 2;
+}
+
+message Polygon {
+    enum Type
+    {
+        InnerType = 0;
+        OuterType = 1;
+    }
+
+    Type type = 1;
+    bytes points = 2;
+}
