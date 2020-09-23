@@ -29,8 +29,7 @@ To disable this, set BUILD_EXAMPLES to off.
 
 To disable building the Python bindings, set BUILD_PYTHON to OFF. They will be
 installed into ```$prefix/lib/python3/dist-packages``` on Debian-based systems
-and into ```$prefix/lib/python3.4/site-packages``` on other computers. To
-override this directory, set ```PYTHON_SITE_PACKAGES_DIR```.
+and into ```$prefix/lib/python3.4/site-packages``` on other computers.
 
 Building the Python bindings on 64-bit Windows requires you to build with Microsoft Visual
 C++ since the module will fail to import if built with MinGW.
