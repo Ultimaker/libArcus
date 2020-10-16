@@ -16,6 +16,12 @@ To build the python bindings (default on, disable with -DBUILD_PYTHON=OFF) these
 * python3-dev (3.4+)
 * python3-sip-dev (4.16+)
 
+On Ubuntu 20.04 this can be achieved with:
+
+```
+sudo apt install build-essentials cmake python3-dev python3-sip-dev protobuf-compiler libprotoc-dev libprotobuf-dev
+```
+
 Building the library can be done with:
 
 - ```$ mkdir build && cd build```
