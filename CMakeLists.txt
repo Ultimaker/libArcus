@@ -34,7 +34,7 @@ if(BUILD_PYTHON)
 
     else()
         # Use FindPython3 for CMake >=3.12
-        find_package(Python3 3.4 COMPONENTS Interpreter Development)
+        find_package(Python3 3.4 REQUIRED COMPONENTS Interpreter Development)
     endif()
 
     find_package(SIP REQUIRED)
