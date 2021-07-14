@@ -105,12 +105,7 @@ MACRO(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
         COMMAND ${SIP_EXECUTABLE} ${_sip_tags} ${_sip_x} ${SIP_EXTRA_OPTIONS} -j ${SIP_CONCAT_PARTS} -c ${CMAKE_CURRENT_BINARY_DIR}/${_module_path} ${_sip_includes} ${_abs_module_sip}
         DEPENDS ${_abs_module_sip} ${SIP_EXTRA_FILES_DEPEND}
     )
-    # not sure if type MODULE could be uses anywhere, limit to cygwin for now
-    IF (CYGWIN OR APPLE)
-        ADD_LIBRARY(${_logical_name} MODULE ${_sip_output_files} ${SIP_EXTRA_SOURCE_FILES})
-    ELSE (CYGWIN OR APPLE)
-        ADD_LIBRARY(${_logical_name} SHARED ${_sip_output_files} ${SIP_EXTRA_SOURCE_FILES})
-    ENDIF (CYGWIN OR APPLE)
+    ADD_LIBRARY(${_logical_name} MODULE ${_sip_output_files} ${SIP_EXTRA_SOURCE_FILES})
     IF (NOT APPLE)
         IF ("${Python3_VERSION_MINOR}" GREATER 7)
             MESSAGE(STATUS "Python > 3.7 - not linking to libpython")
