@@ -1,63 +1,24 @@
 project(arcus)
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.13)
 
-include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
-include(GenerateExportHeader)
-
-option(BUILD_PYTHON "Build " ON)
+# Basic projects options
+option(BUILD_PYTHON "Build Python module" ON)
 option(BUILD_EXAMPLES "Build the example programs" ON)
 option(BUILD_STATIC "Build as a static library" OFF)
 
-if(WIN32)
-    option(MSVC_STATIC_RUNTIME "Link the MSVC runtime statically" OFF)
-endif()
+include(cmake/StandardProjectSettings.cmake)
+include(CMakePackageConfigHelpers)
+include(GenerateExportHeader)
 
-# We want to have access to protobuf_generate_cpp and other FindProtobuf features.
-# However, if ProtobufConfig is used instead, there is a CMake option that controls
-# this, which defaults to OFF. We need to force this option to ON instead.
-set(protobuf_MODULE_COMPATIBLE ON CACHE INTERNAL "" FORCE)
-find_package(Protobuf 3.0.0 REQUIRED)
-
-set(CMAKE_POSITION_INDEPENDENT_CODE ON) #Required if a patch to libArcus needs to be made via templates.
-
-if(BUILD_PYTHON)
-    list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-
-    # FIXME: Remove the code for CMake <3.12 once we have switched over completely.
-    # FindPython3 is a new module since CMake 3.12. It deprecates FindPythonInterp and FindPythonLibs.
-    if(${CMAKE_VERSION} VERSION_LESS 3.12)
-        # FIXME: Use FindPython3 to find Python, new in CMake 3.12.
-        # However currently on our CI server it finds the wrong Python version and then doesn't find the headers.
-        find_package(PythonInterp 3.4 REQUIRED)
-        find_package(PythonLibs 3.4 REQUIRED)
-
-    else()
-        # Use FindPython3 for CMake >=3.12
-        find_package(Python3 3.4 REQUIRED COMPONENTS Interpreter Development)
-    endif()
-
-    find_package(SIP REQUIRED)
-    if(NOT DEFINED LIB_SUFFIX)
-        set(LIB_SUFFIX "")
-    endif()
-
-    include_directories(python/ src/ ${SIP_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
-endif()
-
-set(CMAKE_CXX_STANDARD 17)
-
-if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-endif()
+set(ARCUS_VERSION 1.1.0)
+set(ARCUS_SOVERSION 3)
 
 set(arcus_SRCS
     src/Socket.cpp
     src/SocketListener.cpp
     src/MessageTypeStore.cpp
     src/PlatformSocket.cpp
-    src/Error.cpp
-)
+    src/Error.cpp)
 
 set(arcus_HDRS
     src/Socket.h
@@ -68,49 +29,40 @@ set(arcus_HDRS
     ${CMAKE_CURRENT_BINARY_DIR}/src/ArcusExport.h
 )
 
-set(ARCUS_VERSION 1.1.0)
-set(ARCUS_SOVERSION 3)
-
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
-
-if(BUILD_STATIC)
-    add_library(Arcus STATIC ${arcus_SRCS})
-    if(NOT WIN32 OR CMAKE_COMPILER_IS_GNUCXX)
-        target_link_libraries(Arcus PRIVATE pthread)
-        set_target_properties(Arcus PROPERTIES COMPILE_FLAGS -fPIC)
-    endif()
-else()
+if(${BUILD_SHARED_LIBS})
     add_library(Arcus SHARED ${arcus_SRCS})
+else()
+    add_library(Arcus STATIC ${arcus_SRCS})
 endif()
 
-if(MSVC_STATIC_RUNTIME)
-    foreach(flag_var
-            CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-            CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-    if(${flag_var} MATCHES "/MD")
-        string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-    endif(${flag_var} MATCHES "/MD")
-    endforeach(flag_var)
-endif()
+use_threads(Arcus)
 
-if(BUILD_PYTHON)
-    set(SIP_EXTRA_FILES_DEPEND python/SocketListener.sip python/Types.sip python/PythonMessage.sip python/Error.sip)
-    set(SIP_EXTRA_SOURCE_FILES python/PythonMessage.cpp)
-    set(SIP_EXTRA_OPTIONS -g -n PyQt5.sip) # -g means always release the GIL before calling C++ methods. -n PyQt5.sip is required to not get the PyCapsule error
-    add_sip_python_module(Arcus python/Socket.sip Arcus)
-endif()
+find_package(Protobuf 3.9.2 REQUIRED)
+target_link_libraries(Arcus PUBLIC protobuf::libprotobuf)
 
-target_include_directories(Arcus PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    ${PROTOBUF_INCLUDE_DIR}
-)
-target_link_libraries(Arcus PUBLIC ${PROTOBUF_LIBRARIES})
+set_project_standards(Arcus)
+set_project_warnings(Arcus)
+
+if(NOT MSVC)
+    if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
+        target_compile_definitions(Arcus PUBLIC -DARCUS_DEBUG)
+    endif()
+endif()
 
 if(WIN32)
-    add_definitions(-D_WIN32_WINNT=0x0600) # Declare we require Vista or higher, this allows us to use IPv6 functions.
+    # Declare we require Vista or higher, this allows us to use IPv6 functions.
+    target_compile_definitions(Arcus PUBLIC -D_WIN32_WINNT=0x0600)
     target_link_libraries(Arcus PUBLIC Ws2_32)
 endif()
+
+generate_export_header(Arcus EXPORT_FILE_NAME src/ArcusExport.h)
+target_include_directories(Arcus
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+            ${protobuf_INCLUDE_DIRS}
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src> # Include ArcusExport.h
+        )
 
 if(${CMAKE_BUILD_TYPE})
     if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
@@ -128,12 +80,36 @@ set_target_properties(Arcus PROPERTIES
     VISIBILITY_INLINES_HIDDEN 1
 )
 
-generate_export_header(Arcus
-    EXPORT_FILE_NAME src/ArcusExport.h
-)
-# This is required when building out-of-tree.
-# The compiler won't find the generated header otherwise.
-include_directories(${CMAKE_BINARY_DIR}/src)
+if(BUILD_PYTHON)
+    list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+
+    find_package(SIP REQUIRED)
+    if(NOT DEFINED LIB_SUFFIX)
+        set(LIB_SUFFIX "")
+    endif()
+
+    set(SIP_EXTRA_FILES_DEPEND python/SocketListener.sip python/Types.sip python/PythonMessage.sip python/Error.sip)
+    set(SIP_EXTRA_SOURCE_FILES python/PythonMessage.cpp)
+    set(SIP_EXTRA_OPTIONS -y Arcus.pyi -o -g -n PyQt5.sip) # -g means always release the GIL before calling C++ methods. -n PyQt5.sip is required to not get the PyCapsule error
+    add_sip_python_module(Arcus python/Socket.sip Arcus)
+    use_python(python_module_Arcus Interpreter Development)
+
+    target_link_libraries(python_module_Arcus
+            PRIVATE
+                SIP::SIP
+                protobuf::libprotobuf
+            )
+    target_include_directories(python_module_Arcus
+            PRIVATE
+                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/python>
+                ${protobuf_INCLUDE_DIRS}
+                ${SIP_INCLUDE_DIRS}
+                $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src> # Include ArcusExport.h
+            )
+    set_project_standards(python_module_Arcus)
+    set_project_warnings(python_module_Arcus)
+endif()
 
 if(BUILD_EXAMPLES)
     add_subdirectory(examples)
@@ -147,9 +123,7 @@ install(TARGETS Arcus
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Arcus
 )
 
-install(EXPORT Arcus-targets
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Arcus
-)
+install(EXPORT Arcus-targets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Arcus)
 
 configure_package_config_file(ArcusConfig.cmake.in ${CMAKE_BINARY_DIR}/ArcusConfig.cmake INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Arcus)
 write_basic_package_version_file(${CMAKE_BINARY_DIR}/ArcusConfigVersion.cmake VERSION ${ARCUS_VERSION} COMPATIBILITY SameMajorVersion)

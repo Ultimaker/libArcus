@@ -24,16 +24,13 @@ if(APPLE)
     set(CMAKE_FIND_FRAMEWORK LAST)
 endif()
 
-# FIXME: Use FindPython3 to find Python, new in CMake 3.12.
-# However currently on our CI server it finds the wrong Python version and then doesn't find the headers.
-find_package(PythonInterp 3.5 REQUIRED)
-find_package(PythonLibs 3.5 REQUIRED)
-
-# Define variables that are available in FindPython3, so there's no need to branch off in the later part.
-set(Python3_EXECUTABLE ${PYTHON_EXECUTABLE})
-set(Python3_INCLUDE_DIRS ${PYTHON_INCLUDE_DIRS})
-set(Python3_LIBRARIES ${PYTHON_LIBRARIES})
-set(Python3_VERSION_MINOR "${PYTHON_VERSION_MINOR}")
+if(NOT Python_VERSION)
+    set(Python_VERSION
+            3.8
+            CACHE STRING "Python Version" FORCE)
+    message(STATUS "Setting Python version to ${Python_VERSION}. Set Python_VERSION if you want to compile against an other version.")
+endif()
+find_package(Python3 ${Python_VERSION} EXACT REQUIRED COMPONENTS Interpreter Development)
 
 execute_process(
    COMMAND ${Python3_EXECUTABLE} -c
@@ -89,4 +86,9 @@ if(SIP_FOUND)
     include(${CMAKE_CURRENT_LIST_DIR}/SIPMacros.cmake)
 endif()
 
-mark_as_advanced(SIP_EXECUTABLE SIP_INCLUDE_DIRS SIP_VERSION)
+add_library(SIP::SIP INTERFACE IMPORTED)
+set_property(TARGET SIP::SIP
+        PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+        ${SIP_INCLUDE_DIRS} APPEND)
+
+mark_as_advanced(SIP_EXECUTABLE SIP_INCLUDE_DIRS SIP_VERSION SIP::SIP)

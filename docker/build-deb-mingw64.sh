@@ -9,18 +9,13 @@
 CURA_DEV_ENV_ROOT=/opt/cura-dev
 export PATH="${CURA_DEV_ENV_ROOT}/bin:${PATH}"
 
+apt -y remove cmake
+apt -y --no-install-recommends install python3-pip
+pip3 install cmake --upgrade
+
 mkdir build
 cd build
-cmake \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_SYSTEM_NAME="Windows" \
-    -DCMAKE_FIND_ROOT_PATH=/usr/x86_64-w64-mingw32 \
-    -DCMAKE_C_COMPILER=x86_64-w64-mingw32-gcc \
-    -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++ \
-    -DBUILD_PYTHON=OFF \
-    -DBUILD_EXAMPLES=OFF \
-    -DBUILD_STATIC=ON \
-    ..
+cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw_toolchain.cmake ..
 make
 cpack \
     --config ../cmake/cpack_config_deb_mingw64.cmake \
