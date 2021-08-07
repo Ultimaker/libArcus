@@ -42,6 +42,7 @@ target_link_libraries(Arcus PUBLIC protobuf::libprotobuf)
 
 set_project_standards(Arcus)
 set_project_warnings(Arcus)
+enable_sanitizers(Arcus)
 
 if(NOT MSVC)
     if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")

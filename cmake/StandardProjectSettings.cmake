@@ -34,7 +34,23 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 
 # Generate compile_commands.json to make it easier to work with clang based tools
+message(STATUS "Generating compile commands to ${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+option(ENABLE_IPO "Enable Interprocedural Optimization, aka Link Time Optimization (LTO)" ON)
+if(ENABLE_IPO)
+    include(CheckIPOSupported)
+    check_ipo_supported(
+            RESULT
+            result
+            OUTPUT
+            output)
+    if(result)
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+    else()
+        message(SEND_ERROR "IPO is not supported: ${output}")
+    endif()
+endif()
 
 if (NOT MSVC)
     # Compile with the -fPIC options if supported
@@ -43,17 +59,20 @@ if (NOT MSVC)
     else()
         set(POSITION_INDEPENDENT_CODE ON) # Defaults to on
         message(STATUS "Setting POSITION_INDEPENDENT_CODE: ${POSITION_INDEPENDENT_CODE}")
-
-        # Set Visual Studio flags MD/MDd or MT/MTd
-        if(BUILD_STATIC OR NOT BUILD_SHARED_LIBS)
-            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-        else()
-            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-        endif()
+    endif()
+else()
+    # Set Visual Studio flags MD/MDd or MT/MTd
+    if(BUILD_STATIC OR NOT BUILD_SHARED_LIBS)
+        message(STATUS "Setting MD/MDd flags")
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    else()
+        message(STATUS "Setting MT/MTd flags")
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
     endif()
 endif()
 
 # Use C++17 Standard
+message(STATUS "Setting C++17 support with extensions off and standard required")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -63,9 +82,11 @@ function(set_project_standards project_name)
     if(CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
         option(ENABLE_BUILD_WITH_TIME_TRACE "Enable -ftime-trace to generate time tracing .json files on clang" OFF)
         if(ENABLE_BUILD_WITH_TIME_TRACE)
+            message(STATUS "Enabling time tracing for ${project_name}")
             add_compile_definitions(${project_name} PRIVATE -ftime-trace)
         endif()
-        if (APPLE) # Linux already compiles against libstdc++
+        if (APPLE)
+            message(STATUS "Compiling ${project_name} against libc++")
             target_compile_options(${project_name} PRIVATE "-stdlib=libc++")
         endif()
     endif()
@@ -73,7 +94,7 @@ endfunction()
 
 # Ultimaker uniform Python linking method
 function(use_python project_name)
-    SET(COMPONENTS ${ARGN})
+    set(COMPONENTS ${ARGN})
     if(NOT DEFINED Python_VERSION)
         set(Python_VERSION
                 3.8
@@ -97,7 +118,7 @@ endfunction()
 
 # https://github.com/lefticus/cppbestpractices/blob/master/02-Use_the_Tools_Available.md
 function(set_project_warnings project_name)
-
+    message(STATUS "Setting warnings for ${project_name}")
     set(MSVC_WARNINGS
             /W4 # Baseline reasonable warnings
             /w14242 # 'identifier': conversion from 'type1' to 'type1', possible loss of data
@@ -161,6 +182,132 @@ function(set_project_warnings project_name)
         message(AUTHOR_WARNING "No compiler warnings set for '${CMAKE_CXX_COMPILER_ID}' compiler.")
     endif()
 
-    target_compile_options(${project_name} INTERFACE ${PROJECT_WARNINGS})
+    target_compile_options(${project_name} PRIVATE ${PROJECT_WARNINGS})
 
 endfunction()
+
+# This function will prevent in-source builds
+function(AssureOutOfSourceBuilds)
+    # make sure the user doesn't play dirty with symlinks
+    get_filename_component(srcdir "${CMAKE_SOURCE_DIR}" REALPATH)
+    get_filename_component(bindir "${CMAKE_BINARY_DIR}" REALPATH)
+
+    # disallow in-source builds
+    if("${srcdir}" STREQUAL "${bindir}")
+        message("######################################################")
+        message("Warning: in-source builds are disabled")
+        message("Please create a separate build directory and run cmake from there")
+        message("######################################################")
+        message(FATAL_ERROR "Quitting configuration")
+    endif()
+endfunction()
+
+assureoutofsourcebuilds()
+
+function(enable_sanitizers project_name)
+
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+        option(ENABLE_COVERAGE "Enable coverage reporting for gcc/clang" FALSE)
+
+        if(ENABLE_COVERAGE)
+            target_compile_options(${project_name} INTERFACE --coverage -O0 -g)
+            target_link_libraries(${project_name} INTERFACE --coverage)
+        endif()
+
+        set(SANITIZERS "")
+
+        option(ENABLE_SANITIZER_ADDRESS "Enable address sanitizer" FALSE)
+        if(ENABLE_SANITIZER_ADDRESS)
+            list(APPEND SANITIZERS "address")
+        endif()
+
+        option(ENABLE_SANITIZER_LEAK "Enable leak sanitizer" FALSE)
+        if(ENABLE_SANITIZER_LEAK)
+            list(APPEND SANITIZERS "leak")
+        endif()
+
+        option(ENABLE_SANITIZER_UNDEFINED_BEHAVIOR "Enable undefined behavior sanitizer" FALSE)
+        if(ENABLE_SANITIZER_UNDEFINED_BEHAVIOR)
+            list(APPEND SANITIZERS "undefined")
+        endif()
+
+        option(ENABLE_SANITIZER_THREAD "Enable thread sanitizer" FALSE)
+        if(ENABLE_SANITIZER_THREAD)
+            if("address" IN_LIST SANITIZERS OR "leak" IN_LIST SANITIZERS)
+                message(WARNING "Thread sanitizer does not work with Address and Leak sanitizer enabled")
+            else()
+                list(APPEND SANITIZERS "thread")
+            endif()
+        endif()
+
+        option(ENABLE_SANITIZER_MEMORY "Enable memory sanitizer" FALSE)
+        if(ENABLE_SANITIZER_MEMORY AND CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+            if("address" IN_LIST SANITIZERS
+                    OR "thread" IN_LIST SANITIZERS
+                    OR "leak" IN_LIST SANITIZERS)
+                message(WARNING "Memory sanitizer does not work with Address, Thread and Leak sanitizer enabled")
+            else()
+                list(APPEND SANITIZERS "memory")
+            endif()
+        endif()
+
+        list(
+                JOIN
+                SANITIZERS
+                ","
+                LIST_OF_SANITIZERS)
+
+    endif()
+
+    if(LIST_OF_SANITIZERS)
+        if(NOT
+                "${LIST_OF_SANITIZERS}"
+                STREQUAL
+                "")
+            target_compile_options(${project_name} INTERFACE -fsanitize=${LIST_OF_SANITIZERS})
+            target_link_options(${project_name} INTERFACE -fsanitize=${LIST_OF_SANITIZERS})
+        endif()
+    endif()
+
+endfunction()
+
+option(ENABLE_CPPCHECK "Enable static analysis with cppcheck" OFF)
+option(ENABLE_CLANG_TIDY "Enable static analysis with clang-tidy" OFF)
+option(ENABLE_INCLUDE_WHAT_YOU_USE "Enable static analysis with include-what-you-use" OFF)
+
+if(ENABLE_CPPCHECK)
+    find_program(CPPCHECK cppcheck)
+    if(CPPCHECK)
+        message(STATUS "Using cppcheck")
+        set(CMAKE_CXX_CPPCHECK
+                ${CPPCHECK}
+                --suppress=missingInclude
+                --enable=all
+                --inline-suppr
+                --inconclusive
+                -i
+                ${CMAKE_SOURCE_DIR}/imgui/lib)
+    else()
+        message(WARNING "cppcheck requested but executable not found")
+    endif()
+endif()
+
+if(ENABLE_CLANG_TIDY)
+    find_program(CLANGTIDY clang-tidy)
+    if(CLANGTIDY)
+        message(STATUS "Using clang-tidy")
+        set(CMAKE_CXX_CLANG_TIDY ${CLANGTIDY} -extra-arg=-Wno-unknown-warning-option)
+    else()
+        message(WARNING "clang-tidy requested but executable not found")
+    endif()
+endif()
+
+if(ENABLE_INCLUDE_WHAT_YOU_USE)
+    find_program(INCLUDE_WHAT_YOU_USE include-what-you-use)
+    if(INCLUDE_WHAT_YOU_USE)
+        message(STATUS "Using include-what-you-use")
+        set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE ${INCLUDE_WHAT_YOU_USE})
+    else()
+        message(WARNING "include-what-you-use requested but executable not found")
+    endif()
+endif()
