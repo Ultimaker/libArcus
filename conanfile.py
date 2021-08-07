@@ -95,6 +95,7 @@ class ArcusConan(ConanFile):
             tc.blocks["generic_system"].values["generator_platform"] = None
             tc.blocks["generic_system"].values["toolset"] = None
 
+        tc.variables["ALLOW_IN_SOURCE_BUILD"] = True
         tc.variables["BUILD_PYTHON"] = True
         tc.variables["BUILD_STATIC"] = not self.options.shared
         tc.variables["BUILD_EXAMPLES"] = self.options.examples
