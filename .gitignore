@@ -69,3 +69,5 @@ nbproject/*
 
 # Generated headers
 /src/ArcusExport.h
+
+/cmake-build-*/
