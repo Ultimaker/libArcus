@@ -56,13 +56,11 @@ if(WIN32)
     target_link_libraries(Arcus PUBLIC Ws2_32)
 endif()
 
-generate_export_header(Arcus EXPORT_FILE_NAME src/ArcusExport.h)
+generate_export_header(Arcus EXPORT_FILE_NAME ${CMAKE_SOURCE_DIR}/src/ArcusExport.h)
 target_include_directories(Arcus
         PUBLIC
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-            ${protobuf_INCLUDE_DIRS}
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src> # Include ArcusExport.h
         )
 
 if(${CMAKE_BUILD_TYPE})
@@ -99,14 +97,12 @@ if(BUILD_PYTHON)
             PRIVATE
                 SIP::SIP
                 protobuf::libprotobuf
+                Arcus
             )
     target_include_directories(python_module_Arcus
             PRIVATE
                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/python>
-                ${protobuf_INCLUDE_DIRS}
-                ${SIP_INCLUDE_DIRS}
-                $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src> # Include ArcusExport.h
             )
     set_project_standards(python_module_Arcus)
     set_project_warnings(python_module_Arcus)

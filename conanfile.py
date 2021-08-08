@@ -24,7 +24,7 @@ class ArcusConan(ConanFile):
     default_options = {
         "shared": True,
         "fPIC": True,
-        "examples": True,
+        "examples": False,
         "python_version": "3.8"
     }
     scm = {
@@ -94,13 +94,17 @@ class ArcusConan(ConanFile):
         if self.settings.compiler == "Visual Studio":
             tc.blocks["generic_system"].values["generator_platform"] = None
             tc.blocks["generic_system"].values["toolset"] = None
+            tc.blocks["shared"].values["shared_libs"] = False # FIXME: Otherwise it throws: error LNK2001: unresolved external symbol "__declspec(dllimport)
 
         tc.variables["ALLOW_IN_SOURCE_BUILD"] = True
         tc.variables["BUILD_PYTHON"] = True
-        tc.variables["BUILD_STATIC"] = not self.options.shared
         tc.variables["BUILD_EXAMPLES"] = self.options.examples
         tc.variables["Python_VERSION"] = self.options.python_version
         tc.variables["SIP_MODULE_SITE_PATH"] = "site-packages"
+
+        # FIXME: Otherwise it throws: error LNK2001: unresolved external symbol "__declspec(dllimport)
+        tc.variables["BUILD_STATIC"] = not self.options.shared if self.settings.os != "Windows" else True
+
         tc.generate()
 
     _cmake = None

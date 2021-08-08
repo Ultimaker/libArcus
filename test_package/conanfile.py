@@ -29,6 +29,11 @@ class ArcusTestConan(ConanFile):
         if self.settings.compiler == "Visual Studio":
             tc.blocks["generic_system"].values["generator_platform"] = None
             tc.blocks["generic_system"].values["toolset"] = None
+
+        # FIXME: Otherwise it throws: error LNK2001: unresolved external symbol "__declspec(dllimport)
+        tc.variables["BUILD_STATIC"] = not self.options.shared if self.settings.os != "Windows" else True
+        tc.variables["BUILD_SHARED_LIBS"] = self.options.shared if self.settings.os != "Windows" else False
+
         tc.generate()
 
     def build(self):
