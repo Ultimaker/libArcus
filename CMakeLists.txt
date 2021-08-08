@@ -26,7 +26,7 @@ set(arcus_HDRS
     src/Types.h
     src/MessageTypeStore.h
     src/Error.h
-    ${CMAKE_CURRENT_BINARY_DIR}/src/ArcusExport.h
+    src/ArcusExport.h
 )
 
 if(${BUILD_SHARED_LIBS})
