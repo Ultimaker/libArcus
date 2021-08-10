@@ -126,8 +126,8 @@ class ArcusConan(ConanFile):
 
     def package_info(self):
         self.cpp_info.includedirs = ["include"]
-        self.cpp_info.libs = [self.lib_name]
-        self.libdirs = ["lib64"]
+        self.cpp_info.libs = tools.collect_libs(self)
+        self.libdirs = ["lib64", "lib"]
         if self.in_local_cache:
             self.runenv_info.prepend_path("PYTHONPATH", os.path.join(self.package_folder, "site-packages"))
         else:
