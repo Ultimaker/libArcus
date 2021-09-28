@@ -5,13 +5,6 @@ from conan.tools.cmake import CMakeToolchain, CMakeDeps, CMake
 class ArcusTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
 
-    def build_requirements(self):
-        self.build_requires("cmake/3.15.7")
-
-    def requirements(self):
-        self.requires("Arcus/4.11.0@ultimaker/testing")
-        self.requires("protobuf/3.17.1")
-
     def generate(self):
         cmake = CMakeDeps(self)
         cmake.generate()
