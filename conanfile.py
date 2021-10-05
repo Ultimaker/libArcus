@@ -117,7 +117,7 @@ class ArcusConan(ConanFile):
         except:
             pass
         self.cpp_info.defines.append("ARCUS")
-        if self.settings.build_type == "debug":
+        if self.settings.build_type == "Debug":
             self.cpp_info.defines.append("ARCUS_DEBUG")
         if self.settings.os in ["Linux", "FreeBSD", "Macos"]:
             self.cpp_info.system_libs.append("pthread")
