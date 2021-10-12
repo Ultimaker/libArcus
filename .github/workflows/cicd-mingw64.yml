@@ -1,6 +1,12 @@
 ---
 name: CI/CD for mingw64 debian package
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 jobs:
   build:
     name: Build debian package
