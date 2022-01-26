@@ -6,7 +6,7 @@ include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
 
 option(BUILD_PYTHON "Should Python bindings be created" ON)
-option(BUILD_EXAMPLES "Build the example programs" ON)
+option(BUILD_EXAMPLES "Build the example programs" OFF)
 option(BUILD_STATIC "Build as a static library" OFF)
 
 if(WIN32)
@@ -29,14 +29,14 @@ if(BUILD_PYTHON)
     if(${CMAKE_VERSION} VERSION_LESS 3.12)
         # FIXME: Use FindPython3 to find Python, new in CMake 3.12.
         # However currently on our CI server it finds the wrong Python version and then doesn't find the headers.
-        find_package(PythonInterp 3.4 REQUIRED)
-        find_package(PythonLibs 3.4 REQUIRED)
+        find_package(PythonInterp 3.9 REQUIRED)
+        find_package(PythonLibs 3.9 REQUIRED)
 
     else()
         # Use FindPython3 for CMake >=3.12
-        find_package(Python3 3.4 REQUIRED COMPONENTS Interpreter Development)
+        find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter Development)
     endif()
-
+	
     #find_package(SIP REQUIRED)
     if(NOT DEFINED LIB_SUFFIX)
         set(LIB_SUFFIX "")
