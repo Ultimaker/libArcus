@@ -16,25 +16,23 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace ErrorCode
+
+enum ErrorCode
 {
-    enum ErrorCode
-    {
-        UnknownError,
-        CreationError,
-        ConnectFailedError,
-        BindFailedError,
-        AcceptFailedError,
-        SendFailedError,
-        ReceiveFailedError,
-        UnknownMessageTypeError,
-        ParseFailedError,
-        ConnectionResetError,
-        MessageRegistrationFailedError,
-        InvalidStateError,
-        InvalidMessageError,
-        Debug,
-    };
+    UnknownError,
+    CreationError,
+    ConnectFailedError,
+    BindFailedError,
+    AcceptFailedError,
+    SendFailedError,
+    ReceiveFailedError,
+    UnknownMessageTypeError,
+    ParseFailedError,
+    ConnectionResetError,
+    MessageRegistrationFailedError,
+    InvalidStateError,
+    InvalidMessageError,
+    Debug,
 };
 
 class Error
@@ -45,10 +43,10 @@ class Error
 
 public:
     Error();
-    Error(ErrorCode::ErrorCode error_code, const std::string& error_message);
+    Error(ErrorCode error_code, const std::string& error_message);
     Error(const Error& error);
 
-    ErrorCode::ErrorCode getErrorCode() const;
+    ErrorCode getErrorCode() const;
     std::string getErrorMessage() const;
     bool isFatalError() const;
     bool isValid() const;
