@@ -37,7 +37,7 @@ if(BUILD_PYTHON)
         find_package(Python3 3.4 REQUIRED COMPONENTS Interpreter Development)
     endif()
 
-    find_package(SIP REQUIRED)
+    #find_package(SIP REQUIRED)
     if(NOT DEFINED LIB_SUFFIX)
         set(LIB_SUFFIX "")
     endif()
@@ -57,6 +57,7 @@ set(arcus_SRCS
     src/MessageTypeStore.cpp
     src/PlatformSocket.cpp
     src/Error.cpp
+    python/PythonMessage.cpp
 )
 
 set(arcus_HDRS
@@ -65,6 +66,7 @@ set(arcus_HDRS
     src/Types.h
     src/MessageTypeStore.h
     src/Error.h
+    python/PythonMessage.h
     ${CMAKE_CURRENT_BINARY_DIR}/src/ArcusExport.h
 )
 
@@ -93,12 +95,12 @@ if(MSVC_STATIC_RUNTIME)
     endforeach(flag_var)
 endif()
 
-if(BUILD_PYTHON)
-    set(SIP_EXTRA_FILES_DEPEND python/SocketListener.sip python/Types.sip python/PythonMessage.sip python/Error.sip)
-    set(SIP_EXTRA_SOURCE_FILES python/PythonMessage.cpp)
-    set(SIP_EXTRA_OPTIONS -g -n PyQt5.sip) # -g means always release the GIL before calling C++ methods. -n PyQt5.sip is required to not get the PyCapsule error
-    add_sip_python_module(Arcus python/Socket.sip Arcus)
-endif()
+#if(BUILD_PYTHON)
+#    set(SIP_EXTRA_FILES_DEPEND python/SocketListener.sip python/Types.sip python/PythonMessage.sip python/Error.sip)
+#    set(SIP_EXTRA_SOURCE_FILES python/PythonMessage.cpp)
+#    set(SIP_EXTRA_OPTIONS -g -n PyQt5.sip) # -g means always release the GIL before calling C++ methods. -n PyQt5.sip is required to not get the PyCapsule error
+#    add_sip_python_module(Arcus python/Socket.sip Arcus)
+#endif()
 
 target_include_directories(Arcus PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
