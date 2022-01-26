@@ -1,0 +1,19 @@
+# Specify sip v6 as the build system for the package.
+[build-system]
+requires = ["sip >=6, <7"]
+build-backend = "sipbuild.api"
+
+# Specify the PEP 566 metadata for the project.
+[tool.sip.metadata]
+name = "Arcus"
+
+# Specify each set of bindings.
+[tool.sip.bindings.Arcus]
+headers = ["Socket.h", "PythonMessage.h"]
+include-dirs = ["src/", "python/"]
+libraries = ["Arcus"]
+library-dirs = ["."]
+
+# Configure the project itself.
+[tool.sip.project]
+sip-module = "Arcus.sip"
