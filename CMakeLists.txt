@@ -33,7 +33,7 @@ if(BUILD_PYTHON)
     if(APPLE)
         set(Python_FIND_FRAMEWORK NEVER)
     endif()
-    find_package(Python ${Python_VERSION} EXACT REQUIRED COMPONENTS Interpreter)
+    find_package(Python ${Python_VERSION} EXACT REQUIRED COMPONENTS Interpreter Development)
     message(STATUS "Linking and building ${project_name} against Python ${Python_VERSION}")
 
     find_package(SIP REQUIRED)
@@ -41,7 +41,7 @@ if(BUILD_PYTHON)
         set(LIB_SUFFIX "")
     endif()
 
-    include_directories(python/ src/ ${SIP_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
+    include_directories(python/ src/ ${SIP_INCLUDE_DIRS} ${Python_INCLUDE_DIRS})
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
