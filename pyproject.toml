@@ -13,6 +13,8 @@ headers = ["Socket.h", "PythonMessage.h"]
 include-dirs = ["src/", "python/"]
 libraries = ["Arcus"]
 library-dirs = ["."]
+sources = ["python/PythonMessage.cpp"]
+release-gil = true
 
 # Configure the project itself.
 [tool.sip.project]
