@@ -30,13 +30,15 @@ if(BUILD_PYTHON)
             CACHE STRING "Python Version" FORCE)
     message(STATUS "Setting Python version to ${Python_VERSION}. Set Python_VERSION if you want to compile against an other version.")
     endif()
-	
+    find_package(Python ${Python_VERSION} EXACT REQUIRED COMPONENTS Interpreter Development)
+    message(STATUS "Linking and building ${project_name} against Python ${Python_VERSION}")
+
     #find_package(SIP REQUIRED)
     if(NOT DEFINED LIB_SUFFIX)
         set(LIB_SUFFIX "")
     endif()
 
-    include_directories(python/ src/ ${SIP_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
+    include_directories(python/ src/ ${SIP_INCLUDE_DIRS} ${Python_INCLUDE_DIRS})
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
