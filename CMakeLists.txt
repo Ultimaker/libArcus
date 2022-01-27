@@ -1,5 +1,5 @@
 project(arcus)
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.8)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -23,18 +23,12 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON) #Required if a patch to libArcus needs t
 
 if(BUILD_PYTHON)
     list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-
-    # FIXME: Remove the code for CMake <3.12 once we have switched over completely.
-    # FindPython3 is a new module since CMake 3.12. It deprecates FindPythonInterp and FindPythonLibs.
-    if(${CMAKE_VERSION} VERSION_LESS 3.12)
-        # FIXME: Use FindPython3 to find Python, new in CMake 3.12.
-        # However currently on our CI server it finds the wrong Python version and then doesn't find the headers.
-        find_package(PythonInterp 3.9 REQUIRED)
-        find_package(PythonLibs 3.9 REQUIRED)
-
-    else()
-        # Use FindPython3 for CMake >=3.12
-        find_package(Python3 3.9 REQUIRED COMPONENTS Interpreter Development)
+    
+    if(NOT DEFINED Python_VERSION)
+    set(Python_VERSION
+            3.10
+            CACHE STRING "Python Version" FORCE)
+    message(STATUS "Setting Python version to ${Python_VERSION}. Set Python_VERSION if you want to compile against an other version.")
     endif()
 	
     #find_package(SIP REQUIRED)
@@ -45,7 +39,7 @@ if(BUILD_PYTHON)
     include_directories(python/ src/ ${SIP_INCLUDE_DIRS} ${Python3_INCLUDE_DIRS})
 endif()
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 
 if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
@@ -73,7 +67,11 @@ set(arcus_HDRS
 set(ARCUS_VERSION 1.1.0)
 set(ARCUS_SOVERSION 3)
 
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
+OPTION(SET_RPATH ON)
+
+if(SET_RPATH)
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
+endif()
 
 if(BUILD_STATIC)
     add_library(Arcus STATIC ${arcus_SRCS})

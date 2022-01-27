@@ -1,6 +1,12 @@
 ---
 name: CI/CD for mingw64 debian package
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 jobs:
   build:
     name: Build debian package
@@ -33,7 +39,7 @@ jobs:
     needs: build
     timeout-minutes: 5
     runs-on: ubuntu-latest
-    container: python:3.7-slim-buster
+    container: python:3.10-slim-buster
     env:
       CLOUDSMITH_API_KEY: "${{ secrets.CLOUDSMITH_API_KEY }}"
       CLOUDSMITH_DEB_REPO: "${{ secrets.CLOUDSMITH_DEB_REPO }}"
