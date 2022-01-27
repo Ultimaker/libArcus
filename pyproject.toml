@@ -16,6 +16,3 @@ library-dirs = ["."]
 sources = ["python/PythonMessage.cpp"]
 release-gil = true
 
-# Configure the project itself.
-[tool.sip.project]
-sip-module = "Arcus.sip"
