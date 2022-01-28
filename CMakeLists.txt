@@ -53,7 +53,7 @@ set(arcus_SRCS
     src/MessageTypeStore.cpp
     src/PlatformSocket.cpp
     src/Error.cpp
-    python/PythonMessage.cpp
+    
 )
 
 set(arcus_HDRS
@@ -95,12 +95,14 @@ if(MSVC_STATIC_RUNTIME)
     endforeach(flag_var)
 endif()
 
-#if(BUILD_PYTHON)
+if(BUILD_PYTHON)
+	set(APPEND arcus_SRCS python/PythonMessage.cpp)
+	set(APPEND arcus_HDRS python/PythonMessage.h)
 #    set(SIP_EXTRA_FILES_DEPEND python/SocketListener.sip python/Types.sip python/PythonMessage.sip python/Error.sip)
 #    set(SIP_EXTRA_SOURCE_FILES python/PythonMessage.cpp)
 #    set(SIP_EXTRA_OPTIONS -g -n PyQt5.sip) # -g means always release the GIL before calling C++ methods. -n PyQt5.sip is required to not get the PyCapsule error
 #    add_sip_python_module(Arcus python/Socket.sip Arcus)
-#endif()
+endif()
 
 target_include_directories(Arcus PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
