@@ -53,10 +53,11 @@ MACRO(GENERATE_SIP_PYTHON_MODULE_CODE MODULE_NAME MODULE_SIP SIP_FILES CPP_FILES
   GET_FILENAME_COMPONENT(_child_module_name ${_x} NAME)
   GET_FILENAME_COMPONENT(_module_path ${MODULE_SIP} PATH)
   GET_FILENAME_COMPONENT(_abs_module_sip ${MODULE_SIP} ABSOLUTE)
-
+  
   # If this is not need anymore (using input configuration file for SIP files)
   # SIP could be run in the source rather than in binary directory
-  SET(_configured_module_sip ${CMAKE_CURRENT_BINARY_DIR}/${_module_path}/${_module_path}.sip)
+  SET(_configured_module_sip ${CMAKE_CURRENT_SOURCE_DIR}/${_child_module_name}.sip)
+
   FOREACH (_sip_file ${SIP_FILES})
     GET_FILENAME_COMPONENT(_sip_file_path ${_sip_file} PATH)
     GET_FILENAME_COMPONENT(_sip_file_name_we ${_sip_file} NAME_WE)
