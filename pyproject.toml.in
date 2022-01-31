@@ -7,11 +7,12 @@ build-backend = "sipbuild.api"
 [tool.sip.metadata]
 name = "Arcus"
 
-# Specify each set of bindings.
 [tool.sip.bindings.Arcus]
 headers = ["Socket.h", "PythonMessage.h"]
-include-dirs = ["src/", "python/"]
+include-dirs = ["@CMAKE_CURRENT_SOURCE_DIR@/src/", "@CMAKE_CURRENT_SOURCE_DIR@/python/"]
 libraries = ["Arcus"]
-library-dirs = ["."]
-sources = ["python/PythonMessage.cpp"]
+library-dirs = ["@CMAKE_CURRENT_SOURCE_DIR@/"]
+sources = ["@CMAKE_CURRENT_SOURCE_DIR@/python/PythonMessage.cpp"]
 release-gil = true
+sip-file = "@CMAKE_CURRENT_SOURCE_DIR@/Arcus.sip"
+

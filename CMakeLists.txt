@@ -33,12 +33,19 @@ if(BUILD_PYTHON)
     find_package(Python ${Python_VERSION} EXACT REQUIRED COMPONENTS Interpreter Development)
     message(STATUS "Linking and building ${project_name} against Python ${Python_VERSION}")
 
-    #find_package(SIP REQUIRED)
+    find_package(SIP REQUIRED)
     if(NOT DEFINED LIB_SUFFIX)
         set(LIB_SUFFIX "")
     endif()
 
     include_directories(python/ src/ ${SIP_INCLUDE_DIRS} ${Python_INCLUDE_DIRS})
+    
+    set(sip_FILES
+    	python/Error.sip
+    	python/PythonMessage.sip
+    	python/SocketListener.sip
+    	python.types.sip)
+    
 endif()
 
 set(CMAKE_CXX_STANDARD 17)
@@ -98,6 +105,11 @@ endif()
 if(BUILD_PYTHON)
 	set(APPEND arcus_SRCS python/PythonMessage.cpp)
 	set(APPEND arcus_HDRS python/PythonMessage.h)
+	include(SIPMacros)
+    	set(SIP_INCLUDES ${CMAKE_SOURCE_DIR}/python)
+    	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml.in ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml @ONLY)
+	GENERATE_SIP_PYTHON_MODULE_CODE(Arcus Arcus.sip "" cpp_files)
+	BUILD_SIP_PYTHON_MODULE(Arcus Arcus.sip ${cpp_files} "" arcus)
 #    set(SIP_EXTRA_FILES_DEPEND python/SocketListener.sip python/Types.sip python/PythonMessage.sip python/Error.sip)
 #    set(SIP_EXTRA_SOURCE_FILES python/PythonMessage.cpp)
 #    set(SIP_EXTRA_OPTIONS -g -n PyQt5.sip) # -g means always release the GIL before calling C++ methods. -n PyQt5.sip is required to not get the PyCapsule error
