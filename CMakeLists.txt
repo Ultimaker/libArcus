@@ -109,7 +109,7 @@ if(BUILD_PYTHON)
     	set(SIP_INCLUDES ${CMAKE_SOURCE_DIR}/python)
     	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml.in ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml @ONLY)
 	GENERATE_SIP_PYTHON_MODULE_CODE(Arcus Arcus.sip "" cpp_files)
-	BUILD_SIP_PYTHON_MODULE(Arcus Arcus.sip ${cpp_files} "" arcus)
+	BUILD_SIP_PYTHON_MODULE(Arcus Arcus.sip ${cpp_files} "" Arcus)
 #    set(SIP_EXTRA_FILES_DEPEND python/SocketListener.sip python/Types.sip python/PythonMessage.sip python/Error.sip)
 #    set(SIP_EXTRA_SOURCE_FILES python/PythonMessage.cpp)
 #    set(SIP_EXTRA_OPTIONS -g -n PyQt5.sip) # -g means always release the GIL before calling C++ methods. -n PyQt5.sip is required to not get the PyCapsule error
