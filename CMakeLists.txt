@@ -1,5 +1,5 @@
 project(arcus)
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.20)
 
 include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
@@ -62,11 +62,11 @@ endif()
 generate_export_header(Arcus EXPORT_FILE_NAME src/ArcusExport.h)
 target_include_directories(Arcus
         PUBLIC
-            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/>
         PRIVATE
-            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src/>
         )
 
 set_target_properties(Arcus PROPERTIES
@@ -110,16 +110,12 @@ if(BUILD_PYTHON)
 
     # Work around for not finding libs and lib location of target_link_libraries
     set(Arcus_LIBRARY Arcus)
-    set(Arcus_LIBRARY_DIRS ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
-
-#    sip_link_library(pyArcus Arcus ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
-#    sip_link_library(pyArcus Python3.10 ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+    set(Arcus_LIBRARY_DIRS ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/)
 
     target_include_directories(pyArcus
             INTERFACE
-                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
                 $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/python/>
-                $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
+                $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/>
             )  # Add the included directories to our Python module
 
     set(SIP_MODULE "${CMAKE_SOURCE_DIR}/python/pyArcus.sip")  # Specify the main sip module
@@ -128,7 +124,7 @@ if(BUILD_PYTHON)
             "${CMAKE_SOURCE_DIR}/python/PythonMessage.sip"
             "${CMAKE_SOURCE_DIR}/python/SocketListener.sip"
             "${CMAKE_SOURCE_DIR}/python/Types.sip"
-            )  # Specify the extra sip defenition files
+            )  # Specify the extra sip definition files
     set(HDR_FILES "PythonMessage.h")  # Specify the extra C++ header to be used
     set(SRC_FILES "${CMAKE_SOURCE_DIR}/python/PythonMessage.cpp")  # Specify the extra C++ source file
 
