@@ -1,7 +1,6 @@
 project(arcus)
 cmake_minimum_required(VERSION 3.8)
 
-include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
 
@@ -9,50 +8,8 @@ option(BUILD_PYTHON "Should Python bindings be created" ON)
 option(BUILD_EXAMPLES "Build the example programs" OFF)
 option(BUILD_STATIC "Build as a static library" OFF)
 
-if(WIN32)
-    option(MSVC_STATIC_RUNTIME "Link the MSVC runtime statically" OFF)
-endif()
-
-# We want to have access to protobuf_generate_cpp and other FindProtobuf features.
-# However, if ProtobufConfig is used instead, there is a CMake option that controls
-# this, which defaults to OFF. We need to force this option to ON instead.
-set(protobuf_MODULE_COMPATIBLE ON CACHE INTERNAL "" FORCE)
-find_package(Protobuf 3.0.0 REQUIRED)
-
-set(CMAKE_POSITION_INDEPENDENT_CODE ON) #Required if a patch to libArcus needs to be made via templates.
-
-if(BUILD_PYTHON)
-    list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-    
-    if(NOT DEFINED Python_VERSION)
-    set(Python_VERSION
-            3.10
-            CACHE STRING "Python Version" FORCE)
-    message(STATUS "Setting Python version to ${Python_VERSION}. Set Python_VERSION if you want to compile against an other version.")
-    endif()
-    find_package(Python ${Python_VERSION} EXACT REQUIRED COMPONENTS Interpreter Development)
-    message(STATUS "Linking and building ${project_name} against Python ${Python_VERSION}")
-
-    find_package(SIP REQUIRED)
-    if(NOT DEFINED LIB_SUFFIX)
-        set(LIB_SUFFIX "")
-    endif()
-
-    include_directories(python/ src/ ${SIP_INCLUDE_DIRS} ${Python_INCLUDE_DIRS})
-    
-    set(sip_FILES
-    	python/Error.sip
-    	python/PythonMessage.sip
-    	python/SocketListener.sip
-    	python.types.sip)
-    
-endif()
-
-set(CMAKE_CXX_STANDARD 17)
-
-if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-endif()
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+include(cmake/StandardProjectSettings.cmake)
 
 set(arcus_SRCS
     src/Socket.cpp
@@ -60,7 +17,6 @@ set(arcus_SRCS
     src/MessageTypeStore.cpp
     src/PlatformSocket.cpp
     src/Error.cpp
-    
 )
 
 set(arcus_HDRS
@@ -76,59 +32,42 @@ set(arcus_HDRS
 set(ARCUS_VERSION 1.1.0)
 set(ARCUS_SOVERSION 3)
 
-OPTION(SET_RPATH ON)
-
-if(SET_RPATH)
-    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
-endif()
-
-if(BUILD_STATIC)
-    add_library(Arcus STATIC ${arcus_SRCS})
-    if(NOT WIN32 OR CMAKE_COMPILER_IS_GNUCXX)
-        target_link_libraries(Arcus PRIVATE pthread)
-        set_target_properties(Arcus PROPERTIES COMPILE_FLAGS -fPIC)
-    endif()
-else()
+if(${BUILD_SHARED_LIBS})
     add_library(Arcus SHARED ${arcus_SRCS})
+else()
+    add_library(Arcus STATIC ${arcus_SRCS})
 endif()
 
-if(MSVC_STATIC_RUNTIME)
-    foreach(flag_var
-            CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-            CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-    if(${flag_var} MATCHES "/MD")
-        string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-    endif(${flag_var} MATCHES "/MD")
-    endforeach(flag_var)
-endif()
+use_threads(Arcus)
 
-if(BUILD_PYTHON)
-	set(APPEND arcus_SRCS python/PythonMessage.cpp)
-	set(APPEND arcus_HDRS python/PythonMessage.h)
-	include(SIPMacros)
-    	set(SIP_INCLUDES ${CMAKE_SOURCE_DIR}/python)
-    	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml.in ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml @ONLY)
-	GENERATE_SIP_PYTHON_MODULE_CODE(Arcus Arcus.sip "" cpp_files)
-	BUILD_SIP_PYTHON_MODULE(Arcus Arcus.sip ${cpp_files} "" Arcus)
-endif()
+find_package(Protobuf 3.17.1 REQUIRED)
+target_link_libraries(Arcus PRIVATE protobuf::libprotobuf)
 
-target_include_directories(Arcus PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    ${PROTOBUF_INCLUDE_DIR}
-)
-target_link_libraries(Arcus PUBLIC ${PROTOBUF_LIBRARIES})
+set_project_standards(Arcus)
+set_project_warnings(Arcus)
+enable_sanitizers(Arcus)
+
+if(NOT MSVC)
+    if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
+        target_compile_definitions(Arcus PUBLIC -DARCUS_DEBUG)
+    endif()
+endif()
 
 if(WIN32)
-    add_definitions(-D_WIN32_WINNT=0x0600) # Declare we require Vista or higher, this allows us to use IPv6 functions.
+    # Declare we require Vista or higher, this allows us to use IPv6 functions.
+    target_compile_definitions(Arcus PUBLIC -D_WIN32_WINNT=0x0600)
     target_link_libraries(Arcus PUBLIC Ws2_32)
 endif()
 
-if(${CMAKE_BUILD_TYPE})
-    if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
-        add_definitions(-DARCUS_DEBUG)
-    endif()
-endif()
+generate_export_header(Arcus EXPORT_FILE_NAME src/ArcusExport.h)
+target_include_directories(Arcus
+        PUBLIC
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        PRIVATE
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/src>
+        )
 
 set_target_properties(Arcus PROPERTIES
     FRAMEWORK FALSE
@@ -140,15 +79,63 @@ set_target_properties(Arcus PROPERTIES
     VISIBILITY_INLINES_HIDDEN 1
 )
 
-generate_export_header(Arcus
-    EXPORT_FILE_NAME src/ArcusExport.h
-)
-# This is required when building out-of-tree.
-# The compiler won't find the generated header otherwise.
-include_directories(${CMAKE_BINARY_DIR}/src)
-
 if(BUILD_EXAMPLES)
     add_subdirectory(examples)
+endif()
+
+if(BUILD_PYTHON)
+    if(NOT TARGET arcus::arcus)  # Make Arcus appear as an external namespaced project (lower case is Conan best practices)
+        add_library(arcus::arcus ALIAS Arcus)
+    endif()
+
+    if(NOT DEFINED Python_VERSION)
+        set(Python_VERSION
+                3.10
+                CACHE STRING "Python Version" FORCE)
+        message(STATUS "Setting Python version to ${Python_VERSION}. Set Python_VERSION if you want to compile against an other version.")
+    endif()
+    find_package(Python ${Python_VERSION} EXACT REQUIRED COMPONENTS Interpreter Development)
+    message(STATUS "Linking and building ${project_name} against Python ${Python_VERSION}")
+
+    find_package(SIP REQUIRED 6.5.0)
+    include(cmake/sip.cmake)
+
+    add_library(pyArcus INTERFACE)  # Create an interface target which will be our Python Arcus
+
+    target_link_libraries(pyArcus
+            INTERFACE
+                Python::Python
+                arcus::arcus
+            )  # Link the external (from the Python-side) libraries to our Python module
+
+    # Work around for not finding libs and lib location of target_link_libraries
+    set(Arcus_LIBRARY Arcus)
+    set(Arcus_LIBRARY_DIRS ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+
+#    sip_link_library(pyArcus Arcus ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+#    sip_link_library(pyArcus Python3.10 ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR})
+
+    target_include_directories(pyArcus
+            INTERFACE
+                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+                $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/python/>
+                $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include/>
+            )  # Add the included directories to our Python module
+
+    set(SIP_MODULE "${CMAKE_SOURCE_DIR}/python/pyArcus.sip")  # Specify the main sip module
+    set(EXTRA_SIP_FILES
+            "${CMAKE_SOURCE_DIR}/python/Error.sip"
+            "${CMAKE_SOURCE_DIR}/python/PythonMessage.sip"
+            "${CMAKE_SOURCE_DIR}/python/SocketListener.sip"
+            "${CMAKE_SOURCE_DIR}/python/Types.sip"
+            )  # Specify the extra sip defenition files
+    set(HDR_FILES "PythonMessage.h")  # Specify the extra C++ header to be used
+    set(SRC_FILES "${CMAKE_SOURCE_DIR}/python/PythonMessage.cpp")  # Specify the extra C++ source file
+
+    target_compile_features(pyArcus INTERFACE cxx_std_17)  # Set extra compile features (not yet implemented in sip.cmake)
+    set_project_warnings(pyArcus)
+
+    add_sip_module(pyArcus ${SIP_MODULE} "${EXTRA_SIP_FILES}" "${HDR_FILES}" "${SRC_FILES}")
 endif()
 
 install(TARGETS Arcus

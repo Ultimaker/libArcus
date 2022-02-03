@@ -16,12 +16,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-%Module(name = Arcus, call_super_init = True)
+%Module(name = pyArcus, call_super_init = True)
 
-%Include python/Types.sip
-%Include python/SocketListener.sip
-%Include python/PythonMessage.sip
-%Include python/Error.sip
+%Include Types.sip
+%Include SocketListener.sip
+%Include PythonMessage.sip
+%Include Error.sip
 
 %ModuleHeaderCode
 using namespace Arcus;
