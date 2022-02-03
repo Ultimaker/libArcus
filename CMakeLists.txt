@@ -118,7 +118,7 @@ if(BUILD_PYTHON)
                 $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src/>
             )  # Add the included directories to our Python module
 
-    set(SIP_MODULE "${CMAKE_SOURCE_DIR}/python/pyArcus.sip")  # Specify the main sip module
+    set(SIP_MODULE "${CMAKE_SOURCE_DIR}/python/Arcus.sip")  # Specify the main sip module
     set(EXTRA_SIP_FILES
             "${CMAKE_SOURCE_DIR}/python/Error.sip"
             "${CMAKE_SOURCE_DIR}/python/PythonMessage.sip"

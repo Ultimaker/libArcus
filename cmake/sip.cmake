@@ -40,13 +40,12 @@ function(add_sip_module MODULE_TARGET MODULE_SIP SIP_FILES HDR_FILES SRC_FILES)
     message(STATUS "SIP: Generating files")
     string(TOUPPER ${CMAKE_BUILD_TYPE} _upper_case_build_type)
 
-    # Get the sip modules copy the files to the build and set the tobe generated path.
-    # Because that files needs to be in the same folder as the pyproject.toml
+    cmake_path(GET MODULE_SIP STEM _module_name)
     cmake_path(GET MODULE_SIP FILENAME _module_sip_filename)
     cmake_path(GET MODULE_SIP PARENT_PATH _module_sip_path)
     cmake_path(SET _module_sip_path NORMALIZE "${_module_sip_path}/")
 
-    list(PREPEND SIP_FILES ${MODULE_SIP})
+#    list(PREPEND SIP_FILES ${MODULE_SIP})
     set(_sip_extra_include_dirs)
     foreach (_sip_include ${SIP_FILES})
         cmake_path(GET _sip_include PARENT_PATH _sip_include_path)
@@ -165,7 +164,6 @@ function(add_sip_module MODULE_TARGET MODULE_SIP SIP_FILES HDR_FILES SRC_FILES)
     list(APPEND _compile_args ${_compile_features} ${_compile_options})
     sanitize_list(_compile_args)
     sanitize_list(_compile_definitions)
-    message(STATUS "BLAAAAAAAAAAAAAAT ${_compile_definitions}")
     sanitize_list(_sip_include_dirs)
     sanitize_list(_sip_link_libraries)
     sanitize_list(_sip_link_libraries_dirs)
@@ -179,16 +177,16 @@ requires = [\"sip >=6, <7\"]
 build-backend = \"sipbuild.api\"
 
 [tool.sip.metadata]
-name = \"${MODULE_TARGET}\"
+name = \"${_module_name}\"
 
 [tool.sip.project]
 sip-module = \"${_module_sip_filename}\"
 sip-files-dir = \"${_module_sip_path}\"
 sip-include-dirs = [${_sip_extra_include_dirs}]
-build-dir = \"${CMAKE_CURRENT_BINARY_DIR}/${MODULE_TARGET}/\"
+build-dir = \"${CMAKE_CURRENT_BINARY_DIR}/${_module_name}/\"
 verbose = true
 
-[tool.sip.bindings.${MODULE_TARGET}]
+[tool.sip.bindings.${_module_name}]
 headers = [${HDR_FILES}]
 include-dirs = [${_sip_include_dirs}]
 libraries = [${_sip_link_libraries}]
@@ -202,18 +200,18 @@ $<$<CONFIG:Debug>:debug = true>
 $<$<BOOL:${BUILD_STATIC}>:static = true>
 ")
 
-    # Generating the CPP code using sip-build
+    # Touch the generated file to make them (feel) dirty and force them to rebuild
+    # FIXME: they aren't actually touched atm
     set(_sip_output_files)
     foreach(_sip_file "${SIP_FILES}")
         cmake_path(GET _sip_file STEM _sip_stem)
-        list(APPEND _sip_output_files "${CMAKE_CURRENT_BINARY_DIR}/${MODULE_TARGET}/sip${MODULE_TARGET}${_sip_stem}.cpp")
+        list(APPEND _sip_output_files "${CMAKE_CURRENT_BINARY_DIR}/${_module_name}/sip${_module_name}${_sip_stem}.cpp")
     endforeach ()
 
     set(SIPCMD ${PRE_BUILD_CMD} cd ${CMAKE_CURRENT_BINARY_DIR} && ${SIP_BUILD_EXECUTABLE} --no-protected-is-public --pep484-pyi ${SIP_BUILD_EXTRA_OPTIONS})
 
     add_custom_command(
             OUTPUT ${_sip_output_files}
-            COMMAND ${CMAKE_COMMAND} -E echo ${message}
             COMMAND ${SIPCMD}
             COMMAND ${CMAKE_COMMAND} -E touch "${_sip_output_files}"
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
