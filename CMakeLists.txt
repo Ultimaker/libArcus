@@ -78,7 +78,7 @@ target_include_directories(Arcus PUBLIC
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     ${PROTOBUF_INCLUDE_DIR}
 )
-target_link_libraries(Arcus PUBLIC ${PROTOBUF_LIBRARIES})
+target_link_libraries(Arcus PUBLIC protobuf::libprotobuf)
 
 if(WIN32)
     add_definitions(-D_WIN32_WINNT=0x0600) # Declare we require Vista or higher, this allows us to use IPv6 functions.
