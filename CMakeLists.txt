@@ -160,7 +160,7 @@ if(BUILD_PYTHON)
             )
 
     target_compile_features(pyArcus INTERFACE cxx_std_17)
-    target_link_libraries(pyArcus INTERFACE Arcus protobuf::protobuf Python::Python)
+    target_link_libraries(pyArcus INTERFACE Arcus protobuf::libprotobuf Python::Python)
 
     add_sip_module(pyArcus)
 endif()
