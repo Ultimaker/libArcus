@@ -9,6 +9,8 @@ option(BUILD_PYTHON "Build " ON)
 option(BUILD_EXAMPLES "Build the example programs" ON)
 option(BUILD_STATIC "Build as a static library" OFF)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if(WIN32)
     option(MSVC_STATIC_RUNTIME "Link the MSVC runtime statically" OFF)
 endif()
