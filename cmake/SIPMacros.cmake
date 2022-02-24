@@ -29,14 +29,11 @@ function(add_sip_module MODULE_TARGET)
     endif()
 
     message(STATUS "SIP: Generating source files")
-    set(OLD_PYTHONPATH $ENV{PYTHONPATH})
-    set(ENV{PYTHONPATH} "$ENV{PYTHONPATH}${env_path_sep}${CMAKE_CURRENT_BINARY_DIR}")
     execute_process(
-            COMMAND ${SIP_BUILD_EXECUTABLE} ${SIP_ARGS}
+            COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=$ENV{PYTHONPATH}${env_path_sep}${CMAKE_CURRENT_BINARY_DIR} ${SIP_BUILD_EXECUTABLE} ${SIP_ARGS}
             COMMAND_ECHO STDOUT
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
     )
-    set(ENV{PYTHONPATH} ${OLD_PYTHONPATH})
     # This will generate the source-files during the configuration step in CMake. Needed to obtain the sources
 
     # Touch the generated files (8 in total) to make them dirty and force them to rebuild
@@ -74,7 +71,7 @@ function(add_sip_module MODULE_TARGET)
     # on the sip definition files without having to reconfigure the complete project.
     add_custom_command(
             TARGET "sip_${MODULE_TARGET}"
-            COMMAND ${SIPCMD}
+            COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=$ENV{PYTHONPATH}${env_path_sep}${CMAKE_CURRENT_BINARY_DIR} ${SIP_BUILD_EXECUTABLE} ${SIP_ARGS}
             COMMAND ${CMAKE_COMMAND} -E touch ${_sip_output_files}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
             MAIN_DEPENDENCY ${MODULE_SIP}
