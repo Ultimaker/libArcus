@@ -1,7 +1,7 @@
 # Macros for SIP
 # ~~~~~~~~~~~~~~
 
-set(SIPCMD ${SIP_BUILD_EXECUTABLE})
+set(SIP_ARGS --pep484-pyi --no-protected-is-public)
 
 macro(sanitize_list var_list)
     if(${var_list})
@@ -22,10 +22,14 @@ function(add_sip_module MODULE_TARGET)
     configure_file(${CMAKE_SOURCE_DIR}/CMakeBuilder.py ${CMAKE_CURRENT_BINARY_DIR}/CMakeBuilder.py)
 
     message(STATUS "SIP: Generating source files")
+    set(OLD_PYTHONPATH $ENV{PYTHONPATH})
+    set(ENV{PYTHONPATH} "$ENV{PYTHONPATH}:${CMAKE_CURRENT_BINARY_DIR}")
     execute_process(
-            COMMAND ${SIPCMD}
+            COMMAND ${SIP_BUILD_EXECUTABLE} ${SIP_ARGS}
+            COMMAND_ECHO STDOUT
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
     )
+    set(ENV{PYTHONPATH} ${OLD_PYTHONPATH})
     # This will generate the source-files during the configuration step in CMake. Needed to obtain the sources
 
     # Touch the generated files (8 in total) to make them dirty and force them to rebuild
