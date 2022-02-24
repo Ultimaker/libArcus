@@ -60,6 +60,12 @@ function(add_sip_module MODULE_TARGET)
     # Make sure that the library name of the target is the same as the MODULE_TARGET with the appropriate extension
     target_link_libraries("sip_${MODULE_TARGET}" PRIVATE "${MODULE_TARGET}")
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES PREFIX "")
+    if(WIN32)
+        set(ext .pyd)
+    else()
+        set(ext .so)
+    endif()
+    set_target_properties("sip_${MODULE_TARGET}" PROPERTIES SUFFIX ${ext})
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES OUTPUT_NAME "${MODULE_TARGET}")
 
     # Add the custom command to (re-)generate the files and mark them as dirty. This allows the user to actually work
