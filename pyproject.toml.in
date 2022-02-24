@@ -12,9 +12,6 @@ sip-include-dirs = ["CMAKE_CURRENT_SOURCE_DIR/python/"]
 build-dir = "${CMAKE_CURRENT_BINARY_DIR}/pyArcus/"
 
 [tool.sip.bindings.pyArcus]
-headers = ["PythonMessage.h"]
-include-dirs = ["${CMAKE_CURRENT_SOURCE_DIR}/python/"]
-sources = ["${CMAKE_CURRENT_SOURCE_DIR}/python/PythonMessage.cpp"]
 exceptions = true
 release-gil = true
 concatenate = 8
