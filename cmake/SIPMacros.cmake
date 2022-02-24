@@ -20,10 +20,17 @@ function(add_sip_module MODULE_TARGET)
     message(STATUS "SIP: Generating pyproject.toml")
     configure_file(${CMAKE_SOURCE_DIR}/pyproject.toml.in ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml)
     configure_file(${CMAKE_SOURCE_DIR}/CMakeBuilder.py ${CMAKE_CURRENT_BINARY_DIR}/CMakeBuilder.py)
+    if(WIN32)
+        set(ext .pyd)
+        set(env_path_sep ";")
+    else()
+        set(ext .so)
+        set(env_path_sep ":")
+    endif()
 
     message(STATUS "SIP: Generating source files")
     set(OLD_PYTHONPATH $ENV{PYTHONPATH})
-    set(ENV{PYTHONPATH} "$ENV{PYTHONPATH}:${CMAKE_CURRENT_BINARY_DIR}")
+    set(ENV{PYTHONPATH} "$ENV{PYTHONPATH}${env_path_sep}${CMAKE_CURRENT_BINARY_DIR}")
     execute_process(
             COMMAND ${SIP_BUILD_EXECUTABLE} ${SIP_ARGS}
             COMMAND_ECHO STDOUT
@@ -60,11 +67,6 @@ function(add_sip_module MODULE_TARGET)
     # Make sure that the library name of the target is the same as the MODULE_TARGET with the appropriate extension
     target_link_libraries("sip_${MODULE_TARGET}" PRIVATE "${MODULE_TARGET}")
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES PREFIX "")
-    if(WIN32)
-        set(ext .pyd)
-    else()
-        set(ext .so)
-    endif()
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES SUFFIX ${ext})
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES OUTPUT_NAME "${MODULE_TARGET}")
 
