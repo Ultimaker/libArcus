@@ -165,6 +165,7 @@ if(BUILD_PYTHON)
     target_link_libraries(pyArcus INTERFACE Arcus protobuf::libprotobuf Python::Python)
 
     add_sip_module(pyArcus)
+    install_sip_module(pyArcus)
 endif()
 
 include(CPackConfig.cmake)

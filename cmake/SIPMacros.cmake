@@ -78,4 +78,29 @@ function(add_sip_module MODULE_TARGET)
             DEPENDS ${sip_sources}
             VERBATIM
     )
+
+    set_target_properties("sip_${MODULE_TARGET}"
+            PROPERTIES
+            RESOURCE "${CMAKE_CURRENT_BINARY_DIR}/${MODULE_TARGET}/${MODULE_TARGET}/${MODULE_TARGET}.pyi")
+endfunction()
+
+function(install_sip_module MODULE_TARGET)
+    if(DEFINED ARGV1)
+        set(_install_path ${ARGV1})
+    else()
+        if(DEFINED Python_SITEARCH)
+            set(_install_path ${Python_SITEARCH})
+        elseif(DEFINED Python_SITELIB)
+            set(_install_path ${Python_SITELIB})
+        else()
+            message(FATAL_ERROR "SIP: Specify the site-packages location")
+        endif()
+    endif()
+    message(STATUS "SIP: Installing Python module and PEP 484 file in ${_install_path}")
+    install(TARGETS "sip_${MODULE_TARGET}"
+            ARCHIVE DESTINATION ${_install_path}
+            LIBRARY DESTINATION ${_install_path}
+            RUNTIME DESTINATION ${_install_path}
+            RESOURCE DESTINATION ${_install_path}
+            )
 endfunction()
