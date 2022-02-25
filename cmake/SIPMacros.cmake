@@ -3,19 +3,6 @@
 
 set(SIP_ARGS --pep484-pyi --no-protected-is-public)
 
-macro(sanitize_list var_list)
-    if(${var_list})
-        list(REMOVE_DUPLICATES ${var_list})
-        list(REMOVE_ITEM ${var_list} "")
-        list(TRANSFORM ${var_list} PREPEND "\"")
-        list(TRANSFORM ${var_list} APPEND "\"")
-        list(JOIN ${var_list} ", " ${var_list})
-        set(${var_list} "${${var_list}}, ")
-    else()
-        set(${var_list} "")
-    endif()
-endmacro()
-
 function(add_sip_module MODULE_TARGET)
     if(NOT SIP_BUILD_EXECUTABLE)
 	    set(SIP_BUILD_EXECUTABLE ${CMAKE_PREFIX_PATH}/Scripts/sip-build)
