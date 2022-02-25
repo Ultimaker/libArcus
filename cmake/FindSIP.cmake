@@ -53,7 +53,6 @@ ELSE(SIP_VERSION)
         IF(NOT SIP_FIND_QUIETLY)
             MESSAGE(STATUS "Found SIP version: ${SIP_VERSION_STR}")
         ENDIF(NOT SIP_FIND_QUIETLY)
-        include(${CMAKE_SOURCE_DIR}/cmake/SIPMacros.cmake)
     ELSE(SIP_FOUND)
         IF(SIP_FIND_REQUIRED)
             MESSAGE(FATAL_ERROR "Could not find SIP")
@@ -62,4 +61,5 @@ ELSE(SIP_VERSION)
 
 ENDIF(SIP_VERSION)
 
+include(${CMAKE_SOURCE_DIR}/cmake/SIPMacros.cmake)
 ADD_DEFINITIONS(-DSIP_VERSION=0x${SIP_VERSION})
