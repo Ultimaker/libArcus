@@ -21,10 +21,8 @@ function(add_sip_module MODULE_TARGET)
     configure_file(${CMAKE_SOURCE_DIR}/pyproject.toml.in ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml)
     configure_file(${CMAKE_SOURCE_DIR}/cmake/CMakeBuilder.py ${CMAKE_CURRENT_BINARY_DIR}/CMakeBuilder.py)
     if(WIN32)
-        set(ext .pyd)
         set(env_path_sep ";")
     else()
-        set(ext .so)
         set(env_path_sep ":")
     endif()
 
@@ -64,7 +62,7 @@ function(add_sip_module MODULE_TARGET)
     # Make sure that the library name of the target is the same as the MODULE_TARGET with the appropriate extension
     target_link_libraries("sip_${MODULE_TARGET}" PRIVATE "${MODULE_TARGET}")
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES PREFIX "")
-    set_target_properties("sip_${MODULE_TARGET}" PROPERTIES SUFFIX ${ext})
+    set_target_properties("sip_${MODULE_TARGET}" PROPERTIES SUFFIX ${Python_SOABI})
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES OUTPUT_NAME "${MODULE_TARGET}")
 
     # Add the custom command to (re-)generate the files and mark them as dirty. This allows the user to actually work
