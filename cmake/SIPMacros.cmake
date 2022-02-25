@@ -17,6 +17,10 @@ macro(sanitize_list var_list)
 endmacro()
 
 function(add_sip_module MODULE_TARGET)
+    if(NOT SIP_BUILD_EXECUTABLE)
+	    set(SIP_BUILD_EXECUTABLE ${CMAKE_PREFIX_PATH}/Scripts/sip-build)
+    endif()
+
     message(STATUS "SIP: Generating pyproject.toml")
     configure_file(${CMAKE_SOURCE_DIR}/pyproject.toml.in ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml)
     configure_file(${CMAKE_SOURCE_DIR}/cmake/CMakeBuilder.py ${CMAKE_CURRENT_BINARY_DIR}/CMakeBuilder.py)
