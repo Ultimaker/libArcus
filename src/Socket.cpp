@@ -50,7 +50,7 @@ Socket::~Socket()
     }
 }
 
-SocketState::SocketState Socket::getState() const
+SocketState Socket::getState() const
 {
     return d->state;
 }

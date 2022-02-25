@@ -37,7 +37,7 @@ public:
     Socket();
     virtual ~Socket();
 
-    SocketState::SocketState getState() const;
+    SocketState getState() const;
 
     Error getLastError() const;
     void clearError();
