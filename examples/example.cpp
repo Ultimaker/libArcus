@@ -20,7 +20,7 @@ public:
 class Listener : public Arcus::SocketListener
 {
 public:
-    void stateChanged(Arcus::SocketState::SocketState new_state)
+    void stateChanged(Arcus::SocketState new_state)
     {
         std::cout << "State Changed: " << new_state << std::endl;
     }

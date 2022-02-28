@@ -40,21 +40,17 @@ namespace Arcus
     /**
      * Socket state.
      */
-    namespace SocketState
+    enum class SocketState
     {
-        // Note: Not using enum class due to incompatibility with SIP.
-        enum SocketState
-        {
-            Initial, ///< Created, not running.
-            Connecting, ///< Connecting to an address and port.
-            Connected, ///< Connected and capable of sending and receiving messages.
-            Opening, ///< Opening for incoming connections.
-            Listening, ///< Listening for incoming connections.
-            Closing, ///< Closing down.
-            Closed, ///< Closed, not running.
-            Error ///< A fatal error happened that blocks the socket from operating.
-        };
-    }
+        Initial, ///< Created, not running.
+        Connecting, ///< Connecting to an address and port.
+        Connected, ///< Connected and capable of sending and receiving messages.
+        Opening, ///< Opening for incoming connections.
+        Listening, ///< Listening for incoming connections.
+        Closing, ///< Closing down.
+        Closed, ///< Closed, not running.
+        Error ///< A fatal error happened that blocks the socket from operating.
+    };
 }
 
 #endif //ARCUS_TYPES_H

@@ -48,7 +48,7 @@ namespace Arcus
          *
          * \return The current socket state.
          */
-        virtual SocketState::SocketState getState() const;
+        virtual SocketState getState() const;
 
         /**
          * Get the last error.

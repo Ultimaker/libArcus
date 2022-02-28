@@ -1,5 +1,5 @@
 project(arcus)
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.18)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -8,6 +8,8 @@ include(GenerateExportHeader)
 option(BUILD_PYTHON "Build " ON)
 option(BUILD_EXAMPLES "Build the example programs" ON)
 option(BUILD_STATIC "Build as a static library" OFF)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(WIN32)
     option(MSVC_STATIC_RUNTIME "Link the MSVC runtime statically" OFF)
@@ -20,29 +22,6 @@ set(protobuf_MODULE_COMPATIBLE ON CACHE INTERNAL "" FORCE)
 find_package(Protobuf 3.0.0 REQUIRED)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON) #Required if a patch to libArcus needs to be made via templates.
-
-if(BUILD_PYTHON)
-    list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-    
-    if(NOT DEFINED Python_VERSION)
-    set(Python_VERSION
-            3.10
-            CACHE STRING "Python Version" FORCE)
-    message(STATUS "Setting Python version to ${Python_VERSION}. Set Python_VERSION if you want to compile against an other version.")
-    endif()
-    if(APPLE)
-        set(Python_FIND_FRAMEWORK NEVER)
-    endif()
-    find_package(Python ${Python_VERSION} EXACT REQUIRED COMPONENTS Interpreter Development)
-    message(STATUS "Linking and building ${project_name} against Python ${Python_VERSION}")
-
-    find_package(SIP REQUIRED)
-    if(NOT DEFINED LIB_SUFFIX)
-        set(LIB_SUFFIX "")
-    endif()
-
-    include_directories(python/ src/ ${SIP_INCLUDE_DIRS} ${Python_INCLUDE_DIRS})
-endif()
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -96,19 +75,12 @@ if(MSVC_STATIC_RUNTIME)
     endforeach(flag_var)
 endif()
 
-if(BUILD_PYTHON)
-    set(SIP_EXTRA_FILES_DEPEND python/SocketListener.sip python/Types.sip python/PythonMessage.sip python/Error.sip)
-    set(SIP_EXTRA_SOURCE_FILES python/PythonMessage.cpp)
-    set(SIP_EXTRA_OPTIONS -g -n PyQt5.sip) # -g means always release the GIL before calling C++ methods. -n PyQt5.sip is required to not get the PyCapsule error
-    add_sip_python_module(Arcus python/Socket.sip Arcus)
-endif()
-
 target_include_directories(Arcus PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     ${PROTOBUF_INCLUDE_DIR}
 )
-target_link_libraries(Arcus PUBLIC ${PROTOBUF_LIBRARIES})
+target_link_libraries(Arcus PUBLIC protobuf::libprotobuf)
 
 if(WIN32)
     add_definitions(-D_WIN32_WINNT=0x0600) # Declare we require Vista or higher, this allows us to use IPv6 functions.
@@ -162,5 +134,38 @@ install(FILES
     ${CMAKE_BINARY_DIR}/ArcusConfigVersion.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Arcus
 )
+
+# Create the Python bindings
+if(BUILD_PYTHON)
+    list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+
+    if(NOT DEFINED Python_VERSION)
+        set(Python_VERSION
+                3.10
+                CACHE STRING "Python Version" FORCE)
+        message(STATUS "Setting Python version to ${Python_VERSION}. Set Python_VERSION if you want to compile against an other version.")
+    endif()
+    if(APPLE)
+        set(Python_FIND_FRAMEWORK NEVER)
+    endif()
+    find_package(Python ${Python_VERSION} EXACT REQUIRED COMPONENTS Interpreter Development)
+    message(STATUS "Linking and building ${project_name} against Python ${Python_VERSION}")
+
+    find_package(SIP REQUIRED 6.5.0)
+
+    add_library(pyArcus INTERFACE ${CMAKE_SOURCE_DIR}/python/PythonMessage.cpp)
+
+    target_include_directories(pyArcus
+            INTERFACE
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/python/>
+            )
+
+    target_compile_features(pyArcus INTERFACE cxx_std_17)
+    target_link_libraries(pyArcus INTERFACE Arcus protobuf::libprotobuf Python::Python)
+
+    add_sip_module(pyArcus)
+    install_sip_module(pyArcus)
+endif()
 
 include(CPackConfig.cmake)

@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-%Module(name = Arcus, call_super_init = True)
+%Module(name = pyArcus, call_super_init = True)
 
 %Include Types.sip
 %Include SocketListener.sip
@@ -37,7 +37,7 @@ public:
     Socket();
     virtual ~Socket();
 
-    SocketState::SocketState getState() const;
+    SocketState getState() const;
 
     Error getLastError() const;
     void clearError();

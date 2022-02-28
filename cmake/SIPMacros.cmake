@@ -1,128 +1,97 @@
 # Macros for SIP
 # ~~~~~~~~~~~~~~
-# Copyright (c) 2007, Simon Edwards <simon@simonzone.com>
-# Redistribution and use is allowed according to the terms of the BSD license.
-# For details see the accompanying COPYING-CMAKE-SCRIPTS file.
-#
-# SIP website: http://www.riverbankcomputing.co.uk/sip/index.php
-#
-# This file defines the following macros:
-#
-# ADD_SIP_PYTHON_MODULE (MODULE_NAME MODULE_SIP [library1, libaray2, ...])
-#     Specifies a SIP file to be built into a Python module and installed.
-#     MODULE_NAME is the name of Python module including any path name. (e.g.
-#     os.sys, Foo.bar etc). MODULE_SIP the path and filename of the .sip file
-#     to process and compile. libraryN are libraries that the Python module,
-#     which is typically a shared library, should be linked to. The built
-#     module will also be install into Python's site-packages directory.
-#
-# The behaviour of the ADD_SIP_PYTHON_MODULE macro can be controlled by a
-# number of variables:
-#
-# SIP_INCLUDE_DIRS - List of directories which SIP will scan through when looking
-#     for included .sip files. (Corresponds to the -I option for SIP.)
-#
-# SIP_TAGS - List of tags to define when running SIP. (Corresponds to the -t
-#     option for SIP.)
-#
-# SIP_CONCAT_PARTS - An integer which defines the number of parts the C++ code
-#     of each module should be split into. Defaults to 8. (Corresponds to the
-#     -j option for SIP.)
-#
-# SIP_DISABLE_FEATURES - List of feature names which should be disabled
-#     running SIP. (Corresponds to the -x option for SIP.)
-#
-# SIP_EXTRA_OPTIONS - Extra command line options which should be passed on to
-#     SIP.
 
-SET(SIP_INCLUDE_DIRS)
-SET(SIP_TAGS)
-SET(SIP_CONCAT_PARTS 8)
-SET(SIP_DISABLE_FEATURES)
-SET(SIP_EXTRA_OPTIONS)
+set(SIP_ARGS --pep484-pyi --no-protected-is-public)
 
-MACRO(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
+function(add_sip_module MODULE_TARGET)
+    if(NOT SIP_BUILD_EXECUTABLE)
+	    set(SIP_BUILD_EXECUTABLE ${CMAKE_PREFIX_PATH}/Scripts/sip-build)
+    endif()
 
-    SET(EXTRA_LINK_LIBRARIES ${ARGN})
+    message(STATUS "SIP: Generating pyproject.toml")
+    configure_file(${CMAKE_SOURCE_DIR}/pyproject.toml.in ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml)
+    configure_file(${CMAKE_SOURCE_DIR}/cmake/CMakeBuilder.py ${CMAKE_CURRENT_BINARY_DIR}/CMakeBuilder.py)
+    if(WIN32)
+        set(ext .pyd)
+        set(env_path_sep ";")
+    else()
+        set(ext .so)
+        set(env_path_sep ":")
+    endif()
 
-    STRING(REPLACE "." "/" _x ${MODULE_NAME})
-    GET_FILENAME_COMPONENT(_parent_module_path ${_x}  PATH)
-    GET_FILENAME_COMPONENT(_child_module_name ${_x} NAME)
-
-    GET_FILENAME_COMPONENT(_module_path ${MODULE_SIP} PATH)
-    GET_FILENAME_COMPONENT(_abs_module_sip ${MODULE_SIP} ABSOLUTE)
-
-    # We give this target a long logical target name.
-    # (This is to avoid having the library name clash with any already
-    # install library names. If that happens then cmake dependency
-    # tracking get confused.)
-    STRING(REPLACE "." "_" _logical_name ${MODULE_NAME})
-    SET(_logical_name "python_module_${_logical_name}")
-
-    FILE(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${_module_path})    # Output goes in this dir.
-
-    SET(_sip_includes)
-    FOREACH (_inc ${SIP_INCLUDES})
-        GET_FILENAME_COMPONENT(_abs_inc ${_inc} ABSOLUTE)
-        LIST(APPEND _sip_includes -I ${_abs_inc})
-    ENDFOREACH (_inc )
-
-    SET(_sip_tags)
-    FOREACH (_tag ${SIP_TAGS})
-        LIST(APPEND _sip_tags -t ${_tag})
-    ENDFOREACH (_tag)
-
-    SET(_sip_x)
-    FOREACH (_x ${SIP_DISABLE_FEATURES})
-        LIST(APPEND _sip_x -x ${_x})
-    ENDFOREACH (_x ${SIP_DISABLE_FEATURES})
-
-    SET(_message "-DMESSAGE=Generating CPP code for module ${MODULE_NAME}")
-    SET(_sip_output_files)
-    FOREACH(CONCAT_NUM RANGE 0 ${SIP_CONCAT_PARTS} )
-        IF( ${CONCAT_NUM} LESS ${SIP_CONCAT_PARTS} )
-            SET(_sip_output_files ${_sip_output_files} ${CMAKE_CURRENT_BINARY_DIR}/${_module_path}/sip${_child_module_name}part${CONCAT_NUM}.cpp )
-        ENDIF( ${CONCAT_NUM} LESS ${SIP_CONCAT_PARTS} )
-    ENDFOREACH(CONCAT_NUM RANGE 0 ${SIP_CONCAT_PARTS} )
-
-    # Suppress warnings
-    IF(PEDANTIC)
-      IF(MSVC)
-        # 4996 deprecation warnings (bindings re-export deprecated methods)
-        # 4701 potentially uninitialized variable used (sip generated code)
-        # 4702 unreachable code (sip generated code)
-        ADD_DEFINITIONS( /wd4996 /wd4701 /wd4702 )
-      ELSE(MSVC)
-        # disable all warnings
-        ADD_DEFINITIONS( -w )
-      ENDIF(MSVC)
-    ENDIF(PEDANTIC)
-
-    ADD_CUSTOM_COMMAND(
-        OUTPUT ${_sip_output_files}
-        COMMAND ${CMAKE_COMMAND} -E echo ${message}
-        COMMAND ${CMAKE_COMMAND} -E touch ${_sip_output_files}
-        COMMAND ${SIP_EXECUTABLE} ${_sip_tags} ${_sip_x} ${SIP_EXTRA_OPTIONS} -j ${SIP_CONCAT_PARTS} -c ${CMAKE_CURRENT_BINARY_DIR}/${_module_path} ${_sip_includes} ${_abs_module_sip}
-        DEPENDS ${_abs_module_sip} ${SIP_EXTRA_FILES_DEPEND}
+    message(STATUS "SIP: Generating source files")
+    execute_process(
+            COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=$ENV{PYTHONPATH}${env_path_sep}${CMAKE_CURRENT_BINARY_DIR}" ${SIP_BUILD_EXECUTABLE} ${SIP_ARGS}
+            COMMAND_ECHO STDOUT
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
     )
-    ADD_LIBRARY(${_logical_name} MODULE ${_sip_output_files} ${SIP_EXTRA_SOURCE_FILES})
-    IF (NOT APPLE)
-        IF ("${Python3_VERSION_MINOR}" GREATER 7)
-            MESSAGE(STATUS "Python > 3.7 - not linking to libpython")
-        ELSE ()
-            TARGET_LINK_LIBRARIES(${_logical_name} ${Python3_LIBRARIES})
-        ENDIF ()
-    ENDIF (NOT APPLE)
-    TARGET_LINK_LIBRARIES(${_logical_name} ${EXTRA_LINK_LIBRARIES})
-    IF (APPLE)
-        SET_TARGET_PROPERTIES(${_logical_name} PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
-    ENDIF (APPLE)
-    SET_TARGET_PROPERTIES(${_logical_name} PROPERTIES PREFIX "" OUTPUT_NAME ${_child_module_name})
+    # This will generate the source-files during the configuration step in CMake. Needed to obtain the sources
 
-    IF (WIN32)
-        SET_TARGET_PROPERTIES(${_logical_name} PROPERTIES SUFFIX ".pyd" IMPORT_PREFIX "_")
-    ENDIF (WIN32)
+    # Touch the generated files (8 in total) to make them dirty and force them to rebuild
+    message(STATUS "SIP: Touching the source files")
+    set(_sip_output_files)
+    list(LENGTH SIP_FILES _no_outputfiles)
+    foreach(_concat_file_nr RANGE 0 ${_no_outputfiles})
+        if(${_concat_file_nr} LESS 8)
+            list(APPEND _sip_output_files "${CMAKE_CURRENT_BINARY_DIR}/${MODULE_TARGET}/${MODULE_TARGET}/sip${MODULE_TARGET}part${_concat_file_nr}.cpp")
+        endif()
+    endforeach()
 
-    INSTALL(TARGETS ${_logical_name} DESTINATION "${Python3_SITEARCH}/${_parent_module_path}")
+    # Find the generated source files
+    message(STATUS "SIP: Collecting the generated source files")
+    file(GLOB sip_c "${CMAKE_CURRENT_BINARY_DIR}/${MODULE_TARGET}/${MODULE_TARGET}/*.c")
+    file(GLOB sip_cpp "${CMAKE_CURRENT_BINARY_DIR}/${MODULE_TARGET}/${MODULE_TARGET}/*.cpp")
+    file(GLOB sip_hdr "${CMAKE_CURRENT_BINARY_DIR}/${MODULE_TARGET}/${MODULE_TARGET}/*.h")
 
-ENDMACRO(ADD_SIP_PYTHON_MODULE)
+    # Add the user specified source files
+    message(STATUS "SIP: Collecting the user specified source files")
+    get_target_property(usr_src ${MODULE_TARGET} SOURCES)
+
+    # create the target library and link all the files (generated and user specified
+    message(STATUS "SIP: Linking the interface target against the shared library")
+    set(sip_sources "${sip_c}" "${sip_cpp}" "${usr_src}")
+    add_library("sip_${MODULE_TARGET}" SHARED ${sip_sources})
+
+    # Make sure that the library name of the target is the same as the MODULE_TARGET with the appropriate extension
+    target_link_libraries("sip_${MODULE_TARGET}" PRIVATE "${MODULE_TARGET}")
+    set_target_properties("sip_${MODULE_TARGET}" PROPERTIES PREFIX "")
+    set_target_properties("sip_${MODULE_TARGET}" PROPERTIES SUFFIX ${ext})
+    set_target_properties("sip_${MODULE_TARGET}" PROPERTIES OUTPUT_NAME "${MODULE_TARGET}")
+
+    # Add the custom command to (re-)generate the files and mark them as dirty. This allows the user to actually work
+    # on the sip definition files without having to reconfigure the complete project.
+    add_custom_command(
+            TARGET "sip_${MODULE_TARGET}"
+            COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=$ENV{PYTHONPATH}${env_path_sep}${CMAKE_CURRENT_BINARY_DIR}" ${SIP_BUILD_EXECUTABLE} ${SIP_ARGS}
+            COMMAND ${CMAKE_COMMAND} -E touch ${_sip_output_files}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
+            MAIN_DEPENDENCY ${MODULE_SIP}
+            DEPENDS ${sip_sources}
+            VERBATIM
+    )
+
+    set_target_properties("sip_${MODULE_TARGET}"
+            PROPERTIES
+            RESOURCE "${CMAKE_CURRENT_BINARY_DIR}/${MODULE_TARGET}/${MODULE_TARGET}/${MODULE_TARGET}.pyi")
+endfunction()
+
+function(install_sip_module MODULE_TARGET)
+    if(DEFINED ARGV1)
+        set(_install_path ${ARGV1})
+    else()
+        if(DEFINED Python_SITEARCH)
+            set(_install_path ${Python_SITEARCH})
+        elseif(DEFINED Python_SITELIB)
+            set(_install_path ${Python_SITELIB})
+        else()
+            message(FATAL_ERROR "SIP: Specify the site-packages location")
+        endif()
+    endif()
+    message(STATUS "SIP: Installing Python module and PEP 484 file in ${_install_path}")
+    install(TARGETS "sip_${MODULE_TARGET}"
+            ARCHIVE DESTINATION ${_install_path}
+            LIBRARY DESTINATION ${_install_path}
+            RUNTIME DESTINATION ${_install_path}
+            RESOURCE DESTINATION ${_install_path}
+            )
+endfunction()
