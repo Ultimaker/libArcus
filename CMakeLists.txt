@@ -1,7 +1,8 @@
 project(arcus)
 cmake_minimum_required(VERSION 3.18)
+include(cmake/StandardProjectSettings.cmake)
+AssureOutOfSourceBuilds()
 
-include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
 
@@ -9,25 +10,11 @@ option(BUILD_PYTHON "Build " ON)
 option(BUILD_EXAMPLES "Build the example programs" ON)
 option(BUILD_STATIC "Build as a static library" OFF)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-if(WIN32)
-    option(MSVC_STATIC_RUNTIME "Link the MSVC runtime statically" OFF)
-endif()
-
 # We want to have access to protobuf_generate_cpp and other FindProtobuf features.
 # However, if ProtobufConfig is used instead, there is a CMake option that controls
 # this, which defaults to OFF. We need to force this option to ON instead.
 set(protobuf_MODULE_COMPATIBLE ON CACHE INTERNAL "" FORCE)
-find_package(Protobuf 3.0.0 REQUIRED)
-
-set(CMAKE_POSITION_INDEPENDENT_CODE ON) #Required if a patch to libArcus needs to be made via templates.
-
-set(CMAKE_CXX_STANDARD 17)
-
-if(APPLE AND CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-endif()
+find_package(Protobuf 3.15.0 REQUIRED)
 
 set(arcus_SRCS
     src/Socket.cpp
@@ -49,31 +36,14 @@ set(arcus_HDRS
 set(ARCUS_VERSION 1.1.0)
 set(ARCUS_SOVERSION 3)
 
-OPTION(SET_RPATH ON)
-
-if(SET_RPATH)
-    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
-endif()
-
 if(BUILD_STATIC)
     add_library(Arcus STATIC ${arcus_SRCS})
-    if(NOT WIN32 OR CMAKE_COMPILER_IS_GNUCXX)
-        target_link_libraries(Arcus PRIVATE pthread)
-        set_target_properties(Arcus PROPERTIES COMPILE_FLAGS -fPIC)
-    endif()
 else()
     add_library(Arcus SHARED ${arcus_SRCS})
 endif()
-
-if(MSVC_STATIC_RUNTIME)
-    foreach(flag_var
-            CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-            CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-    if(${flag_var} MATCHES "/MD")
-        string(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-    endif(${flag_var} MATCHES "/MD")
-    endforeach(flag_var)
-endif()
+set_project_standards(Arcus)
+set_rpath(Arcus)
+use_threads(Arcus)
 
 target_include_directories(Arcus PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
@@ -83,14 +53,12 @@ target_include_directories(Arcus PUBLIC
 target_link_libraries(Arcus PUBLIC protobuf::libprotobuf)
 
 if(WIN32)
-    add_definitions(-D_WIN32_WINNT=0x0600) # Declare we require Vista or higher, this allows us to use IPv6 functions.
+    target_compile_definitions(Arcus PRIVATE -D_WIN32_WINNT=0x0600)
     target_link_libraries(Arcus PUBLIC Ws2_32)
 endif()
 
-if(${CMAKE_BUILD_TYPE})
-    if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
-        add_definitions(-DARCUS_DEBUG)
-    endif()
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
+    target_compile_definitions(Arcus PRIVATE -DARCUS_DEBUG)
 endif()
 
 set_target_properties(Arcus PROPERTIES
@@ -154,6 +122,9 @@ if(BUILD_PYTHON)
     find_package(SIP REQUIRED 6.5.0)
 
     add_library(pyArcus INTERFACE ${CMAKE_SOURCE_DIR}/python/PythonMessage.cpp)
+    set_project_standards(pyArcus)
+    set_rpath(pyArcus "../lib/python3.10/site-packages")
+    use_threads(pyArcus)
 
     target_include_directories(pyArcus
             INTERFACE
