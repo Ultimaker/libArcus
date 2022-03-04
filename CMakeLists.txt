@@ -46,7 +46,9 @@ use_threads(Arcus)
 set_rpath(TARGETS
             Arcus
           PATHS
-            "../lib"
+            "$<$<PLATFORM_ID:Linux>:usr/bin>"
+            "$<$<PLATFORM_ID:Linux>:usr/bin/lib>"
+            "$<$<PLATFORM_ID:Darwin>:../lib>"
           RELATIVE)
 
 target_include_directories(Arcus PUBLIC
@@ -130,7 +132,9 @@ if(BUILD_PYTHON)
     set_rpath(TARGETS
                 pyArcus
               PATHS
-                  "../lib"
+                "$<$<PLATFORM_ID:Linux>:usr/bin>"
+                "$<$<PLATFORM_ID:Linux>:usr/bin/lib>"
+                "$<$<PLATFORM_ID:Darwin>:../lib>"
               RELATIVE)
     use_threads(pyArcus)
 
