@@ -42,8 +42,13 @@ else()
     add_library(Arcus SHARED ${arcus_SRCS})
 endif()
 set_project_standards(Arcus)
-set_rpath(Arcus)
 use_threads(Arcus)
+set_rpath(TARGETS
+            Arcus
+          PATHS
+            "."
+            "../lib"
+          RELATIVE)
 
 target_include_directories(Arcus PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
@@ -123,7 +128,12 @@ if(BUILD_PYTHON)
 
     add_library(pyArcus INTERFACE ${CMAKE_SOURCE_DIR}/python/PythonMessage.cpp)
     set_project_standards(pyArcus)
-    set_rpath(pyArcus "../lib/python3.10/site-packages")
+    set_rpath(TARGETS
+                pyArcus
+              PATHS
+                  "."
+                  "../lib"
+              RELATIVE)
     use_threads(pyArcus)
 
     target_include_directories(pyArcus
