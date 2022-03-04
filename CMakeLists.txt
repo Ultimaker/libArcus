@@ -128,6 +128,12 @@ if(BUILD_PYTHON)
 
     add_library(pyArcus INTERFACE ${CMAKE_SOURCE_DIR}/python/PythonMessage.cpp)
     set_project_standards(pyArcus)
+    set_rpath(TARGETS
+                pyArcus
+              PATHS
+                  "."
+                  "../lib"
+              RELATIVE)
     use_threads(pyArcus)
 
     target_include_directories(pyArcus
@@ -140,12 +146,6 @@ if(BUILD_PYTHON)
     target_link_libraries(pyArcus INTERFACE Arcus protobuf::libprotobuf Python::Python)
 
     add_sip_module(pyArcus)
-    set_rpath(TARGETS
-                sip_pyArcus
-              PATHS
-                "."
-                "../lib"
-              RELATIVE)
     install_sip_module(pyArcus)
 endif()
 
