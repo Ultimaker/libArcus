@@ -46,7 +46,6 @@ use_threads(Arcus)
 set_rpath(TARGETS
             Arcus
           PATHS
-            "."
             "../lib"
           RELATIVE)
 
@@ -131,7 +130,6 @@ if(BUILD_PYTHON)
     set_rpath(TARGETS
                 pyArcus
               PATHS
-                  "."
                   "../lib"
               RELATIVE)
     use_threads(pyArcus)
