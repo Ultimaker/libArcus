@@ -58,6 +58,18 @@ function(add_sip_module MODULE_TARGET)
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES SUFFIX ${ext})
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES OUTPUT_NAME "${MODULE_TARGET}")
 
+    # Make sure all rpaths are set from the INTERFACE target
+    get_target_property(_SKIP_BUILD_RPATH ${MODULE_TARGET} SKIP_BUILD_RPATH)
+    set_target_properties("sip_${MODULE_TARGET}" PROPERTIES SKIP_BUILD_RPATH "${_SKIP_BUILD_RPATH}")
+    get_target_property(_BUILD_WITH_INSTALL_RPATH ${MODULE_TARGET} BUILD_WITH_INSTALL_RPATH)
+    set_target_properties("sip_${MODULE_TARGET}" PROPERTIES BUILD_WITH_INSTALL_RPATH "${_BUILD_WITH_INSTALL_RPATH}")
+    get_target_property(_INSTALL_RPATH_USE_LINK_PATH ${MODULE_TARGET} INSTALL_RPATH_USE_LINK_PATH)
+    set_target_properties("sip_${MODULE_TARGET}" PROPERTIES INSTALL_RPATH_USE_LINK_PATH "${_INSTALL_RPATH_USE_LINK_PATH}")
+    get_target_property(_MACOSX_RPATH ${MODULE_TARGET} MACOSX_RPATH)
+    set_target_properties("sip_${MODULE_TARGET}" PROPERTIES MACOSX_RPATH "${_MACOSX_RPATH}")
+    get_target_property(_INSTALL_RPATH ${MODULE_TARGET} INSTALL_RPATH)
+    set_target_properties("sip_${MODULE_TARGET}" PROPERTIES INSTALL_RPATH "${_INSTALL_RPATH}")
+
     # Add the custom command to (re-)generate the files and mark them as dirty. This allows the user to actually work
     # on the sip definition files without having to reconfigure the complete project.
     add_custom_command(
