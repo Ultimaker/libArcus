@@ -33,8 +33,8 @@ set(arcus_HDRS
     ${CMAKE_CURRENT_BINARY_DIR}/src/ArcusExport.h
 )
 
-set(ARCUS_VERSION 1.1.0)
-set(ARCUS_SOVERSION 3)
+set(ARCUS_VERSION 5.0.0)
+set(ARCUS_SOVERSION 5)
 
 if(BUILD_STATIC)
     add_library(Arcus STATIC ${arcus_SRCS})
