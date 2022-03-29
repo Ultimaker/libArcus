@@ -7,7 +7,7 @@ include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
 
 option(BUILD_PYTHON "Build " ON)
-option(BUILD_EXAMPLES "Build the example programs" ON)
+option(BUILD_EXAMPLES "Build the example programs" OFF)
 option(BUILD_STATIC "Build as a static library" OFF)
 
 # We want to have access to protobuf_generate_cpp and other FindProtobuf features.
@@ -122,7 +122,12 @@ if(BUILD_PYTHON)
     if(APPLE)
         set(Python_FIND_FRAMEWORK NEVER)
     endif()
-    find_package(Python ${Python_VERSION} EXACT REQUIRED COMPONENTS Interpreter Development)
+    find_package(cpython ${Python_VERSION} QUIET COMPONENTS Interpreter Development)
+    if(NOT TARGET cpython::cpython)
+        find_package(Python ${Python_VERSION} EXACT REQUIRED COMPONENTS Interpreter Development)
+    else()
+        add_library(Python::Python ALIAS cpython::cpython)
+    endif()
     message(STATUS "Linking and building ${project_name} against Python ${Python_VERSION}")
 
     find_package(SIP REQUIRED 6.5.0)
