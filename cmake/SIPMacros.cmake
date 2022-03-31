@@ -72,9 +72,12 @@ function(add_sip_module MODULE_TARGET)
 
     # Add the custom command to (re-)generate the files and mark them as dirty. This allows the user to actually work
     # on the sip definition files without having to reconfigure the complete project.
+    if (NOT DEFINED PYTHONPATH)
+        set(PYTHONPATH "")
+    endif ()
     add_custom_command(
             TARGET "sip_${MODULE_TARGET}"
-            COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=$ENV{PYTHONPATH}${env_path_sep}${CMAKE_CURRENT_BINARY_DIR}" ${SIP_BUILD_EXECUTABLE} ${SIP_ARGS}
+            COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=${PYTHONPATH}${env_path_sep}${CMAKE_CURRENT_BINARY_DIR}" ${SIP_BUILD_EXECUTABLE} ${SIP_ARGS}
             COMMAND ${CMAKE_COMMAND} -E touch ${_sip_output_files}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
             MAIN_DEPENDENCY ${MODULE_SIP}
