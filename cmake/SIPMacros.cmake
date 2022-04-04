@@ -21,7 +21,7 @@ function(add_sip_module MODULE_TARGET)
 
     message(STATUS "SIP: Generating source files")
     execute_process(
-            COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=$ENV{PYTHONPATH}${env_path_sep}${CMAKE_CURRENT_BINARY_DIR}" ${SIP_BUILD_EXECUTABLE} ${SIP_ARGS}
+            COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=${PYTHONPATH}${env_path_sep}$ENV{PYTHONPATH}${env_path_sep}${CMAKE_CURRENT_BINARY_DIR}" ${SIP_BUILD_EXECUTABLE} ${SIP_ARGS}
             COMMAND_ECHO STDOUT
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
     )
