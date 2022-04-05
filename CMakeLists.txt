@@ -158,7 +158,11 @@ if(BUILD_PYTHON)
     target_link_libraries(pyArcus INTERFACE Arcus protobuf::libprotobuf Python::Python)
 
     add_sip_module(pyArcus)
-    install_sip_module(pyArcus)
+    if (DEFINED Python_SITELIB_LOCAL)
+        install_sip_module(pyArcus ${Python_SITELIB_LOCAL})
+    else()
+        install_sip_module(pyArcus)
+    endif ()
 endif()
 
 include(CPackConfig.cmake)
