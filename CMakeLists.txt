@@ -14,7 +14,7 @@ option(BUILD_STATIC "Build as a static library" OFF)
 # However, if ProtobufConfig is used instead, there is a CMake option that controls
 # this, which defaults to OFF. We need to force this option to ON instead.
 set(protobuf_MODULE_COMPATIBLE ON CACHE INTERNAL "" FORCE)
-find_package(Protobuf 3.15.0 REQUIRED)
+find_package(Protobuf 3.17.1 REQUIRED)
 
 set(arcus_SRCS
     src/Socket.cpp
