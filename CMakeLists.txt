@@ -5,6 +5,7 @@ AssureOutOfSourceBuilds()
 
 include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
+generate_export_header(Arcus EXPORT_FILE_NAME src/ArcusExport.h)
 
 option(BUILD_PYTHON "Build " ON)
 option(BUILD_EXAMPLES "Build the example programs" OFF)
@@ -72,13 +73,6 @@ set_target_properties(Arcus PROPERTIES
     CXX_VISIBILITY_PRESET hidden
     VISIBILITY_INLINES_HIDDEN 1
 )
-
-generate_export_header(Arcus
-    EXPORT_FILE_NAME src/ArcusExport.h
-)
-# This is required when building out-of-tree.
-# The compiler won't find the generated header otherwise.
-include_directories(${CMAKE_BINARY_DIR}/src)
 
 if(BUILD_EXAMPLES)
     add_subdirectory(examples)
