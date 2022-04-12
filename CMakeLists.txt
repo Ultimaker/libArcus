@@ -164,5 +164,3 @@ if(BUILD_PYTHON)
         install_sip_module(pyArcus)
     endif ()
 endif()
-
-include(CPackConfig.cmake)
