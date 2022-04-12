@@ -10,10 +10,6 @@ option(BUILD_PYTHON "Build " ON)
 option(BUILD_EXAMPLES "Build the example programs" OFF)
 option(BUILD_STATIC "Build as a static library" OFF)
 
-# We want to have access to protobuf_generate_cpp and other FindProtobuf features.
-# However, if ProtobufConfig is used instead, there is a CMake option that controls
-# this, which defaults to OFF. We need to force this option to ON instead.
-set(protobuf_MODULE_COMPATIBLE ON CACHE INTERNAL "" FORCE)
 find_package(Protobuf 3.17.1 REQUIRED)
 
 set(arcus_SRCS
