@@ -7,7 +7,6 @@ include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
 
 option(BUILD_PYTHON "Build " ON)
-option(BUILD_EXAMPLES "Build the example programs" OFF)
 option(BUILD_STATIC "Build as a static library" OFF)
 
 find_package(Protobuf 3.17.1 REQUIRED)
@@ -79,10 +78,6 @@ generate_export_header(Arcus
 # This is required when building out-of-tree.
 # The compiler won't find the generated header otherwise.
 include_directories(${CMAKE_BINARY_DIR}/src)
-
-if(BUILD_EXAMPLES)
-    add_subdirectory(examples)
-endif()
 
 install(TARGETS Arcus
     EXPORT Arcus-targets
