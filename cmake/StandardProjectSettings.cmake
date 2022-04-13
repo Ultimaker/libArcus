@@ -1,20 +1,10 @@
 include(GNUInstallDirs) # Standard install dirs
 
-# Uniform how we define BUILD_STATIC or BUILD_SHARED_LIBS (common practice)
-if(DEFINED BUILD_STATIC)
-    if(DEFINED BUILD_SHARED_LIBS)
-        if(${BUILD_SHARED_LIBS} AND ${BUILD_STATIC})
-            message(FATAL_ERROR "Conflicting arguments for BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS} and BUILD_STATIC=${BUILD_STATIC}")
-        endif()
-    else()
-        set(BUILD_SHARED_LIBS NOT ${BUILD_STATIC})
-    endif()
-else()
-    if(NOT DEFINED BUILD_SHARED_LIBS)
-        set(BUILD_SHARED_LIBS ON)
-    endif()
+
+if(NOT DEFINED BUILD_SHARED_LIBS)
+    set(BUILD_SHARED_LIBS ON)
+    message(STATUS "Setting BUILD_SHARED_LIBS to ${BUILD_SHARED_LIBS}")
 endif()
-message(STATUS "Setting BUILD_SHARED_LIBS to ${BUILD_SHARED_LIBS}")
 
 # Set a default build type if none was specified
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)

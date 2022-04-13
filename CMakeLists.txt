@@ -7,7 +7,6 @@ include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
 
 option(BUILD_PYTHON "Build Python bindings for this library" ON)
-option(BUILD_STATIC "Build as a static library" OFF)
 
 find_package(Protobuf 3.17.1 REQUIRED)
 
@@ -31,10 +30,10 @@ set(arcus_HDRS
 set(ARCUS_VERSION 5.0.0)
 set(ARCUS_SOVERSION 5)
 
-if(BUILD_STATIC)
-    add_library(Arcus STATIC ${arcus_SRCS})
-else()
+if(BUILD_SHARED_LIBS)
     add_library(Arcus SHARED ${arcus_SRCS})
+else()
+    add_library(Arcus STATIC ${arcus_SRCS})
 endif()
 set_project_standards(Arcus)
 use_threads(Arcus)
