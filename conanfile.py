@@ -87,7 +87,11 @@ class ArcusConan(ConanFile):
         packager.run()
 
     def package_info(self):
-        self.cpp_info.libs = tools.collect_libs(self)
+        # To stay compatible with the FindArcus module. This should be removed when we fully switch to Conan
+        self.cpp_info.set_property("cmake_file_name", "Arcus")
+        self.cpp_info.set_property("cmake_target_aliases", ["Arcus"])
+
+
         self.cpp_info.defines.append("ARCUS")
         if self.settings.build_type == "Debug":
             self.cpp_info.defines.append("ARCUS_DEBUG")
