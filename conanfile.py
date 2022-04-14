@@ -2,7 +2,6 @@ import os
 
 from conan.tools.cmake import CMakeToolchain, CMakeDeps, CMake
 from conan.tools.files.packager import AutoPackager
-from conan.tools.layout import cmake_layout
 from conans import ConanFile, tools
 
 required_conan_version = ">=1.44.1"
@@ -55,10 +54,6 @@ class ArcusConan(ConanFile):
         if self.settings.compiler.get_safe("cppstd"):
             tools.check_min_cppstd(self, 17)
 
-    def layout(self):
-        cmake_layout(self)
-        self.cpp.build.libs = ["Arcus"]
-
     def generate(self):
         cmake = CMakeDeps(self)
         cmake.build_context_activated = ["protobuf"]
@@ -80,18 +75,19 @@ class ArcusConan(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
-        cmake.install()
 
     def package(self):
-        packager = AutoPackager(self)
-        packager.run()
+        self.copy("*Arcus.*", dst="lib", src=self.build_folder, excludes=("python/*", "CMakeFiles/*"))
+        self.copy("*.h", dst="include/Arcus", src=f"{self.source_folder}/src", excludes=("./PlatformSocket_p.h", "./Socket_p.h", "./WireMessage_p.h"))
+        self.copy("*.h", dst="include/Arcus", src=f"{self.build_folder}/src")
+
 
     def package_info(self):
         # To stay compatible with the FindArcus module. This should be removed when we fully switch to Conan
         self.cpp_info.set_property("cmake_file_name", "Arcus")
         self.cpp_info.set_property("cmake_target_aliases", ["Arcus"])
 
-
+        self.cpp_info.libs = ["Arcus"]
         self.cpp_info.defines.append("ARCUS")
         if self.settings.build_type == "Debug":
             self.cpp_info.defines.append("ARCUS_DEBUG")

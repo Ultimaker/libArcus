@@ -12,5 +12,5 @@ use_threads(test)
 
 target_link_libraries(test
         PUBLIC
-        arcus::arcus
+        Arcus
         )
