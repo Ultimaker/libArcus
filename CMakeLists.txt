@@ -1,7 +1,6 @@
 project(arcus)
 cmake_minimum_required(VERSION 3.20)
 include(cmake/StandardProjectSettings.cmake)
-assure_out_of_source_builds()
 
 include(CMakePackageConfigHelpers)
 include(GenerateExportHeader)
