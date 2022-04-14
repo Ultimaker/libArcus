@@ -50,7 +50,12 @@ function(add_sip_module MODULE_TARGET)
     # create the target library and link all the files (generated and user specified
     message(STATUS "SIP: Linking the interface target against the shared library")
     set(sip_sources "${sip_c}" "${sip_cpp}" "${usr_src}")
-    add_library("sip_${MODULE_TARGET}" SHARED ${sip_sources})
+
+    if (BUILD_SHARED_LIBS)
+        add_library("sip_${MODULE_TARGET}" SHARED ${sip_sources})
+    else()
+        add_library("sip_${MODULE_TARGET}" STATIC ${sip_sources})
+    endif()
 
     # Make sure that the library name of the target is the same as the MODULE_TARGET with the appropriate extension
     target_link_libraries("sip_${MODULE_TARGET}" PRIVATE "${MODULE_TARGET}")
