@@ -26,14 +26,14 @@ Arcus::Error::Error()
 {
 }
 
-Arcus::Error::Error(ErrorCode::ErrorCode error_code, const std::string& error_message)
+Arcus::Error::Error(ErrorCode error_code, const std::string& error_message)
     : _error_code(ErrorCode::UnknownError), _fatal_error(false), _native_error_code(0)
 {
     _error_code = error_code;
     _error_message = error_message;
 }
 
-ErrorCode::ErrorCode Arcus::Error::getErrorCode() const
+ErrorCode Arcus::Error::getErrorCode() const
 {
     return _error_code;
 }

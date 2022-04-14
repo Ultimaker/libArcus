@@ -134,17 +134,14 @@
 #include "Types.h"
 %End
 
-namespace SocketState
+enum class SocketState
 {
-    enum SocketState
-    {
-        Initial,
-        Connecting,
-        Connected,
-        Opening,
-        Listening,
-        Closing,
-        Closed,
-        Error
-    };
+    Initial,
+    Connecting,
+    Connected,
+    Opening,
+    Listening,
+    Closing,
+    Closed,
+    Error
 };

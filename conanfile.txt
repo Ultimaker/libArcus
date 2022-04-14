@@ -1,0 +1,10 @@
+[requires]
+protobuf/3.17.1
+cpython/3.10.0
+
+[generators]
+virtualrunenv
+CMakeToolchain
+CMakeDeps
+
+[options]
