@@ -73,6 +73,11 @@ jobs:
         conan config install https://github.com/Ultimaker/conan-config.git -a "-b CURA-9177_Fix_CI_CD" -tf ~/.conan
         conan profile new default --detect
         conan user -p $CONAN_PASS -r ultimaker $CONAN_USER
+    - name: Cache Conan local repository packages
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.conan/data
     - name: Create the Packages and Upload
       run: |
         conan create . arcus/${{ needs.get-semver.outputs.semver_full }}@${{ github.repository_owner }}/${{ needs.get-semver.outputs.channel }} -pr:b cura_build.jinja --build=missing
