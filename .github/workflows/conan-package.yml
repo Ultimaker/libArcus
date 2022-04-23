@@ -1,5 +1,5 @@
 ---
-name: conan-export
+name: conan-package
 on:
   push:
     paths:
@@ -8,7 +8,7 @@ on:
       - 'cmake/**'
       - 'conanfile.py'
       - 'CMakeLists.txt'
-      - '.github/workflows/export-package.yml'
+      - '.github/workflows/conan-package.yml'
     branches:
       - main
       - master
@@ -28,6 +28,7 @@ jobs:
     runs-on: ubuntu-20.04
     outputs:
       semver_full: ${{ steps.gittool.outputs.fullSemVer }}
+      user: ${{ steps.get-channel.outputs.user }}
       channel: ${{ steps.get-channel.outputs.channel }}
     steps:
     - name: Checkout Arcus
@@ -45,6 +46,8 @@ jobs:
     - id: get-channel
       name: Get Conan channel
       run: |
+        echo ${{ github.repository_owner }} | awk '{print "::set-output name=user::"tolower($0)}'
+        
         if [ "${{ github.ref_type }}" = "master" ]; then
           echo '::set-output name=channel::stable'
         elif [ "${{ github.ref_type }}" = "main" ]; then
@@ -99,5 +102,5 @@ jobs:
         key: ${{ runner.os }}-conan
     - name: Create the Packages and Upload
       run: |
-        conan create . arcus/${{ needs.get-semver.outputs.semver_full }}@${{ github.repository_owner }}/${{ needs.get-semver.outputs.channel }} -pr:b cura_build.jinja --build=missing
+        conan create . arcus/${{ needs.get-semver.outputs.semver_full }}@${{ needs.get-semver.outputs.channel }}/${{ needs.get-semver.outputs.channel }} -pr:b cura_build.jinja --build=missing
         conan upload "*" -r ultimaker --all -c
