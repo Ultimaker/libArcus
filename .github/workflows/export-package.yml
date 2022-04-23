@@ -74,10 +74,11 @@ jobs:
         conan profile new default --detect
         conan user -p $CONAN_PASS -r ultimaker $CONAN_USER
     - name: Cache Conan local repository packages
-      uses: actions/cache@v3
+      uses: actions/cache@v3.0.2
       with:
         path: |
           ~/.conan/data
+        key: ${{ runner.os }}-conan
     - name: Create the Packages and Upload
       run: |
         conan create . arcus/${{ needs.get-semver.outputs.semver_full }}@${{ github.repository_owner }}/${{ needs.get-semver.outputs.channel }} -pr:b cura_build.jinja --build=missing
