@@ -57,13 +57,13 @@ jobs:
       run: |
         echo ${{ github.repository_owner }} | awk '{print "::set-output name=user::"tolower($0)}'
         
-        if [ ${{ ${{ github.ref_name == 'master' || github.ref_name == 'main' }} ]; then
+        if [ ${{ github.ref_name == 'master' || github.ref_name == 'main' }} ]; then
           echo ${{ github.repository_owner }} | awk '{print "::set-output name=user::"tolower($0)}'
           echo '::set-output name=channel::stable'
         elif [ ${{ startsWith(github.ref_name, 'release/') || steps.git-tool.outputs.fullSemVer == steps.git-tool.outputs.MajorMinorPatch }} ]; then
           echo '::set-output name=user::_'
           echo '::set-output name=channel::_'
-        elif [ "${{ github.ref_type }}" = "dev" ]; then
+        elif [ ${{ github.ref_name == 'dev' }} ]; then
           echo ${{ github.repository_owner }} | awk '{print "::set-output name=user::"tolower($0)}'
           echo '::set-output name=channel::testing'
         else
