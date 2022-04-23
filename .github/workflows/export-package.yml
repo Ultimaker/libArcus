@@ -19,8 +19,8 @@ on:
       - master
       - dev
 env:
-  CONAN_USER: ${{ secrets.Conan.CONAN_USER }}
-  CONAN_PASS: ${{ secrets.Conan.CONAN_PASS }}
+  CONAN_USER: ${{ secrets.CONAN_USER }}
+  CONAN_PASS: ${{ secrets.CONAN_PASS }}
 jobs:
   export-recipe:
     runs-on: ubuntu-20.04
