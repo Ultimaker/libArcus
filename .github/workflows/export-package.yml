@@ -32,9 +32,9 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
-      - name: Git Version
-        uses: codacy/git-version@2.4.0
-
+      - id: gittool
+        name: GitTools
+        uses: GitTools/actions@v0.9.13
       - name: Setup Python and pip
         uses: actions/setup-python@v3
         with:
@@ -48,8 +48,10 @@ jobs:
           conan profile new default --detect
           conan user -p $CONAN_PASS -r ultimaker $CONAN_USER
       - name: Create the Packages and Upload
+        env:
+          SEMVER: ${{ steps.gittool.outputs.fullSemVer }}
         run: |
-          echo "Using version tag: $VERSION"
+          echo "Using version tag: $SEMVER"
           if [ "${{ github.ref_type }}" = "master" ]; then
             export CHANNEL="stable"
           elif [ "${{ github.ref_type }}" = "main" ]; then
@@ -58,5 +60,5 @@ jobs:
             export CHANNEL="testing"
           fi
           echo "Using channel: $CHANNEL"
-          conan create . arcus/$VERSION@${{ github.repository_owner }}/$CHANNEL -pr:b cura_build.jinja
+          conan create . arcus/$SEMVER@${{ github.repository_owner }}/$CHANNEL -pr:b cura_build.jinja
           conan upload "*" -r ultimaker --all -c
