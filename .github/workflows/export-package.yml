@@ -25,7 +25,10 @@ env:
   CONAN_PASS: ${{ secrets.CONAN_PASS }}
 jobs:
   export-recipe:
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ macos-10.15, windows-2022, ubuntu-20.04 ]
     steps:
       - name: Checkout Arcus
         uses: actions/checkout@v3
