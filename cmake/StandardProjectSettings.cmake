@@ -62,12 +62,6 @@ else()
     endif()
 endif()
 
-# Use C++17 Standard
-message(STATUS "Setting C++17 support with extensions off and standard required")
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 # Set common project options for the target
 function(set_project_standards project_name)
     get_target_property(type ${project_name} TYPE)
@@ -90,44 +84,6 @@ function(set_project_standards project_name)
             endif()
         endif()
     endif()
-endfunction()
-
-function(set_rpath)
-    # Sets the RPATHS for targets (Linux and Windows, these can either be absolute paths or relative to the executable
-    # Usage:
-    #   set_rpath(TARGETS <list of targets to set rpaths for>
-    #             PATHS <list of paths>
-    #             <optional> RELATIVE)
-    # if the RELATIVE option is used the paths will be specified from either $ORIGIN on Linux or @executable_path on Mac
-    set(options RELATIVE)
-    set(oneValueArgs )
-    set(multiValueArgs TARGETS PATHS)
-    cmake_parse_arguments(SET_RPATH "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-    foreach(_target IN ITEMS ${SET_RPATH_TARGETS})
-        message(STATUS "Setting SKIP_BUILD_RPATH for target ${_target} to FALSE")
-        set_target_properties(${_target} PROPERTIES SKIP_BUILD_RPATH FALSE)
-        message(STATUS "Setting BUILD_WITH_INSTALL_RPATH for target ${_target} to FALSE")
-        set_target_properties(${_target} PROPERTIES BUILD_WITH_INSTALL_RPATH FALSE)
-        message(STATUS "Setting INSTALL_RPATH_USE_LINK_PATH for target ${_target} to TRUE")
-        set_target_properties(${_target} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
-        if(APPLE)
-            message(STATUS "Setting MACOSX_RPATH for target ${_target}")
-            set_target_properties(${_target} PROPERTIES MACOSX_RPATH ON)
-        endif()
-        if(SET_RPATH_RELATIVE)
-            list(PREPEND SET_RPATH_PATHS "")
-            if(APPLE)
-                set(loader_path "${SET_RPATH_PATHS}")
-                list(TRANSFORM loader_path PREPEND "@loader_path/")
-                list(TRANSFORM SET_RPATH_PATHS PREPEND "@executable_path/")
-                list(APPEND SET_RPATH_PATHS ${loader_path})
-            else(LINUX)
-                list(TRANSFORM SET_RPATH_PATHS PREPEND "\$ORIGIN/")
-            endif()
-        endif()
-        set_target_properties(${_target} PROPERTIES INSTALL_RPATH "${SET_RPATH_PATHS}")
-        message(STATUS "Setting install RPATH for target ${_target} to ${SET_RPATH_PATHS}")
-    endforeach()
 endfunction()
 
 # Ultimaker uniform Python linking method
