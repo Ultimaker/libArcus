@@ -102,5 +102,5 @@ jobs:
         key: ${{ runner.os }}-conan
     - name: Create the Packages and Upload
       run: |
-        conan create . arcus/${{ needs.get-semver.outputs.semver_full }}@${{ needs.get-semver.outputs.channel }}/${{ needs.get-semver.outputs.channel }} -pr:b cura_build.jinja --build=missing
+        conan create . arcus/${{ needs.get-semver.outputs.semver_full }}@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }} -pr:b cura_build.jinja -pr:h cura_release.jinja --build=missing --update
         conan upload "*" -r ultimaker --all -c
