@@ -13,11 +13,13 @@ on:
       - main
       - master
       - 'CURA-*'
+      - 'release/*'
   pull_request:
     branches:
       - main
       - master
       - dev
+      - 'release/*'
 env:
   CONAN_USER: ${{ secrets.CONAN_USER }}
   CONAN_PASS: ${{ secrets.CONAN_PASS }}
