@@ -68,7 +68,7 @@ jobs:
           echo '::set-output name=channel::testing'
         else
           echo ${{ github.repository_owner }} | awk '{print "::set-output name=user::"tolower($0)}'
-          echo ${{ github.ref_name[:9] }} | awk '{print "::set-output name=channel::"tolower($0)}'
+          echo ${{ github.ref_name }} | awk '{print "::set-output name=channel::"substr(tolower($0),0,9)}'
         fi
   conan-package:
     runs-on: ${{ matrix.os }}
