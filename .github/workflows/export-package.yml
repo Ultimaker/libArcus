@@ -49,8 +49,7 @@ jobs:
           conan user -p $CONAN_PASS -r ultimaker $CONAN_USER
       - name: Create the Packages and Upload
         run: |
-          export SEMVER=$(./git-version)
-          echo "Using version tag: ${SEMVER}"
+          echo "Using version tag: $VERSION"
           if [ "${{ github.ref_type }}" = "master" ]; then
             export CHANNEL="stable"
           elif [ "${{ github.ref_type }}" = "main" ]; then
@@ -58,6 +57,6 @@ jobs:
           else
             export CHANNEL="testing"
           fi
-          echo "Using channel: ${CHANNEL}"
-          conan create . arcus/${SEMVER}@${{ github.repository_owner }}/${CHANNEL} -pr:b cura_build.jinja
+          echo "Using channel: $CHANNEL"
+          conan create . arcus/$VERSION@${{ github.repository_owner }}/$CHANNEL -pr:b cura_build.jinja
           conan upload "*" -r ultimaker --all -c
