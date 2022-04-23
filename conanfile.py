@@ -7,6 +7,7 @@ from conans import tools
 
 required_conan_version = ">=1.46.2"
 
+
 class ArcusConan(ConanFile):
     name = "arcus"
     license = "LGPL-3.0"
@@ -44,7 +45,6 @@ class ArcusConan(ConanFile):
     def system_requirements(self):
         pass  # Add Python here ???
 
-
     def config_options(self):
         self.options["protobuf"].shared = self.options.shared
 
@@ -54,7 +54,7 @@ class ArcusConan(ConanFile):
 
     def validate(self):
         if self.settings.compiler.get_safe("cppstd"):
-            tools.check_min_cppstd(self, 20)
+            tools.check_min_cppstd(self, 17)
 
     def generate(self):
         cmake = CMakeDeps(self)
@@ -92,26 +92,14 @@ class ArcusConan(ConanFile):
         rmdir(self, os.path.join(self.cpp.build.libdirs[0], "CMakeFiles"))
         packager = AutoPackager(self)
         if self.options.shared and self.settings.os == "Windows":
-            packager.patterns.bin = ["*.exe", "*.dll", "*.lib"]
-            self.copy("*.pyi", src=self.cpp.build.libdirs[0], dst=self.cpp.package.bindirs[0], keep_path = False)
-            self.copy("*.pyd", src=self.cpp.build.libdirs[0], dst=self.cpp.package.bindirs[0], keep_path = False)
+            self.copy("*.pyi", src = self.cpp.build.libdirs[0], dst = self.cpp.package.bindirs[0], keep_path = False)
+            self.copy("*.pyd", src = self.cpp.build.libdirs[0], dst = self.cpp.package.bindirs[0], keep_path = False)
+            self.copy("*.pyd", src = self.cpp.build.libdirs[0], dst = self.cpp.package.bindirs[0], keep_path = False)
         else:
-            packager.patterns.lib = ["*.so", "*.so.*", "*.a", "*.lib", "*.dylib"]
-            self.copy("*.pyi", src=self.cpp.build.libdirs[0], dst=self.cpp.package.libdirs[0], keep_path = False)
-            self.copy("*.pyd", src=self.cpp.build.libdirs[0], dst=self.cpp.package.libdirs[0], keep_path = False)
+            self.copy("*.pyi", src = self.cpp.build.libdirs[0], dst = self.cpp.package.libdirs[0], keep_path = False)
+            self.copy("*.pyd", src = self.cpp.build.libdirs[0], dst = self.cpp.package.libdirs[0], keep_path = False)
+            self.copy("*.lib", src = self.cpp.build.libdirs[0], dst = self.cpp.package.libdirs[0], keep_path = False)
         packager.run()
-
-    #     self.copy("*.h", dst="include/Arcus", src=f"{self.source_folder}/src", excludes=("./PlatformSocket_p.h", "./Socket_p.h", "./WireMessage_p.h"))
-    #     self.copy("*.h", dst="include/Arcus", src=f"{self.build_folder}/src")
-    #
-    #     self.copy("libArcus.*", dst="lib", src=self.build_folder, excludes=("python/*", "CMakeFiles/*"))
-    #     self.copy("Arcus.dll", dst="bin", src=self.build_folder, excludes=("python/*", "CMakeFiles/*"))
-    #
-    #     self.copy("pyArcus.pyi", dst=self._site_packages, src=f"{self.build_folder}/pyArcus/pyArcus")
-    #     self.copy("pyArcus.so", dst=self._site_packages, src=f"{self.build_folder}/")
-    #     self.copy("pyArcus.pyd", dst=self._site_packages, src=f"{self.build_folder}/")
-    #     self.copy("pyArcus.lib", dst=self._site_packages, src=f"{self.build_folder}/")
-
 
     def package_info(self):
         self.cpp_info.components["libarcus"].libdirs = ["lib"]
