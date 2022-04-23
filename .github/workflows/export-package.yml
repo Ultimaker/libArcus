@@ -68,21 +68,32 @@ jobs:
         python-version: '3.10.4'
         architecture: 'x64'
         cache: 'pip'
-    - name: Prepare Conan and sip-build
-      env:
-        CONAN_USER_HOME_PATH: ${{ env.HOME }}/.conan
+    - name: Prepare Conan and sip-build (Bash)
+      if: runner.os != 'Windows'
       run: |
         pip install --require-hashes -r requirements.txt
-        conan config install https://github.com/Ultimaker/conan-config.git -a "-b CURA-9177_Fix_CI_CD" -tf ${{ env.CONAN_USER_HOME_PATH }}
+        conan config install https://github.com/Ultimaker/conan-config.git -a "-b CURA-9177_Fix_CI_CD" -tf ~/.conan
         conan profile new default --detect
         conan user -p ${{ env.CONAN_PASS }} -r ultimaker ${{ env.CONAN_USER }}
-    - name: Cache Conan local repository packages
+    - name: Prepare Conan and sip-build (Powershell)
+      if: runner.os == 'Windows'
+      run: |
+        pip install --require-hashes -r requirements.txt
+        conan config install https://github.com/Ultimaker/conan-config.git -a "-b CURA-9177_Fix_CI_CD" -tf C:\Users\runneradmin\.conan
+        conan profile new default --detect
+        conan user -p ${{ env.CONAN_PASS }} -r ultimaker ${{ env.CONAN_USER }}
+    - name: Cache Conan local repository packages (Bash)
       uses: actions/cache@v3.0.2
-      env:
-        CONAN_DATA_PATH: ${{ env.HOME }}/.conan/data
       with:
         path: |
-          ${{ env.CONAN_DATA_PATH }}
+          ~/.conan/data
+        key: ${{ runner.os }}-conan
+    - name: Cache Conan local repository packages (Powershell)
+      uses: actions/cache@v3.0.2
+      with:
+        path: |
+          C:\Users\runneradmin\.conan\data
+          C:\.conan
         key: ${{ runner.os }}-conan
     - name: Create the Packages and Upload
       run: |
