@@ -1,10 +1,9 @@
 import os
 
 from conan.tools.cmake import CMakeToolchain, CMakeDeps, CMake
-from conan.tools.files.packager import AutoPackager
 from conans import ConanFile, tools
 
-required_conan_version = ">=1.44.1"
+required_conan_version = ">=1.46.2"
 
 class ArcusConan(ConanFile):
     name = "arcus"
@@ -17,16 +16,14 @@ class ArcusConan(ConanFile):
     revision_mode = "scm"
     exports = "LICENSE*"
     options = {
-        "build_python": [True, False],  # TODO: Fix the Sip recipe first in the https://github.com/ultimaker/conan-ultimaker-index.git
+        "build_python": [True, False],
         "shared": [True, False],
-        "fPIC": [True, False],
-        "examples": [True, False]
+        "fPIC": [True, False]
     }
     default_options = {
-        "build_python": False,
+        "build_python": True,
         "shared": True,
         "fPIC": True,
-        "examples": False
     }
     scm = {
         "type": "git",
@@ -37,11 +34,19 @@ class ArcusConan(ConanFile):
 
     @property
     def _site_packages(self):
-        return "site-packages"
+        return os.path.join("lib", "site-packages")
+
+    def build_requirements(self):
+        self.tool_requires("protobuf/3.17.1")
+        self.tool_requires("cmake/[>=3.20.0]")
+        self.tool_requires("ninja/[>=1.10.0]")
 
     def requirements(self):
-        # TODO: Add the Python and SIP requirements. First get it up and running for CuraEngine CI/CT
         self.requires("protobuf/3.17.1")
+
+    def system_requirements(self):
+        pass  # Add Python here ???
+
 
     def config_options(self):
         self.options["protobuf"].shared = self.options.shared
@@ -52,16 +57,16 @@ class ArcusConan(ConanFile):
 
     def validate(self):
         if self.settings.compiler.get_safe("cppstd"):
-            tools.check_min_cppstd(self, 17)
+            tools.check_min_cppstd(self, 20)
 
     def generate(self):
         cmake = CMakeDeps(self)
-        cmake.build_context_activated = ["protobuf"]
+        cmake.build_context_activated = ["protobuf", "cmake", "ninja"]
         cmake.build_context_build_modules = ["protobuf"]
         cmake.build_context_suffix = {"protobuf": "_BUILD"}
         cmake.generate()
 
-        tc = CMakeToolchain(self)
+        tc = CMakeToolchain(self, generator = "Ninja")
 
         if self.settings.compiler == "Visual Studio":
             tc.blocks["generic_system"].values["generator_platform"] = None
@@ -69,6 +74,7 @@ class ArcusConan(ConanFile):
 
         tc.variables["ALLOW_IN_SOURCE_BUILD"] = True
         tc.variables["BUILD_PYTHON"] = self.options.build_python
+        tc.variables["Python_VERSION"] = "3.10.4"
         tc.generate()
 
     def build(self):
@@ -77,23 +83,24 @@ class ArcusConan(ConanFile):
         cmake.build()
 
     def package(self):
-        self.copy("*Arcus.*", dst="lib", src=self.build_folder, excludes=("python/*", "CMakeFiles/*"))
+        self.copy("libArcus.*", dst="lib", src=self.build_folder, excludes=("python/*", "CMakeFiles/*"))
         self.copy("*.h", dst="include/Arcus", src=f"{self.source_folder}/src", excludes=("./PlatformSocket_p.h", "./Socket_p.h", "./WireMessage_p.h"))
         self.copy("*.h", dst="include/Arcus", src=f"{self.build_folder}/src")
+        self.copy("pyArcus.pyi", dst=self._site_packages, src=f"{self.build_folder}/pyArcus/pyArcus")
+        self.copy("pyArcus.so", dst=self._site_packages, src=f"{self.build_folder}/")
 
 
     def package_info(self):
-        # To stay compatible with the FindArcus module. This should be removed when we fully switch to Conan
-        self.cpp_info.set_property("cmake_file_name", "Arcus")
-        self.cpp_info.set_property("cmake_target_aliases", ["Arcus"])
-
-        self.cpp_info.libs = ["Arcus"]
-        self.cpp_info.defines.append("ARCUS")
+        self.cpp_info.components["libarcus"].libs = ["Arcus"]
+        self.cpp_info.components["libarcus"].requires = ["protobuf::protobuf"]
+        self.cpp_info.components["libarcus"].defines.append("ARCUS")
         if self.settings.build_type == "Debug":
-            self.cpp_info.defines.append("ARCUS_DEBUG")
+            self.cpp_info.components["libarcus"].defines.append("ARCUS_DEBUG")
         if self.settings.os in ["Linux", "FreeBSD", "Macos"]:
-            self.cpp_info.system_libs.append("pthread")
+            self.cpp_info.components["libarcus"].system_libs.append("pthread")
         elif self.settings.os == "Windows":
-            self.cpp_info.system_libs.append("ws2_32")
+            self.cpp_info.components["libarcus"].system_libs.append("ws2_32")
         if self.options.build_python:
+            self.cpp_info.components["pyarcus"].requires = ["libarcus", "protobuf::protobuf"]
+            self.cpp_info.components["pyarcus"].system_libs.append("Python3.10")
             self.runenv_info.append("PYTHONPATH", os.path.join(self.package_folder, self._site_packages))
