@@ -38,7 +38,6 @@ class ArcusConan(ConanFile):
 
     def build_requirements(self):
         self.tool_requires("protobuf/3.17.1")
-        self.tool_requires("cmake/[>=3.20.0]")
         self.tool_requires("ninja/[>=1.10.0]")
 
     def requirements(self):
