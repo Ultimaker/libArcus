@@ -64,5 +64,5 @@ jobs:
             export CHANNEL="testing"
           fi
           echo "Using channel: $CHANNEL"
-          conan create . arcus/$SEMVER@${{ github.repository_owner }}/$CHANNEL -pr:b cura_build.jinja
+          conan create . arcus/$SEMVER@${{ github.repository_owner }}/$CHANNEL -pr:b cura_build.jinja --build=missing
           conan upload "*" -r ultimaker --all -c
