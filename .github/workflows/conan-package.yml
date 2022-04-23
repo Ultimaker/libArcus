@@ -97,7 +97,7 @@ jobs:
       if: ${{ runner.os == 'Windows' }}
       run: |
         pip install --require-hashes -r requirements.txt
-        conan config install https://github.com/Ultimaker/conan-config.git -a "-b CURA-9177_Fix_CI_CD" -tf $env:HOME\.conan
+        conan config install https://github.com/Ultimaker/conan-config.git -a "-b CURA-9177_Fix_CI_CD" -tf C:\Users\runneradmin\.conan
         conan profile new default --detect
         conan user -p $env:CONAN_PASS -r ultimaker $env:CONAN_USER
     - name: Cache Conan local repository packages (Bash)
@@ -112,7 +112,7 @@ jobs:
       if: ${{ runner.os == 'Windows' }}
       with:
         path: |
-          $env:HOME\.conan\data
+          C:\Users\runneradmin\.conan\data
           C:\.conan
         key: ${{ runner.os }}-conan
     - name: Create the Packages
