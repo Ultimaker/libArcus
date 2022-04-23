@@ -362,7 +362,7 @@ namespace Arcus
             return;
         }
 
-        uint32_t message_size = message->ByteSize();
+        uint32_t message_size = message->ByteSizeLong();
         if(platform_socket.writeUInt32(message_size) == -1)
         {
             error(ErrorCode::SendFailedError, "Could not send message size");
@@ -548,7 +548,7 @@ namespace Arcus
 
         google::protobuf::io::ArrayInputStream array(wire_message->data, wire_message->size);
         google::protobuf::io::CodedInputStream stream(&array);
-        stream.SetTotalBytesLimit(message_size_maximum, message_size_warning);
+        stream.SetTotalBytesLimit(message_size_maximum);
         if(!message->ParseFromCodedStream(&stream))
         {
             error(ErrorCode::ParseFailedError, "Failed to parse message:" + std::string(wire_message->data));
