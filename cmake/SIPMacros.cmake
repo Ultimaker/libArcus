@@ -62,6 +62,7 @@ function(add_sip_module MODULE_TARGET)
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES PREFIX "")
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES SUFFIX ${ext})
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES OUTPUT_NAME "${MODULE_TARGET}")
+    target_compile_definitions("sip_${MODULE_TARGET}" PRIVATE SIP_VERSION=0x${SIP_VERSION})
 
     # Make sure all rpaths are set from the INTERFACE target
     get_target_property(_SKIP_BUILD_RPATH ${MODULE_TARGET} SKIP_BUILD_RPATH)
