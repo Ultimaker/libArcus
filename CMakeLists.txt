@@ -36,13 +36,6 @@ else()
 endif()
 set_project_standards(Arcus)
 use_threads(Arcus)
-set_rpath(TARGETS
-            Arcus
-          PATHS
-            "$<$<PLATFORM_ID:Linux>:usr/bin>"
-            "$<$<PLATFORM_ID:Linux>:usr/bin/lib>"
-            "$<$<PLATFORM_ID:Darwin>:../lib>"
-          RELATIVE)
 
 target_include_directories(Arcus PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
@@ -113,30 +106,13 @@ if(BUILD_PYTHON)
     if(APPLE)
         set(Python_FIND_FRAMEWORK NEVER)
     endif()
-    find_package(cpython ${Python_VERSION} QUIET COMPONENTS Interpreter Development)
-    if(NOT TARGET cpython::cpython)
-        find_package(Python ${Python_VERSION} EXACT REQUIRED COMPONENTS Interpreter Development)
-    else()
-        add_library(Python::Python ALIAS cpython::python)
-        set(Python_SITEARCH "${CMAKE_INSTALL_PREFIX}/lib/python${Python_VERSION}/site-packages")
-        set(Python_EXECUTABLE ${cpython_PACKAGE_FOLDER_RELEASE}/bin/python3)
-        set(ENV{PYTHONPATH} ${Python_SITEARCH})
-    endif()
+    find_package(Python ${Python_VERSION} EXACT REQUIRED COMPONENTS Interpreter Development)
     message(STATUS "Linking and building ${project_name} against Python ${Python_VERSION}")
 
     find_package(SIP REQUIRED 6.5.0)
 
     add_library(pyArcus INTERFACE ${CMAKE_SOURCE_DIR}/python/PythonMessage.cpp)
     set_project_standards(pyArcus)
-    set_rpath(TARGETS
-                pyArcus
-              PATHS
-                "$<$<PLATFORM_ID:Linux>:usr/bin>"
-                "$<$<PLATFORM_ID:Linux>:usr/bin/lib>"
-                "$<$<PLATFORM_ID:Darwin>:../lib>"
-                "$<$<PLATFORM_ID:Darwin>:../Resources/lib/>"
-                "../../"
-              RELATIVE)
     use_threads(pyArcus)
 
     target_include_directories(pyArcus
