@@ -34,7 +34,7 @@ jobs:
           fetch-depth: 0
       - id: gittool
         name: GitTools
-        uses: GitTools/actions@v0.9.13
+        uses: gittools/actions/gitversion/setup@v0.9.13
       - name: Setup Python and pip
         uses: actions/setup-python@v3
         with:
