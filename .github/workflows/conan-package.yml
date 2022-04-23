@@ -74,30 +74,30 @@ jobs:
     - name: Prepare Conan and sip-build (Bash)
       if: runner.os != 'Windows'
       run: |
-        echo "Home is $HOME"
         pip install --require-hashes -r requirements.txt
-        conan config install https://github.com/Ultimaker/conan-config.git -a "-b CURA-9177_Fix_CI_CD" -tf ~/.conan
+        conan config install https://github.com/Ultimaker/conan-config.git -a "-b CURA-9177_Fix_CI_CD" -tf $HOME/.conan
         conan profile new default --detect
         conan user -p $CONAN_PASS -r ultimaker $CONAN_USER
     - name: Prepare Conan and sip-build (Powershell)
       if: runner.os == 'Windows'
       run: |
-        echo "Home is $env:HOME"
         pip install --require-hashes -r requirements.txt
-        conan config install https://github.com/Ultimaker/conan-config.git -a "-b CURA-9177_Fix_CI_CD" -tf C:\Users\runneradmin\.conan
+        conan config install https://github.com/Ultimaker/conan-config.git -a "-b CURA-9177_Fix_CI_CD" -tf $env:HOME\.conan
         conan profile new default --detect
         conan user -p $env:CONAN_PASS -r ultimaker $env:CONAN_USER
     - name: Cache Conan local repository packages (Bash)
       uses: actions/cache@v3.0.2
+      if: runner.os != 'Windows'
       with:
         path: |
-          ~/.conan/data
+          $HOME/.conan/data
         key: ${{ runner.os }}-conan
     - name: Cache Conan local repository packages (Powershell)
       uses: actions/cache@v3.0.2
+      if: runner.os == 'Windows'
       with:
         path: |
-          C:\Users\runneradmin\.conan\data
+          $env:HOME\.conan\data
           C:\.conan
         key: ${{ runner.os }}-conan
     - name: Create the Packages and Upload
