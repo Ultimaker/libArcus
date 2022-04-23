@@ -46,11 +46,11 @@ jobs:
       name: Get Conan channel
       run: |
         if [ "${{ github.ref_type }}" = "master" ]; then
-          echo '::set-output channel=stable'
+          echo '::set-output name=channel::stable'
         elif [ "${{ github.ref_type }}" = "main" ]; then
-          echo '::set-output channel=stable'
+          echo '::set-output name=channel::stable'
         else
-          echo '::set-output channel=testing'
+          echo '::set-output name=channel::testing'
         fi
   conan-package:
     runs-on: ${{ matrix.os }}
