@@ -39,17 +39,18 @@ function(add_sip_module MODULE_TARGET)
 
     # Find the generated source files
     message(STATUS "SIP: Collecting the generated source files")
-#    file(GLOB sip_c "${CMAKE_CURRENT_BINARY_DIR}/${MODULE_TARGET}/${MODULE_TARGET}/*.c")
     file(GLOB sip_cpp "${CMAKE_CURRENT_BINARY_DIR}/${MODULE_TARGET}/${MODULE_TARGET}/*.cpp")
-#    file(GLOB sip_hdr "${CMAKE_CURRENT_BINARY_DIR}/${MODULE_TARGET}/${MODULE_TARGET}/*.h")
 
     # Add the user specified source files
     message(STATUS "SIP: Collecting the user specified source files")
     get_target_property(usr_src ${MODULE_TARGET} SOURCES)
+    if (NOT usr_src)
+        set(user_src )
+    endif ()
 
     # create the target library and link all the files (generated and user specified
     message(STATUS "SIP: Linking the interface target against the shared library")
-    set(sip_sources "${sip_c}" "${sip_cpp}" "${usr_src}")
+    set(sip_sources "${sip_cpp}" "${usr_src}")
 
     if (BUILD_SHARED_LIBS)
         add_library("sip_${MODULE_TARGET}" SHARED ${sip_sources})
@@ -62,7 +63,6 @@ function(add_sip_module MODULE_TARGET)
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES PREFIX "")
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES SUFFIX ${ext})
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES OUTPUT_NAME "${MODULE_TARGET}")
-    target_compile_definitions("sip_${MODULE_TARGET}" PRIVATE SIP_VERSION=0x${SIP_VERSION})
 
     # Make sure all rpaths are set from the INTERFACE target
     get_target_property(_SKIP_BUILD_RPATH ${MODULE_TARGET} SKIP_BUILD_RPATH)
