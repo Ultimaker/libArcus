@@ -60,7 +60,7 @@ class ArcusConan(ConanFile):
 
     def generate(self):
         cmake = CMakeDeps(self)
-        cmake.build_context_activated = ["protobuf", "cmake", "ninja"]
+        cmake.build_context_activated = ["protobuf", "ninja"]
         cmake.build_context_build_modules = ["protobuf"]
         cmake.build_context_suffix = {"protobuf": "_BUILD"}
         cmake.generate()
