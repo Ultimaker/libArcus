@@ -71,9 +71,9 @@ jobs:
     - name: Prepare Conan and sip-build
       run: |
         pip install --require-hashes -r requirements.txt
-        conan config install https://github.com/Ultimaker/conan-config.git -a "-b CURA-9177_Fix_CI_CD" -tf ~/.conan
+        conan config install https://github.com/Ultimaker/conan-config.git -a "-b CURA-9177_Fix_CI_CD" -tf ${{ env.HOME }}/.conan
         conan profile new default --detect
-        conan user -p $CONAN_PASS -r ultimaker $CONAN_USER
+        conan user -p ${{ env.CONAN_PASS }} -r ultimaker ${{ env.CONAN_USER }}
     - name: Cache Conan local repository packages
       uses: actions/cache@v3.0.2
       with:
