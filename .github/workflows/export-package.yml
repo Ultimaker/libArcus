@@ -46,7 +46,7 @@ jobs:
           pip install --require-hashes -r requirements.txt
           conan config install https://github.com/Ultimaker/conan-config.git -a "-b CURA-9177_Fix_CI_CD" -tf ~/.conan
           conan profile new default --detect
-          conan user -p ${{ env.CONAN_PASS }} -r ultimaker ${{ env.CONAN_USER }}
+          conan user -p $CONAN_PASS -r ultimaker $CONAN_USER
       - name: Create the Packages and Upload
         run: |
           export SEMVER=$(./git-version)
