@@ -32,6 +32,10 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.13
+        with:
+          versionSpec: '5.x'
       - id: gittool
         name: GitTools
         uses: gittools/actions/gitversion/execute@v0.9.13
