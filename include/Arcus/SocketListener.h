@@ -19,9 +19,7 @@
 #ifndef ARCUS_SOCKETLISTENER_H
 #define ARCUS_SOCKETLISTENER_H
 
-#include "Types.h"
-
-#include "ArcusExport.h"
+#include "Arcus/Types.h"
 
 namespace Arcus
 {
@@ -41,7 +39,7 @@ namespace Arcus
      * signal from a subclass of this class, to make sure the actual event
      * is handled on the main thread.
      */
-    class ARCUS_EXPORT SocketListener
+    class SocketListener
     {
     public:
         SocketListener() : _socket(nullptr) { }

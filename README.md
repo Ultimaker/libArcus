@@ -1,13 +1,14 @@
-Arcus
-=====
+# Arcus
 
-This library contains C++ code and Python3 bindings for creating a socket in a thread
+This library contains C++ code and Python bindings for creating a socket in a thread
 and using this socket to send and receive messages based on the Protocol Buffers
 library. It is designed to facilitate the communication between Cura and its
 backend and similar code.
 
-Building
-========
+## Development environment
+
+Our dependencies are managed by Conan and pip. Setting up the dev
+
 
 To build the library, the following packages are needed:
 * [Protobuf 3](https://github.com/google/protobuf) (3.0+)

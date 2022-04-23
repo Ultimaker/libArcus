@@ -2,9 +2,6 @@ project(arcus)
 cmake_minimum_required(VERSION 3.20)
 include(cmake/StandardProjectSettings.cmake)
 
-include(CMakePackageConfigHelpers)
-include(GenerateExportHeader)
-
 option(BUILD_PYTHON "Build Python bindings for this library" ON)
 
 find_package(Protobuf 3.17.1 REQUIRED)
@@ -23,7 +20,6 @@ set(arcus_HDRS
     src/Types.h
     src/MessageTypeStore.h
     src/Error.h
-    ${CMAKE_CURRENT_BINARY_DIR}/src/ArcusExport.h
 )
 
 set(ARCUS_VERSION 5.0.0)
@@ -37,10 +33,12 @@ endif()
 set_project_standards(Arcus)
 use_threads(Arcus)
 
-target_include_directories(Arcus PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    ${PROTOBUF_INCLUDE_DIR}
+target_include_directories(Arcus
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        PRIVATE
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
 target_link_libraries(Arcus PUBLIC protobuf::libprotobuf)
 
@@ -55,42 +53,12 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR ${CMAKE_BUILD_TYPE} STREQUAL "RelWith
     target_compile_definitions(Arcus PRIVATE -DARCUS_DEBUG)
 endif()
 
-set_target_properties(Arcus PROPERTIES
-    FRAMEWORK FALSE
-    VERSION ${ARCUS_VERSION}
-    SOVERSION ${ARCUS_SOVERSION}
-    PUBLIC_HEADER "${arcus_HDRS}"
-    DEFINE_SYMBOL MAKE_ARCUS_LIB
-    CXX_VISIBILITY_PRESET hidden
-    VISIBILITY_INLINES_HIDDEN 1
-)
-
-generate_export_header(Arcus
-    EXPORT_FILE_NAME src/ArcusExport.h
-)
-# This is required when building out-of-tree.
-# The compiler won't find the generated header otherwise.
-include_directories(${CMAKE_BINARY_DIR}/src)
-
 install(TARGETS Arcus
     EXPORT Arcus-targets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Arcus
-)
-
-install(EXPORT Arcus-targets
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Arcus
-)
-
-configure_package_config_file(ArcusConfig.cmake.in ${CMAKE_BINARY_DIR}/ArcusConfig.cmake INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Arcus)
-write_basic_package_version_file(${CMAKE_BINARY_DIR}/ArcusConfigVersion.cmake VERSION ${ARCUS_VERSION} COMPATIBILITY SameMajorVersion)
-
-install(FILES
-    ${CMAKE_BINARY_DIR}/ArcusConfig.cmake
-    ${CMAKE_BINARY_DIR}/ArcusConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Arcus
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 # Create the Python bindings
@@ -117,8 +85,8 @@ if(BUILD_PYTHON)
 
     target_include_directories(pyArcus
             INTERFACE
-            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/python/>
+                $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
             )
 
     target_link_libraries(pyArcus INTERFACE Arcus protobuf::libprotobuf Python::Python)

@@ -42,11 +42,11 @@
 #include <google/protobuf/io/zero_copy_stream_impl_lite.h>
 #include <google/protobuf/io/coded_stream.h>
 
-#include "Socket.h"
-#include "Types.h"
-#include "SocketListener.h"
-#include "MessageTypeStore.h"
-#include "Error.h"
+#include "Arcus/Socket.h"
+#include "Arcus/Types.h"
+#include "Arcus/SocketListener.h"
+#include "Arcus/MessageTypeStore.h"
+#include "Arcus/Error.h"
 
 #include "WireMessage_p.h"
 #include "PlatformSocket_p.h"
@@ -72,7 +72,7 @@ namespace Arcus
 {
     using namespace Private;
 
-    class ARCUS_NO_EXPORT Socket::Private
+    class Socket::Private
     {
     public:
         Private()

@@ -1,7 +1,9 @@
 import os
 
-from conan.tools.cmake import CMakeToolchain, CMakeDeps, CMake
-from conans import ConanFile, tools
+from conan.tools.cmake import CMakeToolchain, CMakeDeps, CMake, cmake_layout
+from conan.tools.files import AutoPackager, rmdir
+from conan import ConanFile
+from conans import tools
 
 required_conan_version = ">=1.46.2"
 
@@ -31,10 +33,6 @@ class ArcusConan(ConanFile):
         "url": "auto",
         "revision": "auto"
     }
-
-    @property
-    def _site_packages(self):
-        return os.path.join("lib", "site-packages")
 
     def build_requirements(self):
         self.tool_requires("protobuf/3.17.1")
@@ -74,7 +72,15 @@ class ArcusConan(ConanFile):
         tc.variables["ALLOW_IN_SOURCE_BUILD"] = True
         tc.variables["BUILD_PYTHON"] = self.options.build_python
         tc.variables["Python_VERSION"] = "3.10.4"
+        if self.options.shared and self.settings.os == "Windows":
+            tc.variables["Python_SITELIB_LOCAL"] = self.cpp.build.bindirs[0]
+        else:
+            tc.variables["Python_SITELIB_LOCAL"] = self.cpp.build.bindirs[0]
+
         tc.generate()
+
+    def layout(self):
+        cmake_layout(self)
 
     def build(self):
         cmake = CMake(self)
@@ -82,14 +88,34 @@ class ArcusConan(ConanFile):
         cmake.build()
 
     def package(self):
-        self.copy("libArcus.*", dst="lib", src=self.build_folder, excludes=("python/*", "CMakeFiles/*"))
-        self.copy("*.h", dst="include/Arcus", src=f"{self.source_folder}/src", excludes=("./PlatformSocket_p.h", "./Socket_p.h", "./WireMessage_p.h"))
-        self.copy("*.h", dst="include/Arcus", src=f"{self.build_folder}/src")
-        self.copy("pyArcus.pyi", dst=self._site_packages, src=f"{self.build_folder}/pyArcus/pyArcus")
-        self.copy("pyArcus.so", dst=self._site_packages, src=f"{self.build_folder}/")
+        rmdir(self, os.path.join(self.cpp.build.bindirs[0], "CMakeFiles"))
+        rmdir(self, os.path.join(self.cpp.build.libdirs[0], "CMakeFiles"))
+        packager = AutoPackager(self)
+        if self.options.shared and self.settings.os == "Windows":
+            packager.patterns.bin = ["*.exe", "*.dll", "*.lib"]
+            self.copy("*.pyi", src=self.cpp.build.libdirs[0], dst=self.cpp.package.bindirs[0], keep_path = False)
+            self.copy("*.pyd", src=self.cpp.build.libdirs[0], dst=self.cpp.package.bindirs[0], keep_path = False)
+        else:
+            packager.patterns.lib = ["*.so", "*.so.*", "*.a", "*.lib", "*.dylib"]
+            self.copy("*.pyi", src=self.cpp.build.libdirs[0], dst=self.cpp.package.libdirs[0], keep_path = False)
+            self.copy("*.pyd", src=self.cpp.build.libdirs[0], dst=self.cpp.package.libdirs[0], keep_path = False)
+        packager.run()
+
+    #     self.copy("*.h", dst="include/Arcus", src=f"{self.source_folder}/src", excludes=("./PlatformSocket_p.h", "./Socket_p.h", "./WireMessage_p.h"))
+    #     self.copy("*.h", dst="include/Arcus", src=f"{self.build_folder}/src")
+    #
+    #     self.copy("libArcus.*", dst="lib", src=self.build_folder, excludes=("python/*", "CMakeFiles/*"))
+    #     self.copy("Arcus.dll", dst="bin", src=self.build_folder, excludes=("python/*", "CMakeFiles/*"))
+    #
+    #     self.copy("pyArcus.pyi", dst=self._site_packages, src=f"{self.build_folder}/pyArcus/pyArcus")
+    #     self.copy("pyArcus.so", dst=self._site_packages, src=f"{self.build_folder}/")
+    #     self.copy("pyArcus.pyd", dst=self._site_packages, src=f"{self.build_folder}/")
+    #     self.copy("pyArcus.lib", dst=self._site_packages, src=f"{self.build_folder}/")
 
 
     def package_info(self):
+        self.cpp_info.components["libarcus"].libdirs = ["lib"]
+        self.cpp_info.components["libarcus"].includedirs = ["include"]
         self.cpp_info.components["libarcus"].libs = ["Arcus"]
         self.cpp_info.components["libarcus"].requires = ["protobuf::protobuf"]
         self.cpp_info.components["libarcus"].defines.append("ARCUS")
@@ -99,7 +125,19 @@ class ArcusConan(ConanFile):
             self.cpp_info.components["libarcus"].system_libs.append("pthread")
         elif self.settings.os == "Windows":
             self.cpp_info.components["libarcus"].system_libs.append("ws2_32")
+
         if self.options.build_python:
             self.cpp_info.components["pyarcus"].requires = ["libarcus", "protobuf::protobuf"]
             self.cpp_info.components["pyarcus"].system_libs.append("Python3.10")
-            self.runenv_info.append("PYTHONPATH", os.path.join(self.package_folder, self._site_packages))
+            if self.settings.os in ["Linux", "FreeBSD", "Macos"]:
+                self.cpp_info.components["pyarcus"].system_libs.append("pthread")
+            if self.in_local_cache:
+                if self.options.shared and self.settings.os == "Windows":
+                    self.runenv_info.append_path("PYTHONPATH", self.cpp.package.bindirs[0])
+                else:
+                    self.runenv_info.append_path("PYTHONPATH", self.cpp.package.libdirs[0])
+            else:
+                if self.options.shared and self.settings.os == "Windows":
+                    self.runenv_info.append_path("PYTHONPATH", self.cpp.build.bindirs[0])
+                else:
+                    self.runenv_info.append_path("PYTHONPATH", self.cpp.build.libdirs[0])

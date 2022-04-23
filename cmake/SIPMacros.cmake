@@ -97,7 +97,7 @@ endfunction()
 
 function(install_sip_module MODULE_TARGET)
     if(DEFINED ARGV1)
-        set(_install_path ${ARGV1})
+        set(_install_path ${CMAKE_INSTALL_PREFIX}/${ARGV1})
     else()
         if(DEFINED Python_SITEARCH)
             set(_install_path ${Python_SITEARCH})
