@@ -59,7 +59,6 @@ class ArcusConan(ConanFile):
 
     def generate(self):
         cmake = CMakeDeps(self)
-        cmake.build_context_activated = ["ninja", "cmake"]
         cmake.generate()
 
         tc = CMakeToolchain(self, generator = "Ninja")
