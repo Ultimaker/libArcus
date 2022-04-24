@@ -70,7 +70,10 @@ class ArcusConan(ConanFile):
         tc.variables["BUILD_PYTHON"] = self.options.build_python
         if self.options.build_python:
             tc.variables["Python_VERSION"] = "3.10.4"
-            tc.variables["Python_SITELIB_LOCAL"] = self.cpp.build.libdirs[0]
+            if self.options.shared and self.settings.os == "Windows":
+                tc.variables["Python_SITELIB_LOCAL"] = self.cpp.build.bindirs[0]
+            else:
+                tc.variables["Python_SITELIB_LOCAL"] = self.cpp.build.libdirs[0]
 
         tc.generate()
 
