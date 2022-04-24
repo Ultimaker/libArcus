@@ -119,6 +119,6 @@ jobs:
       run: conan create . arcus/${{ needs.get-semver.outputs.semver_full }}@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }} -pr:b cura_build.jinja -pr:h cura_release.jinja --build=missing --update
     - name: Create the latest alias
       if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master' )  || github.ref_name == 'dev' || needs.get-semver.outputs.semver_full == needs.get-semver.outputs.semver_majorminorpatch }}
-      run: conan alias arcus/(latest)@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }} arcus/${{ needs.get-semver.outputs.semver_full }}@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }}
+      run: conan alias arcus/latest@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }} arcus/${{ needs.get-semver.outputs.semver_full }}@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }}
     - name: Upload the Package(s)
       run: conan upload "*" -r ultimaker --all -c
