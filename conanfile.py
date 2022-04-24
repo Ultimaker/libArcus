@@ -36,7 +36,6 @@ class ArcusConan(ConanFile):
     }
 
     def build_requirements(self):
-        self.tool_requires("protobuf/3.17.1")
         self.tool_requires("ninja/[>=1.10.0]")
 
     def requirements(self):
@@ -58,9 +57,7 @@ class ArcusConan(ConanFile):
 
     def generate(self):
         cmake = CMakeDeps(self)
-        cmake.build_context_activated = ["protobuf", "ninja"]
-        cmake.build_context_build_modules = ["protobuf"]
-        cmake.build_context_suffix = {"protobuf": "_BUILD"}
+        cmake.build_context_activated = ["ninja"]
         cmake.generate()
 
         tc = CMakeToolchain(self, generator = "Ninja")
