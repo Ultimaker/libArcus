@@ -1,7 +1,7 @@
 import os
 
 from conan.tools.cmake import CMakeToolchain, CMakeDeps, CMake, cmake_layout
-from conan.tools.files import AutoPackager, rmdir
+from conan.tools import files
 from conan import ConanFile
 from conans import tools
 
@@ -37,6 +37,7 @@ class ArcusConan(ConanFile):
 
     def build_requirements(self):
         self.tool_requires("ninja/[>=1.10.0]")
+        self.tool_requires("cmake/[>=3.20.0]")
 
     def requirements(self):
         self.requires("protobuf/3.17.1")
@@ -45,11 +46,12 @@ class ArcusConan(ConanFile):
         pass  # Add Python here ???
 
     def config_options(self):
-        self.options["protobuf"].shared = self.options.shared
+        if self.options.shared and self.settings.compiler == "Visual Studio":
+            del self.options.fPIC
+            self.options.shared = False
 
     def configure(self):
-        if self.options.shared or self.settings.compiler == "Visual Studio":
-            del self.options.fPIC
+        self.options["protobuf"].shared = self.options.shared
 
     def validate(self):
         if self.settings.compiler.get_safe("cppstd"):
@@ -57,7 +59,7 @@ class ArcusConan(ConanFile):
 
     def generate(self):
         cmake = CMakeDeps(self)
-        cmake.build_context_activated = ["ninja"]
+        cmake.build_context_activated = ["ninja", "cmake"]
         cmake.generate()
 
         tc = CMakeToolchain(self, generator = "Ninja")
@@ -80,50 +82,61 @@ class ArcusConan(ConanFile):
     def layout(self):
         cmake_layout(self)
 
+        # libarcus component
+        self.cpp.source.components["libarcus"].includedirs = ["arcus_include"]
+
+        self.cpp.build.components["libarcus"].libs = ["Arcus"]
+        self.cpp.build.components["libarcus"].libdirs = ["."]
+
+        self.cpp.package.components["libarcus"].includedirs = ["arcus_include"]
+        self.cpp.package.components["libarcus"].libs = ["Arcus"]
+        self.cpp.package.components["libarcus"].libdirs = ["lib"]
+        self.cpp.package.components["libarcus"].requires = ["protobuf::protobuf"]
+        self.cpp.package.components["libarcus"].defines = ["ARCUS"]
+        if self.settings.build_type == "Debug":
+            self.cpp.package.components["libarcus"].defines.append("ARCUS_DEBUG")
+        if self.settings.os in ["Linux", "FreeBSD", "Macos"]:
+            self.cpp.package.components["libarcus"].system_libs = ["pthread"]
+        elif self.settings.os == "Windows":
+            self.cpp.package.components["libarcus"].system_libs = ["ws2_32"]
+
+        # pyarcus component
+        if self.options.build_python:
+            self.cpp.source.components["pyarcus"].includedirs = ["pyarcus_include"]
+
+            self.cpp.build.components["pyarcus"].libdirs = [".", os.path.join("pyArcus", "pyArcus")]
+
+            self.cpp.package.components["pyarcus"].includedirs = ["pyarcus_include"]
+            self.cpp.package.components["pyarcus"].libdirs = ["site-packages"]
+            self.cpp.package.components["pyarcus"].requires = ["libarcus", "protobuf::protobuf"]
+            self.cpp.package.components["pyarcus"].system_libs = ["Python3.10"]
+            if self.settings.os in ["Linux", "FreeBSD", "Macos"]:
+                self.cpp.package.components["pyarcus"].system_libs.append("pthread")
+
     def build(self):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
 
     def package(self):
-        rmdir(self, os.path.join(self.cpp.build.bindirs[0], "CMakeFiles"))
-        rmdir(self, os.path.join(self.cpp.build.libdirs[0], "CMakeFiles"))
-        packager = AutoPackager(self)
-        if self.options.shared and self.settings.os == "Windows":
-            self.copy("*.pyi", src = self.cpp.build.libdirs[0], dst = self.cpp.package.bindirs[0], keep_path = False)
-            self.copy("*.pyd", src = self.cpp.build.libdirs[0], dst = self.cpp.package.bindirs[0], keep_path = False)
-            self.copy("*.pyd", src = self.cpp.build.libdirs[0], dst = self.cpp.package.bindirs[0], keep_path = False)
-        else:
-            self.copy("*.pyi", src = self.cpp.build.libdirs[0], dst = self.cpp.package.libdirs[0], keep_path = False)
-            self.copy("*.pyd", src = self.cpp.build.libdirs[0], dst = self.cpp.package.libdirs[0], keep_path = False)
-            self.copy("*.lib", src = self.cpp.build.libdirs[0], dst = self.cpp.package.libdirs[0], keep_path = False)
+        packager = files.AutoPackager(self)
+        packager.patterns.build.lib = ["*.so", "*.so.*", "*.a", "*.lib", "*.dylib", "*.pyd", "*.pyi"]
         packager.run()
 
-    def package_info(self):
-        self.cpp_info.components["libarcus"].libdirs = ["lib"]
-        self.cpp_info.components["libarcus"].includedirs = ["include"]
-        self.cpp_info.components["libarcus"].libs = ["Arcus"]
-        self.cpp_info.components["libarcus"].requires = ["protobuf::protobuf"]
-        self.cpp_info.components["libarcus"].defines.append("ARCUS")
-        if self.settings.build_type == "Debug":
-            self.cpp_info.components["libarcus"].defines.append("ARCUS_DEBUG")
-        if self.settings.os in ["Linux", "FreeBSD", "Macos"]:
-            self.cpp_info.components["libarcus"].system_libs.append("pthread")
-        elif self.settings.os == "Windows":
-            self.cpp_info.components["libarcus"].system_libs.append("ws2_32")
-
+        # Workaround for AutoPackager not playing nice with components
+        files.rmdir(self, os.path.join(self.package_folder, self.cpp.package.components["libarcus"].libdirs[0], "CMakeFiles"))
+        tools.remove_files_by_mask(os.path.join(self.package_folder, self.cpp.package.components["libarcus"].libdirs[0]), "pyArcus.*")
+        files.rmdir(self, os.path.join(self.package_folder, self.cpp.package.components["libarcus"].libdirs[0], "pyArcus"))
         if self.options.build_python:
-            self.cpp_info.components["pyarcus"].requires = ["libarcus", "protobuf::protobuf"]
-            self.cpp_info.components["pyarcus"].system_libs.append("Python3.10")
-            if self.settings.os in ["Linux", "FreeBSD", "Macos"]:
-                self.cpp_info.components["pyarcus"].system_libs.append("pthread")
+            files.rmdir(self, os.path.join(self.package_folder, self.cpp.package.components["pyarcus"].libdirs[0], "CMakeFiles"))
+            tools.remove_files_by_mask(os.path.join(self.package_folder, self.cpp.package.components["libarcus"].libdirs[0], "pyArcus"), "pyArcus.*")
+            files.rmdir(self, os.path.join(self.package_folder, self.cpp.package.components["pyarcus"].libdirs[0], "pyArcus"))
+            tools.remove_files_by_mask(os.path.join(self.package_folder, self.cpp.package.components["pyarcus"].libdirs[0]), "Arcus.*")
+            tools.remove_files_by_mask(os.path.join(self.package_folder, self.cpp.package.components["pyarcus"].libdirs[0]), "libArcus.*")
+
+    def package_info(self):
+        if self.options.build_python:
             if self.in_local_cache:
-                if self.options.shared and self.settings.os == "Windows":
-                    self.runenv_info.append_path("PYTHONPATH", self.cpp.package.bindirs[0])
-                else:
-                    self.runenv_info.append_path("PYTHONPATH", self.cpp.package.libdirs[0])
+                self.runenv_info.append_path("PYTHONPATH", self.cpp_info.components["pyarcus"].libdirs[0])
             else:
-                if self.options.shared and self.settings.os == "Windows":
-                    self.runenv_info.append_path("PYTHONPATH", self.cpp.build.bindirs[0])
-                else:
-                    self.runenv_info.append_path("PYTHONPATH", self.cpp.build.libdirs[0])
+                self.runenv_info.append_path("PYTHONPATH", self.cpp_info.components["pyarcus"].libdirs[0])

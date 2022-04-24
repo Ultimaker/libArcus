@@ -51,7 +51,7 @@ function(add_sip_module MODULE_TARGET)
     endif ()
 
     # create the target library and link all the files (generated and user specified
-    message(STATUS "SIP: Linking the interface target against the shared library")
+    message(STATUS "SIP: Linking the interface target against the library")
     set(sip_sources "${sip_c}" "${sip_cpp}" "${usr_src}" ${sip_hdr})
 
     if (BUILD_SHARED_LIBS)

@@ -35,7 +35,7 @@ use_threads(Arcus)
 
 target_include_directories(Arcus
         PUBLIC
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/arcus_include/>
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
         PRIVATE
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
@@ -86,7 +86,7 @@ if(BUILD_PYTHON)
     target_include_directories(pyArcus
             INTERFACE
                 $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
+                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/pyarcus_include/>
             )
 
     target_link_libraries(pyArcus INTERFACE Arcus protobuf::libprotobuf Python::Python)
