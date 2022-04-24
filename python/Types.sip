@@ -70,7 +70,7 @@
 {
 %TypeHeaderCode
 #include <memory>
-#include "PythonMessage.h"
+#include "pyArcus/PythonMessage.h"
 %End
 
 %ConvertFromTypeCode
@@ -131,7 +131,7 @@
 };
 
 %UnitCode
-#include "Types.h"
+#include "Arcus/Types.h"
 %End
 
 enum class SocketState

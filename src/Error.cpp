@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Error.h"
+#include "Arcus/Error.h"
 #include <iostream>
 
 using namespace Arcus;

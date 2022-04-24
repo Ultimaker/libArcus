@@ -46,10 +46,13 @@ function(add_sip_module MODULE_TARGET)
     # Add the user specified source files
     message(STATUS "SIP: Collecting the user specified source files")
     get_target_property(usr_src ${MODULE_TARGET} SOURCES)
+    if (NOT usr_src)
+        set(user_src )
+    endif ()
 
     # create the target library and link all the files (generated and user specified
-    message(STATUS "SIP: Linking the interface target against the shared library")
-    set(sip_sources "${sip_c}" "${sip_cpp}" "${usr_src}")
+    message(STATUS "SIP: Linking the interface target against the library")
+    set(sip_sources "${sip_c}" "${sip_cpp}" "${usr_src}" ${sip_hdr})
 
     if (BUILD_SHARED_LIBS)
         add_library("sip_${MODULE_TARGET}" SHARED ${sip_sources})
@@ -97,7 +100,7 @@ endfunction()
 
 function(install_sip_module MODULE_TARGET)
     if(DEFINED ARGV1)
-        set(_install_path ${ARGV1})
+        set(_install_path ${CMAKE_INSTALL_PREFIX}/${ARGV1})
     else()
         if(DEFINED Python_SITEARCH)
             set(_install_path ${Python_SITEARCH})

@@ -16,7 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "MessageTypeStore.h"
+#include "Arcus/MessageTypeStore.h"
 
 #include <unordered_map>
 #include <sstream>
@@ -73,7 +73,7 @@ private:
     int _error_count;
 };
 
-class ARCUS_NO_EXPORT MessageTypeStore::Private
+class MessageTypeStore::Private
 {
 public:
     std::unordered_map<uint, const google::protobuf::Message*> message_types;

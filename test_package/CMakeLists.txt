@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 
 include(../cmake/StandardProjectSettings.cmake)
 
-find_package(arcus REQUIRED COMPONENTS libarcus pyarcus)
+find_package(arcus REQUIRED libarcus)
 
 add_executable(test test.cpp)
 set_project_standards(test)

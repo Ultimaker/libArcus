@@ -21,15 +21,14 @@
 
 #include <memory>
 
-#include "ArcusExport.h"
-#include "Types.h"
+#include "Arcus/Types.h"
 
 namespace Arcus
 {
     /**
      * A class to manage the different types of messages that are available.
      */
-    class ARCUS_EXPORT MessageTypeStore
+    class MessageTypeStore
     {
     public:
         MessageTypeStore();
