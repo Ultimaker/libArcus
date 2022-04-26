@@ -1,5 +1,7 @@
 project(arcus)
 cmake_minimum_required(VERSION 3.20)
+
+include(CMakePackageConfigHelpers)
 include(cmake/StandardProjectSettings.cmake)
 
 option(BUILD_PYTHON "Build Python bindings for this library" ON)
@@ -59,6 +61,19 @@ install(TARGETS Arcus
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+    EXPORT Arcus-targets
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Arcus
+)
+configure_package_config_file(
+    ArcusConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/ArcusConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Arcus
+)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ArcusConfig.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Arcus
 )
 
 # Create the Python bindings
