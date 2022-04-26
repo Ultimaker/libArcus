@@ -146,6 +146,92 @@ cmake --build .
 If you're using [CLion](https://www.jetbrains.com/clion/) as an IDE be sure to checkout the Conan plugin
 [Conan CLion plugin](https://docs.conan.io/en/latest/integrations/ide/clion.html)
 
+## Using arcus with CMake
+
+<br>
+
+### [Conan CMake generators](https://docs.conan.io/en/latest/reference/conanfile/tools/cmake.html)
+
+<br>
+
+* [CMakeDeps](https://docs.conan.io/en/latest/reference/conanfile/tools/cmake/cmakedeps.html): generates information about where the **arcus** library and its dependencies  ( [protobuf](https://conan.io/center/protobuf),  [zlib](https://conan.io/center/zlib)) are installed together with other information like version, flags, and directory data or configuration. CMake will use this files when you invoke ``find_package()`` in your *CMakeLists.txt*.
+
+* [CMakeToolchain](https://docs.conan.io/en/latest/reference/conanfile/tools/cmake/cmaketoolchain.html): generates a CMake toolchain file the you can later invoke with CMake in the command line using `-DCMAKE_TOOLCHAIN_FILE=conantoolchain.cmake`.
+
+Declare these generators in your **conanfile.txt** along with your **arcus** dependency like:
+
+```ini
+[requires]
+arcus/latest6@ultimaker/stable
+
+[generators]
+CMakeDeps
+CMakeToolchain
+```
+
+<br>
+
+To use **arcus** in a simple CMake project with this structure:
+
+```shell
+.
+|-- CMakeLists.txt
+|-- conanfile.txt
+`-- src
+    `-- main..cpp
+```
+
+<br>
+
+Your **CMakeLists.txt** could look similar to this, using the global **arcus::arcus** CMake's target:
+
+```cmake
+cmake_minimum_required(VERSION 3.15)
+project(arcus_project CXX)
+
+find_package(arcus)
+
+add_executable(${PROJECT_NAME} src/main.cpp)
+
+# Use the global target
+target_link_libraries(${PROJECT_NAME} arcus::arcus)
+```
+
+<br>
+
+To install **arcus/latest@ultimaker/stable**, its dependencies and build your project, you just have to do:
+
+```shell
+# for Linux/macOS
+$ conan install . --install-folder cmake-build-release --build=missing
+$ cmake . -DCMAKE_TOOLCHAIN_FILE=cmake-build-release/conan_toolchain.cmake
+$ cmake --build .
+
+# for Windows and Visual Studio 2017
+$ conan install . --output-folder cmake-build --build=missing
+$ cmake . -G "Visual Studio 15 2017" -DCMAKE_TOOLCHAIN_FILE=cmake-build/conan_toolchain.cmake
+$ cmake --build . --config Release
+```
+
+
+
+<br>
+
+
+
+As the arcus Conan package defines components you can link only that desired part of the library in your project. For example, linking only with the arcus **libarcus** component, through the **arcus::libarcus** target.
+
+```cmake
+...
+# Link just to arcus libarcus component
+target_link_libraries(${PROJECT_NAME} arcus::libarcus)
+```
+
+<br>
+
+To check all the available components for **arcus** Conan package, please check the dedicated section at the end of this document.
+
+
 ## Using the Socket
 
 
