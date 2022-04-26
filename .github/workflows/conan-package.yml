@@ -130,7 +130,7 @@ jobs:
         with:
           path: |
             $HOME/.conan/data
-          key: ${{ runner.os }}-conan
+          key: ${{ runner.os }}-conan-arcus
 
       - name: Cache Conan local repository packages (Powershell)
         uses: actions/cache@v3
@@ -139,7 +139,7 @@ jobs:
           path: |
             C:\Users\runneradmin\.conan\data
             C:\.conan
-          key: ${{ runner.os }}-conan
+          key: ${{ runner.os }}-conan-arcus
 
       - name: Create the Packages
         run: conan create . arcus/${{ needs.get-semver.outputs.semver_full }}@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }} -pr:b cura_build.jinja -pr:h cura_release.jinja --build=missing --update

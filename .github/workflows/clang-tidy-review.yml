@@ -58,7 +58,7 @@ jobs:
         with:
           path: |
             $HOME/.conan/data
-          key: ${{ runner.os }}-clang-tidy-review
+          key: ${{ runner.os }}-clang-tidy-review-arcus
 
       - name: Install dependencies
         run: conan install . -pr:b cura_build.jinja -pr:h cura_release.jinja --build=missing --update
