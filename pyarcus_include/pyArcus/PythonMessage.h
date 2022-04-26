@@ -20,7 +20,7 @@
 #define ARCUS_PYTHON_MESSAGE_H
 
 #include <Python.h>
-#include "Types.h"
+#include "Arcus/Types.h"
 
 namespace google
 {

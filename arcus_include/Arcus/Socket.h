@@ -21,9 +21,8 @@
 
 #include <memory>
 
-#include "Types.h"
-#include "Error.h"
-#include "ArcusExport.h"
+#include "Arcus/Types.h"
+#include "Arcus/Error.h"
 
 namespace Arcus
 {
@@ -37,7 +36,7 @@ namespace Arcus
      *
      * Please see the README in libArcus for more details.
      */
-    class ARCUS_EXPORT Socket
+    class Socket
     {
     public:
         Socket();

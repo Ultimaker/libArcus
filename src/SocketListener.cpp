@@ -16,9 +16,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "SocketListener.h"
+#include "Arcus/SocketListener.h"
 
-#include "Socket.h"
+#include "Arcus/Socket.h"
 
 using namespace Arcus;
 

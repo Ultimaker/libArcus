@@ -19,7 +19,7 @@
 #ifndef ARCUS_WIRE_MESSAGE_P_H
 #define ARCUS_WIRE_MESSAGE_P_H
 
-#include "Types.h"
+#include "Arcus/Types.h"
 
 namespace Arcus
 {
