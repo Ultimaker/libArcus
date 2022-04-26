@@ -70,7 +70,7 @@ void Arcus::Error::setNativeErrorCode(int code)
 
 std::string Arcus::Error::toString() const
 {
-    static std::string errorStart("Arcus Error (");
+    static std::string error_start("Arcus Error (");
     static std::string fatal_error_start("Arcus Fatal Error (");
     static std::string native_prefix(", native ");
     static std::string message_separator("): ");
