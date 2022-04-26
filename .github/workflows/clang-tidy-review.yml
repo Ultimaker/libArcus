@@ -4,9 +4,14 @@ name: clang-tidy-review
 on:
   pull_request:
     paths:
-      - 'src/**'
+      - 'src/**.cpp'
+      - 'src/**.h'
+      - 'python/**.cpp'
+      - 'arcus_include/**.h'
+      - 'pyarcus_include/**.h'
       - 'cmake/**'
-      - 'tests/**'
+      - 'CMakeLists.txt'
+      - 'conanfile.py'
       - '.github/workflows/clang-tidy-review.yml'
     branches:
       - main
