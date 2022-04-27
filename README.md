@@ -27,8 +27,7 @@ Arcus is released under terms of the AGPLv3 License. Terms of the license can be
 http://www.gnu.org/licenses/agpl.html
 
 > But in general it boils down to:  
-> **You need to share the source of any Arcus modifications if you make an application with the Arcus. (Even if
-> you make a web-based slicer, you still need to share the source!)**
+> **You need to share the source of any Arcus modifications if you make an application with Arcus.**
 
 ## How to Install
 
