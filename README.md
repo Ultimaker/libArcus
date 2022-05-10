@@ -29,7 +29,7 @@ http://www.gnu.org/licenses/agpl.html
 > But in general it boils down to:  
 > **You need to share the source of any Arcus modifications if you make an application with Arcus.**
 
-## How to Install
+## How to build
 
 > **Note:**  
 > We are currently in the process of switch our builds and pipelines to an approach which uses [Conan](https://conan.io/)
@@ -38,7 +38,8 @@ http://www.gnu.org/licenses/agpl.html
 
 Follow the instructions below setup your development environment.  
 _requirements: Python 3.6+ (3.10.4 is recommended since Cura 5.+ uses that one), gcc 9+ (Linux), VS2019+ (Windows),
-apple-clang 11+ (MacOS), CMake 3.20+ (optional), Ninja 1.10+ (optional), make (Linux, MacOS), nmake (Windows)_
+apple-clang 11+ (MacOS), CMake 3.20+ (optional), Ninja 1.10+ (optional), make (Linux, MacOS), nmake (Windows), sip
+(optional)_
 
 If you have never used [Conan](https://conan.io/) read their [documentation](https://docs.conan.io/en/latest/index.html)
 which is quite extensive and well maintained. Conan is a Python program and can be installed using pip
@@ -63,14 +64,34 @@ remotes. **This step is not necessary if you use our supplied Conan configuratio
 conan remote add ultimaker https://peer23peer.jfrog.io/artifactory/api/conan/cura-conan True 
 ```
 
+### pyArcus python module (optional)
+
+This repository also contains a Python module named pyArcus. To build it [sip](https://pypi.org/project/sip/)==6.5.1
+needs to be installed in the current `site-packages`. This can be done with:
+
+```shell
+python -m pip install sip==6.5.1
+```
+
+#### usage
+
+```python
+import pyArcus
+socket = pyArcus.Socket()
+```
+
+### Building Arcus and pyArcus
+
 The steps above should be enough to get your system in such a state you can start development on Arcus. If you want
 to use your own system provided CMake and CMake generators, such as: Ninja, Make, NMake use the following steps to
 install the dependencies for Arcus. Executed in the root directory of Arcus.
 
 #### Release build type
+
 ```shell
 conan install . -pr:b cura_build.jinja -pr:h cura_release.jinja --build=missing
-cmake . -DCMAKE_TOOLCHAIN_FILE=cmake-build-release/conan/conan_toolchain.cmake
+cd cmake-build-release
+cmake --toolchain=generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build .
 ```
 
@@ -82,16 +103,18 @@ activate that build environement during building
 ```shell
 # for Linux/MacOS
 conan install . -pr:b cura_build.jinja -pr:h cura_release.jinja --build=missing -g VirtualBuildEnv
-. cmake-build-release/conan/conanbuild.sh
-cmake . -G "Ninja" -DCMAKE_TOOLCHAIN_FILE=cmake-build-release/conan/conan_toolchain.cmake
+cd cmake-build-release
+. generators/conanbuild.sh
+cmake --toolchain=generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release -G "Ninja" ..
 cmake --build .
 ```
 
 ```shell
 # for Windows
 conan install . -pr:b cura_build.jinja -pr:h cura_release.jinja --build=missing -g VirtualBuildEnv
-.\cmake-build-release\conan\conanbuild.ps1
-cmake . -G "Ninja" -DCMAKE_TOOLCHAIN_FILE=cmake-build-release\conan\conan_toolchain.cmake
+cd cmake-build-release
+generators\conanbuild.bat
+cmake --toolchain=build\generators\conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release -G "Ninja" ..
 cmake --build .
 ```
 
@@ -102,45 +125,52 @@ Use the same instructions as above, but replace the host profile with cura_relea
 
 ```shell
 conan install . -pr:b cura_build.jinja -pr:h cura_debug.jinja --build=missing
-cmake . -DCMAKE_TOOLCHAIN_FILE=cmake-build-release/conan/conan_toolchain.cmake
+cd cmake-build-debug
+cmake --toolchain=generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Debug ..
 cmake --build .
 ```
 
-And if you want to use the Conan provided build tools with the Debug build type, use the instructions below:
+Conan can also provide the build tools, such as CMake and Ninja. This can handy if your current system package manager
+doesn't have the minimum required versions available. We can use these if we use the
+[VirtualBuildEnv](https://docs.conan.io/en/latest/reference/conanfile/tools/env/virtualbuildenv.html) generator and
+activate that build environement during building
 
 ```shell
 # for Linux/MacOS
 conan install . -pr:b cura_build.jinja -pr:h cura_debug.jinja --build=missing -g VirtualBuildEnv
-. cmake-build-release/conan/conanbuild.sh
-cmake . -G "Ninja" -DCMAKE_TOOLCHAIN_FILE=cmake-build-release/conan/conan_toolchain.cmake
+cd cmake-build-debug
+. generators/conanbuild.sh
+cmake --toolchain=generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Debug -G "Ninja" ..
 cmake --build .
 ```
 
 ```shell
 # for Windows
 conan install . -pr:b cura_build.jinja -pr:h cura_debug.jinja --build=missing -g VirtualBuildEnv
-.\cmake-build-release\conan\conanbuild.ps1
-cmake . -G "Ninja" -DCMAKE_TOOLCHAIN_FILE=cmake-build-release\conan\conan_toolchain.cmake
+cd cmake-build-debug
+generators\conanbuild.bat
+cmake --toolchain=build\generators\conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Debug -G "Ninja" ..
 cmake --build .
 ```
 
-### Dependencies
+## Dependencies
 
 ![Dependency graph](docs/assets/deps.png)
 
-#### Runtime dependencies
+### Runtime dependencies
 - [protobuf](docs/development/protobuf.md)
 - [zlib](docs/development/zlib.md)
 
-#### Build dependencies
+### Build dependencies
 - [Python](https://www.python.org/)
 - [Cmake](https://cmake.org/)
 - [Ninja (optional)](https://ninja-build.org/)
 - [GNU-GCC](https://gcc.gnu.org/)
 - [Visual Studio](https://visualstudio.microsoft.com/vs/)
 - [xcode command line tools](https://developer.apple.com/xcode/)
+- [sip](https://pypi.org/project/sip/)
 
-#### IDE
+### IDE
 
 If you're using [CLion](https://www.jetbrains.com/clion/) as an IDE be sure to checkout the Conan plugin
 [Conan CLion plugin](https://docs.conan.io/en/latest/integrations/ide/clion.html)
