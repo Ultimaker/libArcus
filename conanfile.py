@@ -4,6 +4,7 @@ from conan.tools.cmake import CMakeToolchain, CMakeDeps, CMake, cmake_layout
 from conan.tools import files
 from conan import ConanFile
 from conans import tools
+from conans.errors import ConanException
 
 required_conan_version = ">=1.46.2"
 
@@ -84,7 +85,15 @@ class ArcusConan(ConanFile):
         tc.generate()
 
     def layout(self):
-        cmake_layout(self)
+        self.folders.source = "."
+        try:
+            build_type = str(self.settings.build_type)
+        except ConanException:
+            raise ConanException("'build_type' setting not defined, it is necessary for cmake_layout()")
+        self.folders.build = f"cmake-build-{build_type.lower()}"
+        self.folders.generators = os.path.join(self.folders.build, "generators")
+        self.cpp.build.libdirs = ["."]
+        self.cpp.build.bindirs = ["."]
 
         # libarcus component
         self.cpp.source.components["libarcus"].includedirs = ["arcus_include"]
