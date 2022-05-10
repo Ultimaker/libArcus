@@ -20,11 +20,13 @@ class ArcusConan(ConanFile):
     exports = "LICENSE*"
     options = {
         "build_python": [True, False],
+        "python_version": "ANY",
         "shared": [True, False],
         "fPIC": [True, False]
     }
     default_options = {
         "build_python": True,
+        "python_version": "system",
         "shared": True,
         "fPIC": True,
     }
@@ -49,6 +51,9 @@ class ArcusConan(ConanFile):
         if self.options.shared and self.settings.compiler == "Visual Studio":
             del self.options.fPIC
             self.options.shared = False
+        if self.options.python_version == "system":
+            from platform import python_version
+            self.options.python_version = python_version()
 
     def configure(self):
         self.options["protobuf"].shared = self.options.shared
