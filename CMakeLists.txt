@@ -1,5 +1,5 @@
 cmake_policy(SET CMP0091 NEW)
-project(arcus CXX)
+project(arcus)
 cmake_minimum_required(VERSION 3.20)
 include(cmake/StandardProjectSettings.cmake)
 
