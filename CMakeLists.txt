@@ -65,7 +65,9 @@ install(TARGETS Arcus
 # Create the Python bindings
 if(BUILD_PYTHON)
     list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-
+    if(DEFINED ENV{Python_ROOT_DIR})
+        set(Python_ROOT_DIR $ENV{Python_ROOT_DIR})
+    endif()
     if(NOT DEFINED Python_VERSION)
         set(Python_VERSION
                 3.10
