@@ -48,6 +48,7 @@ if(WIN32)
     # Declare we require Vista or higher, this allows us to use IPv6 functions.
 
     target_link_libraries(Arcus PUBLIC Ws2_32)
+    set_target_properties(Arcus PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
