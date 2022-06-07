@@ -67,7 +67,7 @@ jobs:
         run: conan upload "*" -r ultimaker --all -c
 
       - name: Configure Arcus
-        run: cmake . --toolchain cmake-build-release/conan/conan_toolchain.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S . -B cmake-build-release
+        run: cmake --toolchain cmake-build-release/conan/conan_toolchain.cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -S . -B cmake-build-release
 
       - name: Run clang-tidy
         uses: ZedThree/clang-tidy-review@master
