@@ -90,7 +90,7 @@ class ArcusConan(ConanFile):
         except ConanException:
             raise ConanException("'build_type' setting not defined, it is necessary for cmake_layout()")
         self.folders.build = f"cmake-build-{build_type.lower()}"
-        self.folders.generators = os.path.join(self.folders.build, "generators")
+        self.folders.generators = os.path.join(self.folders.build, "conan")
         self.cpp.build.libdirs = ["."]
         self.cpp.build.bindirs = ["."]
 
