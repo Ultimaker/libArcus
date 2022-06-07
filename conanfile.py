@@ -99,10 +99,12 @@ class ArcusConan(ConanFile):
 
         self.cpp.build.components["libarcus"].libs = ["Arcus"]
         self.cpp.build.components["libarcus"].libdirs = ["."]
+        self.cpp.build.components["libarcus"].bindirs = ["."]
 
         self.cpp.package.components["libarcus"].includedirs = ["arcus_include"]
         self.cpp.package.components["libarcus"].libs = ["Arcus"]
         self.cpp.package.components["libarcus"].libdirs = ["lib"]
+        self.cpp.package.components["libarcus"].bindirs = ["bin"]
         self.cpp.package.components["libarcus"].requires = ["protobuf::protobuf"]
         self.cpp.package.components["libarcus"].defines = ["ARCUS"]
         if self.settings.build_type == "Debug":
@@ -137,6 +139,8 @@ class ArcusConan(ConanFile):
 
         # Workaround for AutoPackager not playing nice with components
         files.rmdir(self, os.path.join(self.package_folder, self.cpp.package.components["libarcus"].libdirs[0], "CMakeFiles"))
+        tools.remove_files_by_mask(os.path.join(self.package_folder, self.cpp.package.components["libarcus"].bindirs[0]), "*.exe")
+        files.rmdir(self, os.path.join(self.package_folder, self.cpp.package.components["libarcus"].bindirs[0], "CMakeFiles"))
         tools.remove_files_by_mask(os.path.join(self.package_folder, self.cpp.package.components["libarcus"].libdirs[0]), "pyArcus.*")
         files.rmdir(self, os.path.join(self.package_folder, self.cpp.package.components["libarcus"].libdirs[0], "pyArcus"))
         if self.options.build_python:
