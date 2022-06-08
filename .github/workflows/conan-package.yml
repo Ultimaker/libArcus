@@ -5,37 +5,33 @@ on:
   push:
     paths:
       - 'src/**'
+      - 'python/**'
+      - 'test_package/**'
+      - 'pyarcus_include/**'
       - 'cmake/**'
-      - 'tests/**'
+      - 'acrus_include/**'
       - 'conanfile.py'
       - 'CMakeLists.txt'
       - '.github/workflows/conan-package.yml'
     branches:
       - main
-      - master
-      - dev
-      - 'release/**'
-      - '!15.*'
-      - '![1-4].[0-9]+'
+      - 'CURA-*'
     tags:
       - '![1-4].[0-9]+*'
-      - '!Arachne*'
-      - '!ancient*'
-      - '!jedi*'
 
   pull_request:
     paths:
       - 'src/**'
+      - 'python/**'
+      - 'test_package/**'
+      - 'pyarcus_include/**'
       - 'cmake/**'
-      - 'tests/**'
+      - 'acrus_include/**'
       - 'conanfile.py'
       - 'CMakeLists.txt'
       - '.github/workflows/conan-package.yml'
     branches:
       - main
-      - master
-      - dev
-      - 'release/**'
 
 env:
   CONAN_USER: ${{ secrets.CONAN_USER }}
@@ -73,13 +69,13 @@ jobs:
         run: |
           echo ${{ github.repository_owner }} | awk '{print "::set-output name=user::"tolower($0)}'
           
-          if [ "${{ github.ref_name == 'master' || github.ref_name == 'main' }}" = "true" ]; then
+          if [ "${{ github.ref_name == 'main' }}" = "true" ]; then
             echo ${{ github.repository_owner }} | awk '{print "::set-output name=user::"tolower($0)}'
             echo '::set-output name=channel::stable'
-          elif [ "${{ startsWith(github.ref_name, 'release/') || steps.git-tool.outputs.fullSemVer == steps.git-tool.outputs.MajorMinorPatch }}" = "true" ]; then
+          elif [ "${{ steps.git-tool.outputs.fullSemVer == steps.git-tool.outputs.MajorMinorPatch }}" = "true" ]; then
             echo '::set-output name=user::_'
             echo '::set-output name=channel::_'
-          elif [ "${{ github.ref_name == 'dev' || github.event_name == 'merge' || github.event_name == 'pull_request' }}" = "true" ]; then
+          elif [ "${{ github.event_name == 'merge' || github.event_name == 'pull_request' }}" = "true" ]; then
             echo ${{ github.repository_owner }} | awk '{print "::set-output name=user::"tolower($0)}'
             echo '::set-output name=channel::testing'
           else
@@ -87,10 +83,60 @@ jobs:
             echo ${{ github.ref_name }} | awk '{print "::set-output name=channel::"substr(tolower($0),0,9)}'
           fi
 
-  conan-package:
-    runs-on: ${{ matrix.os }}
+  conan-package-export:
+    runs-on: ubuntu-20.04
 
     needs: [ get-semver ]
+
+    steps:
+      - name: Checkout Arcus
+        uses: actions/checkout@v3
+
+      - name: Setup Python and pip
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10.4'
+          architecture: 'x64'
+          cache: 'pip'
+
+      - name: Prepare Conan and sip-build (Bash)
+        if: ${{ runner.os != 'Windows' }}
+        run: |
+          pip install --require-hashes -r requirements.txt
+          conan config install https://github.com/Ultimaker/conan-config.git -a "-b CURA-9177_Fix_CI_CD" -tf $HOME/.conan
+          conan profile new default --detect
+          conan user -p $CONAN_PASS -r ultimaker $CONAN_USER
+
+      - name: Prepare Conan and sip-build (Powershell)
+        if: ${{ runner.os == 'Windows' }}
+        run: |
+          pip install --require-hashes -r requirements.txt
+          conan profile new default --detect
+          conan user -p $env:CONAN_PASS -r ultimaker $env:CONAN_USER
+
+      - name: Cache Conan local repository packages (Bash)
+        uses: actions/cache@v3
+        if: ${{ runner.os != 'Windows' }}
+        with:
+          path: |
+            $HOME/.conan/data
+          key: ${{ runner.os }}-conan
+
+      - name: Export the Package
+        run: conan export . arcus/${{ needs.get-semver.outputs.semver_full }}@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }}
+
+      - name: Create the latest alias
+        if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
+        run: conan alias arcus/latest@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }} arcus/${{ needs.get-semver.outputs.semver_full }}@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }}
+
+      - name: Upload the Package(s)
+        run: conan upload "*" -r ultimaker --all -c
+
+  conan-package-create:
+    if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'CURA-9365_fix_building_cura_main') }}
+    runs-on: ${{ matrix.os }}
+
+    needs: [ get-semver, conan-package-export ]
 
     strategy:
       fail-fast: true
@@ -98,8 +144,8 @@ jobs:
         os: [ macos-10.15, windows-2022, ubuntu-20.04]
 
     steps:
-      - name: Checkout Arcus
-        uses: actions/checkout@v3
+      -   name: Checkout arcus
+          uses: actions/checkout@v3
 
       - name: Setup Python and pip
         uses: actions/setup-python@v3
@@ -130,7 +176,7 @@ jobs:
         with:
           path: |
             $HOME/.conan/data
-          key: ${{ runner.os }}-conan-arcus
+          key: ${{ runner.os }}-conan
 
       - name: Cache Conan local repository packages (Powershell)
         uses: actions/cache@v3
@@ -139,15 +185,10 @@ jobs:
           path: |
             C:\Users\runneradmin\.conan\data
             C:\.conan
-          key: ${{ runner.os }}-conan-arcus
+          key: ${{ runner.os }}-conan
 
       - name: Create the Packages
-        run: conan create . arcus/${{ needs.get-semver.outputs.semver_full }}@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }} -pr:b cura_build.jinja -pr:h cura_release.jinja --build=missing --update
-
-      # FIXME: Remove the reference to the CURA-9177_fix_CI_CT branch
-      - name: Create the latest alias
-        if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'CURA-9177_fix_CI_CT' )  || github.ref_name == 'dev' || needs.get-semver.outputs.semver_full == needs.get-semver.outputs.semver_majorminorpatch }}
-        run: conan alias arcus/latest@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }} arcus/${{ needs.get-semver.outputs.semver_full }}@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }}
+        run: conan install arcus/${{ needs.get-semver.outputs.semver_full }}@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }} -pr:b cura_build.jinja -pr:h cura_release.jinja --build=missing --update
 
       - name: Upload the Package(s)
         run: conan upload "*" -r ultimaker --all -c
