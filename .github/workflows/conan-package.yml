@@ -126,7 +126,7 @@ jobs:
         run: conan export . arcus/${{ needs.get-semver.outputs.semver_full }}@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }}
 
       - name: Create the latest alias
-        if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
+        if: ${{ github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'CURA-9365_fix_building_cura_main' ) }}
         run: conan alias arcus/latest@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }} arcus/${{ needs.get-semver.outputs.semver_full }}@${{ needs.get-semver.outputs.user }}/${{ needs.get-semver.outputs.channel }}
 
       - name: Upload the Package(s)
