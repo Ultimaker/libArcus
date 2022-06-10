@@ -47,7 +47,7 @@ function(add_sip_module MODULE_TARGET)
     message(STATUS "SIP: Collecting the user specified source files")
     get_target_property(usr_src ${MODULE_TARGET} SOURCES)
     if (NOT usr_src)
-        set(user_src )
+        set(usr_src )
     endif ()
 
     # create the target library and link all the files (generated and user specified
