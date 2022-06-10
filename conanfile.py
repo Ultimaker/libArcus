@@ -123,7 +123,10 @@ class ArcusConan(ConanFile):
             self.cpp.package.components["pyarcus"].includedirs = ["pyarcus_include"]
             self.cpp.package.components["pyarcus"].libdirs = ["site-packages"]
             self.cpp.package.components["pyarcus"].requires = ["libarcus", "protobuf::protobuf"]
-            self.cpp.package.components["pyarcus"].system_libs = ["Python3.10"]
+
+            py_version = tools.Version(self.options.python_version)
+            py_build_type = "d" if self.settings.build_type == "Debug" else ""
+            self.cpp.package.components["pyarcus"].system_libs = [f"Python{py_version.major}.{py_version.minor}{py_build_type}"]
             if self.settings.os in ["Linux", "FreeBSD", "Macos"]:
                 self.cpp.package.components["pyarcus"].system_libs.append("pthread")
 
