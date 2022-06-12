@@ -49,15 +49,6 @@ if (NOT MSVC)
         set(POSITION_INDEPENDENT_CODE ON) # Defaults to on
         message(STATUS "Setting POSITION_INDEPENDENT_CODE: ${POSITION_INDEPENDENT_CODE}")
     endif()
-
-    # Usee the correct rpaths
-    if (APPLE)
-        set(CMAKE_INSTALL_RPATH "@executable_path/../lib;@loader_path/../lib")
-    else()
-        set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
-    endif()
-
-    set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 else()
     # Set Visual Studio flags MD/MDd or MT/MTd
     if(NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
@@ -70,6 +61,49 @@ else()
         endif()
     endif()
 endif()
+
+function(set_rpath)
+    # Sets the RPATHS for targets (Linux and Windows, these can either be absolute paths or relative to the executable
+    # Usage:
+    #   set_rpath(TARGETS <list of targets to set rpaths for>
+    #             PATHS <list of paths>
+    #             <optional> RELATIVE)
+    # if the RELATIVE option is used the paths will be specified from either $ORIGIN on Linux or @executable_path on Mac
+    set(options RELATIVE)
+    set(oneValueArgs )
+    set(multiValueArgs TARGETS PATHS)
+    cmake_parse_arguments(SET_RPATH "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    foreach(_target IN ITEMS ${SET_RPATH_TARGETS})
+        message(STATUS "Setting SKIP_BUILD_RPATH for target ${_target}" to FALSE)
+        set_target_properties(${_target} PROPERTIES SKIP_BUILD_RPATH FALSE)
+        message(STATUS "Setting BUILD_WITH_INSTALL_RPATH for target ${_target}" to FALSE)
+        set_target_properties(${_target} PROPERTIES BUILD_WITH_INSTALL_RPATH FALSE)
+        message(STATUS "Setting INSTALL_RPATH_USE_LINK_PATH for target ${_target}" to TRUE)
+        set_target_properties(${_target} PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+        if(APPLE)
+            message(STATUS "Setting MACOSX_RPATH for target ${_target}")
+            set_target_properties(${_target} PROPERTIES MACOSX_RPATH ON)
+        endif()
+        if(SET_RPATH_RELATIVE)
+            if(APPLE)
+                foreach(_path IN ITEMS ${SET_RPATH_PATHS})
+                    set_target_properties(${_target} PROPERTIES INSTALL_RPATH "@executable_path/${_path}")
+                    message(STATUS "Setting relative install RPATH for target ${_target} to @executable_path/${_path}")
+                endforeach()
+            else(LINUX)
+                foreach(_path IN ITEMS ${SET_RPATH_PATHS})
+                    set_target_properties(${_target} PROPERTIES INSTALL_RPATH "\$ORIGIN/${_path}")
+                    message(STATUS "Setting relative install RPATH for target ${_target} to $ORIGIN/${_path}")
+                endforeach()
+            endif()
+        else()
+            foreach(_path IN ITEMS ${SET_RPATH_PATHS})
+                set_target_properties(${_target} PROPERTIES INSTALL_RPATH ${_path})
+                message(STATUS "Setting absolute install RPATH for target ${_target} to ${_path}")
+            endforeach()
+        endif()
+    endforeach()
+endfunction()
 
 # Set common project options for the target
 function(set_project_standards project_name)

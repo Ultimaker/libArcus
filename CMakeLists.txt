@@ -25,6 +25,12 @@ else()
 endif()
 set_project_standards(Arcus)
 use_threads(Arcus)
+set_rpath(TARGETS
+            Arcus
+        PATHS
+            "."
+            "../lib"
+        RELATIVE)
 
 target_include_directories(Arcus
         PUBLIC
@@ -77,6 +83,12 @@ if(BUILD_PYTHON)
 
     add_library(pyArcus INTERFACE ${CMAKE_SOURCE_DIR}/python/PythonMessage.cpp)
     set_project_standards(pyArcus)
+    set_rpath(TARGETS
+                pyArcus
+            PATHS
+                "."
+                "../lib"
+            RELATIVE)
     use_threads(pyArcus)
 
     target_include_directories(pyArcus
