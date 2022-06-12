@@ -49,6 +49,15 @@ if (NOT MSVC)
         set(POSITION_INDEPENDENT_CODE ON) # Defaults to on
         message(STATUS "Setting POSITION_INDEPENDENT_CODE: ${POSITION_INDEPENDENT_CODE}")
     endif()
+
+    # Usee the correct rpaths
+    if (APPLE)
+        set(CMAKE_INSTALL_RPATH "@executable_path/../lib")
+    else()
+        set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+    endif()
+
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH ON)
 else()
     # Set Visual Studio flags MD/MDd or MT/MTd
     if(NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
