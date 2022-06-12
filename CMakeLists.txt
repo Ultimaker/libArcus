@@ -88,6 +88,7 @@ if(BUILD_PYTHON)
             PATHS
                 "."
                 "../lib"
+                "../.."
             RELATIVE)
     use_threads(pyArcus)
 
