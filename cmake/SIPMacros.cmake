@@ -54,7 +54,7 @@ function(add_sip_module MODULE_TARGET)
     message(STATUS "SIP: Linking the interface target against the library")
     set(sip_sources "${sip_c}" "${sip_cpp}" "${usr_src}" ${sip_hdr})
 
-    if (BUILD_SHARED_LIBS AND NOT WIN32)
+    if (BUILD_SHARED_LIBS)
         add_library("sip_${MODULE_TARGET}" SHARED ${sip_sources})
     else()
         add_library("sip_${MODULE_TARGET}" STATIC ${sip_sources})
