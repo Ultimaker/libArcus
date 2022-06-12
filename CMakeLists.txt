@@ -15,14 +15,6 @@ set(arcus_SRCS
     src/Error.cpp
 )
 
-set(arcus_HDRS
-    src/Socket.h
-    src/SocketListener.h
-    src/Types.h
-    src/MessageTypeStore.h
-    src/Error.h
-)
-
 set(ARCUS_VERSION 5.0.0)
 set(ARCUS_SOVERSION 5)
 
