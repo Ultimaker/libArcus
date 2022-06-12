@@ -52,7 +52,7 @@ if (NOT MSVC)
 
     # Usee the correct rpaths
     if (APPLE)
-        set(CMAKE_INSTALL_RPATH "@executable_path/../lib")
+        set(CMAKE_INSTALL_RPATH "@executable_path/../lib;@loader_path/../lib")
     else()
         set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
     endif()
