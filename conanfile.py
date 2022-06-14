@@ -72,10 +72,6 @@ class ArcusConan(ConanFile):
             tc.blocks["generic_system"].values["generator_platform"] = None
             tc.blocks["generic_system"].values["toolset"] = None
 
-        if self.settings.os == "Macos":
-            tc.blocks["rpath"].skip_rpath = True
-
-        tc.variables["ALLOW_IN_SOURCE_BUILD"] = True
         tc.variables["BUILD_PYTHON"] = self.options.build_python
         if self.options.build_python:
             tc.variables["Python_VERSION"] = self.options.python_version

@@ -7,9 +7,6 @@ include(../cmake/StandardProjectSettings.cmake)
 find_package(arcus REQUIRED libarcus)
 
 add_executable(test test.cpp)
-set_project_standards(test)
-set_project_warnings(test)
-use_threads(test)
 
 target_link_libraries(test
         PUBLIC

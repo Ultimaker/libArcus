@@ -15,22 +15,11 @@ set(arcus_SRCS
     src/Error.cpp
 )
 
-set(ARCUS_VERSION 5.0.0)
-set(ARCUS_SOVERSION 5)
-
 if(BUILD_SHARED_LIBS)
     add_library(Arcus SHARED ${arcus_SRCS})
 else()
     add_library(Arcus STATIC ${arcus_SRCS})
 endif()
-set_project_standards(Arcus)
-use_threads(Arcus)
-set_rpath(TARGETS
-            Arcus
-        PATHS
-            "."
-            "../lib"
-        RELATIVE)
 
 target_include_directories(Arcus
         PUBLIC
@@ -53,14 +42,6 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR ${CMAKE_BUILD_TYPE} STREQUAL "RelWith
     target_compile_definitions(Arcus PRIVATE -DARCUS_DEBUG)
 endif()
 
-install(TARGETS Arcus
-    EXPORT Arcus-targets
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)
-
 # Create the Python bindings
 if(BUILD_PYTHON)
     list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -82,14 +63,6 @@ if(BUILD_PYTHON)
     find_package(SIP REQUIRED 6.5.0)
 
     add_library(pyArcus INTERFACE ${CMAKE_SOURCE_DIR}/python/PythonMessage.cpp)
-    set_project_standards(pyArcus)
-    set_rpath(TARGETS
-                pyArcus
-            PATHS
-                "."
-                "../lib"
-                "../.."
-            RELATIVE)
     use_threads(pyArcus)
 
     target_include_directories(pyArcus
