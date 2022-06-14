@@ -47,7 +47,8 @@ class ArcusTestConan(ConanFile):
     def test(self):
         if not tools.cross_building(self):
             ext = ".exe" if self.settings.os == "Windows" else ""
-            self.run(f"test{ext}", env = "conanrun")
+            prefix_path = "" if self.settings.os == "Windows" else "./"
+            self.run(f"{prefix_path}test{ext}", env = "conanrun")
 
         cpp_info = self.deps_cpp_info["arcus"]
         if "pyarcus" in cpp_info.components:
