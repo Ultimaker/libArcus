@@ -1,0 +1,5 @@
+requirements:
+    "5.1.0-beta":
+    - "protobuf/3.17.1"
+    "5.1.0-cura_9365":
+    - "protobuf/3.17.1"
