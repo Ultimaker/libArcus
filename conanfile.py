@@ -43,10 +43,6 @@ class ArcusConan(ConanFile):
         version = tools.Version(self.version)
         return f"{version.major}.{version.minor}.{version.patch}-{version.prerelease}"
 
-    def build_requirements(self):
-        self.tool_requires("ninja/[>=1.10.0]")
-        self.tool_requires("cmake/[>=3.23.0]")
-
     def requirements(self):
         for req in self.conan_data["requirements"][self._conan_data_version]:
             self.requires(req)
