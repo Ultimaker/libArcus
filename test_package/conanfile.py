@@ -14,10 +14,6 @@ class ArcusTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "VirtualRunEnv"
 
-    def build_requirements(self):
-        self.tool_requires("ninja/[>=1.10.0]")
-        self.tool_requires("cmake/[>=3.23.0]")
-
     def generate(self):
         cmake = CMakeDeps(self)
         cmake.generate()
