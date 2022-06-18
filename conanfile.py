@@ -25,13 +25,11 @@ class ArcusConan(ConanFile):
 
     options = {
         "build_python": [True, False],
-        "python_version": "ANY",
         "shared": [True, False],
         "fPIC": [True, False]
     }
     default_options = {
         "build_python": True,
-        "python_version": "system",
         "shared": True,
         "fPIC": True,
     }
@@ -49,15 +47,9 @@ class ArcusConan(ConanFile):
             for req in self._um_data(self.version)["requirements_pyarcus"]:
                 self.requires(req)
 
-    def system_requirements(self):
-        pass  # Add Python here ???
-
     def config_options(self):
         if self.options.shared and self.settings.compiler == "Visual Studio":
             del self.options.fPIC
-        if self.options.python_version == "system":
-            from platform import python_version
-            self.options.python_version = python_version()
 
     def configure(self):
         self.options["*"].shared = self.options.shared
