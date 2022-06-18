@@ -45,20 +45,7 @@ endif()
 # Create the Python bindings
 if(BUILD_PYTHON)
     list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-    if(DEFINED ENV{Python_ROOT_DIR})
-        set(Python_ROOT_DIR $ENV{Python_ROOT_DIR})
-    endif()
-    if(NOT DEFINED Python_VERSION)
-        set(Python_VERSION
-                3.10
-                CACHE STRING "Python Version" FORCE)
-        message(STATUS "Setting Python version to ${Python_VERSION}. Set Python_VERSION if you want to compile against an other version.")
-    endif()
-    if(APPLE)
-        set(Python_FIND_FRAMEWORK NEVER)
-    endif()
-    find_package(Python ${Python_VERSION} EXACT REQUIRED COMPONENTS Interpreter Development)
-    message(STATUS "Linking and building ${project_name} against Python ${Python_VERSION}")
+    find_package(cpython REQUIRED)
 
     find_package(SIP REQUIRED 6.5.0)
 
@@ -71,7 +58,7 @@ if(BUILD_PYTHON)
                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/pyarcus_include/>
             )
 
-    target_link_libraries(pyArcus INTERFACE Arcus protobuf::libprotobuf Python::Python)
+    target_link_libraries(pyArcus INTERFACE Arcus protobuf::libprotobuf cpython::cpython)
 
     add_sip_module(pyArcus)
     if (DEFINED Python_SITELIB_LOCAL)

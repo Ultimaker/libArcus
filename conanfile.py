@@ -45,6 +45,9 @@ class ArcusConan(ConanFile):
     def requirements(self):
         for req in self._um_data(self.version)["requirements"]:
             self.requires(req)
+        if self.options.build_python:
+            for req in self._um_data(self.version)["requirements_pyarcus"]:
+                self.requires(req)
 
     def system_requirements(self):
         pass  # Add Python here ???
@@ -57,7 +60,7 @@ class ArcusConan(ConanFile):
             self.options.python_version = python_version()
 
     def configure(self):
-        self.options["protobuf"].shared = self.options.shared
+        self.options["*"].shared = self.options.shared
 
     def validate(self):
         if self.settings.compiler.get_safe("cppstd"):
@@ -67,7 +70,7 @@ class ArcusConan(ConanFile):
         cmake = CMakeDeps(self)
         cmake.generate()
 
-        tc = CMakeToolchain(self, generator = "Ninja")
+        tc = CMakeToolchain(self)
 
         if self.settings.compiler == "Visual Studio":
             tc.blocks["generic_system"].values["generator_platform"] = None
@@ -75,8 +78,14 @@ class ArcusConan(ConanFile):
 
         tc.variables["BUILD_PYTHON"] = self.options.build_python
         if self.options.build_python:
-            tc.variables["Python_VERSION"] = self.options.python_version
-            tc.variables["Python_USE_STATIC_LIBS"] = not self.options.shared
+            tc.variables["Python_EXECUTABLE"] = self.deps_user_info["cpython"].python
+            tc.variables["Python_USE_STATIC_LIBS"] = not self.options["cpython"].shared
+            tc.variables["Python_ROOT_DIR"] = self.deps_cpp_info["cpython"].rootpath
+            tc.variables["Python_FIND_FRAMEWORK"] = "NEVER"
+            tc.variables["Python_FIND_REGISTRY"] = "NEVER"
+            tc.variables["Python_FIND_IMPLEMENTATIONS"] = "CPython"
+            tc.variables["Python_FIND_STRATEGY"] = "LOCATION"
+
             if self.options.shared and self.settings.os == "Windows":
                 tc.variables["Python_SITELIB_LOCAL"] = self.cpp.build.bindirs[0]
             else:
@@ -126,13 +135,10 @@ class ArcusConan(ConanFile):
 
             self.cpp.package.components["pyarcus"].includedirs = ["pyarcus_include"]
             self.cpp.package.components["pyarcus"].libdirs = ["site-packages"]
-            self.cpp.package.components["pyarcus"].requires = ["libarcus", "protobuf::protobuf"]
+            self.cpp.package.components["pyarcus"].requires = ["libarcus", "protobuf::protobuf", "cpython::cpython"]
 
-            py_version = tools.Version(self.options.python_version)
-            py_build_type = "d" if self.settings.build_type == "Debug" else ""
-            self.cpp.package.components["pyarcus"].system_libs = [f"Python{py_version.major}.{py_version.minor}{py_build_type}"]
             if self.settings.os in ["Linux", "FreeBSD", "Macos"]:
-                self.cpp.package.components["pyarcus"].system_libs.append("pthread")
+                self.cpp.package.components["pyarcus"].system_libs = ["pthread"]
 
     def build(self):
         cmake = CMake(self)
