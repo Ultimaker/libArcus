@@ -19,6 +19,10 @@ class ArcusConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     revision_mode = "scm"
     exports = "LICENSE*"
+
+    python_requires = "umbase/0.1@ultimaker/testing"
+    python_requires_extend = "umbase.UMBaseConanfile"
+
     options = {
         "build_python": [True, False],
         "python_version": "ANY",
@@ -38,13 +42,8 @@ class ArcusConan(ConanFile):
         "revision": "auto"
     }
 
-    @property
-    def _conan_data_version(self):
-        version = tools.Version(self.version)
-        return f"{version.major}.{version.minor}.{version.patch}-{version.prerelease}"
-
     def requirements(self):
-        for req in self.conan_data["requirements"][self._conan_data_version]:
+        for req in self._um_data(self.version)["requirements"]:
             self.requires(req)
 
     def system_requirements(self):
@@ -95,6 +94,9 @@ class ArcusConan(ConanFile):
         self.folders.generators = os.path.join(self.folders.build, "conan")
         self.cpp.build.libdirs = ["."]
         self.cpp.build.bindirs = ["."]
+
+        # TODO: Should we split Arcus up in two repo's? That would at least allow us to get rid of the components,
+        # we would then only need to recompile pyArcus for each python version. Now we also compile Arcus again
 
         # libarcus component
         self.cpp.source.components["libarcus"].includedirs = ["arcus_include"]
@@ -157,4 +159,7 @@ class ArcusConan(ConanFile):
 
     def package_info(self):
         if self.options.build_python:
-            self.runenv_info.append_path("PYTHONPATH", self.cpp_info.components["pyarcus"].libdirs[0])
+            if self.in_local_cache:
+                self.runenv_info.append_path("PYTHONPATH", self.components["pyarcus"].libdirs[0])
+            else:
+                self.runenv_info.append_path("PYTHONPATH", self.build_folder)
