@@ -40,6 +40,11 @@ class ArcusConan(ConanFile):
         "revision": "auto"
     }
 
+    def build_requirements(self):
+        if self.options.build_python:
+            for req in self._um_data(self.version)["build_requirements_pyarcus"]:
+                self.tool_requires(req)
+
     def requirements(self):
         for req in self._um_data(self.version)["requirements"]:
             self.requires(req)
@@ -52,7 +57,12 @@ class ArcusConan(ConanFile):
             del self.options.fPIC
 
     def configure(self):
-        self.options["*"].shared = self.options.shared
+        self.options["*"].shared = True
+        if self.settings.os == "Windows":
+            # Needed to compile CPython on Windows with our configuration for Visual Studio
+            self.options["mpdecimal"].cxx = True
+            self.options["mpdecimal"].shared = False
+            self.options["libffi"].shared = False
 
     def validate(self):
         if self.settings.compiler.get_safe("cppstd"):
