@@ -45,9 +45,8 @@ endif()
 # Create the Python bindings
 if(BUILD_PYTHON)
     list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+    include(cmake/SIPMacros.cmake)
     find_package(cpython REQUIRED)
-
-    find_package(SIP REQUIRED 6.5.0)
 
     add_library(pyArcus INTERFACE ${CMAKE_SOURCE_DIR}/python/PythonMessage.cpp)
     use_threads(pyArcus)
