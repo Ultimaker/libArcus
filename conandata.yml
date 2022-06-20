@@ -20,13 +20,3 @@ requirements_pyarcus:
     "5.1.0-cura_9365":
         - "cpython/3.10.4@ultimaker/testing"
         - "zlib/1.2.12"
-build_requirements_pyarcus:
-    "None":
-        - "sip/6.5.1@ultimaker/testing"
-    "5.1.0":
-        - "sip/6.5.1@ultimaker/testing"
-    "5.1.0-beta":
-        - "sip/6.5.1@ultimaker/testing"
-    "5.1.0-cura_9365":
-        - "sip/6.5.1@ultimaker/testing"
-

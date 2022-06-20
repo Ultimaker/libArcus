@@ -1,16 +1,7 @@
-# Macros for SIP
+# TODO: Add this CMake build module to the sipbuildtool generator
 # ~~~~~~~~~~~~~~
 
-set(SIP_ARGS --pep484-pyi --no-protected-is-public)
-
 function(add_sip_module MODULE_TARGET)
-    if(NOT SIP_BUILD_EXECUTABLE)
-	    set(SIP_BUILD_EXECUTABLE ${CMAKE_PREFIX_PATH}/Scripts/sip-build)
-    endif()
-
-    message(STATUS "SIP: Generating pyproject.toml")
-    configure_file(${CMAKE_SOURCE_DIR}/pyproject.toml.in ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml)
-    configure_file(${CMAKE_SOURCE_DIR}/cmake/CMakeBuilder.py ${CMAKE_CURRENT_BINARY_DIR}/CMakeBuilder.py)
     if(WIN32)
         set(ext .pyd)
         set(env_path_sep ";")
@@ -19,12 +10,6 @@ function(add_sip_module MODULE_TARGET)
         set(env_path_sep ":")
     endif()
 
-    message(STATUS "SIP: Generating source files")
-    execute_process(
-            COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=${PYTHONPATH}${env_path_sep}$ENV{PYTHONPATH}${env_path_sep}${CMAKE_CURRENT_BINARY_DIR}" ${SIP_BUILD_EXECUTABLE} ${SIP_ARGS}
-            COMMAND_ECHO STDOUT
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
-    )
     # This will generate the source-files during the configuration step in CMake. Needed to obtain the sources
 
     # Touch the generated files (8 in total) to make them dirty and force them to rebuild
@@ -65,33 +50,6 @@ function(add_sip_module MODULE_TARGET)
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES PREFIX "")
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES SUFFIX ${ext})
     set_target_properties("sip_${MODULE_TARGET}" PROPERTIES OUTPUT_NAME "${MODULE_TARGET}")
-
-    # Make sure all rpaths are set from the INTERFACE target
-    get_target_property(_SKIP_BUILD_RPATH ${MODULE_TARGET} SKIP_BUILD_RPATH)
-    set_target_properties("sip_${MODULE_TARGET}" PROPERTIES SKIP_BUILD_RPATH "${_SKIP_BUILD_RPATH}")
-    get_target_property(_BUILD_WITH_INSTALL_RPATH ${MODULE_TARGET} BUILD_WITH_INSTALL_RPATH)
-    set_target_properties("sip_${MODULE_TARGET}" PROPERTIES BUILD_WITH_INSTALL_RPATH "${_BUILD_WITH_INSTALL_RPATH}")
-    get_target_property(_INSTALL_RPATH_USE_LINK_PATH ${MODULE_TARGET} INSTALL_RPATH_USE_LINK_PATH)
-    set_target_properties("sip_${MODULE_TARGET}" PROPERTIES INSTALL_RPATH_USE_LINK_PATH "${_INSTALL_RPATH_USE_LINK_PATH}")
-    get_target_property(_MACOSX_RPATH ${MODULE_TARGET} MACOSX_RPATH)
-    set_target_properties("sip_${MODULE_TARGET}" PROPERTIES MACOSX_RPATH "${_MACOSX_RPATH}")
-    get_target_property(_INSTALL_RPATH ${MODULE_TARGET} INSTALL_RPATH)
-    set_target_properties("sip_${MODULE_TARGET}" PROPERTIES INSTALL_RPATH "${_INSTALL_RPATH}")
-
-    # Add the custom command to (re-)generate the files and mark them as dirty. This allows the user to actually work
-    # on the sip definition files without having to reconfigure the complete project.
-    if (NOT DEFINED PYTHONPATH)
-        set(PYTHONPATH "")
-    endif ()
-    add_custom_command(
-            TARGET "sip_${MODULE_TARGET}"
-            COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=${PYTHONPATH}${env_path_sep}$ENV{PYTHONPATH}${env_path_sep}${CMAKE_CURRENT_BINARY_DIR}" ${SIP_BUILD_EXECUTABLE} ${SIP_ARGS}
-            COMMAND ${CMAKE_COMMAND} -E touch ${_sip_output_files}
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/
-            MAIN_DEPENDENCY ${MODULE_SIP}
-            DEPENDS ${sip_sources}
-            VERBATIM
-    )
 
     set_target_properties("sip_${MODULE_TARGET}"
             PROPERTIES

@@ -20,7 +20,7 @@ class ArcusConan(ConanFile):
     revision_mode = "scm"
     exports = "LICENSE*"
 
-    python_requires = "umbase/0.1@ultimaker/testing"
+    python_requires = "umbase/0.1@ultimaker/testing", "sipbuildtool/0.1@ultimaker/testing"
     python_requires_extend = "umbase.UMBaseConanfile"
 
     options = {
@@ -63,7 +63,6 @@ class ArcusConan(ConanFile):
             self.options["mpdecimal"].cxx = True
             self.options["mpdecimal"].shared = False
             self.options["libffi"].shared = False
-            self.options["sip"].python_version = self.deps_cpp_info['cpython'].version
 
     def validate(self):
         if self.settings.compiler.get_safe("cppstd"):
@@ -81,6 +80,10 @@ class ArcusConan(ConanFile):
 
         tc.variables["BUILD_PYTHON"] = self.options.build_python
         if self.options.build_python:
+            sip = self.python_requires["sipbuildtool"].module.SipBuildTool(self)
+            sip.configure()
+            sip.generate("pyArcus")
+
             tc.variables["Python_EXECUTABLE"] = self.deps_user_info["cpython"].python
             tc.variables["Python_USE_STATIC_LIBS"] = not self.options["cpython"].shared
             tc.variables["Python_ROOT_DIR"] = self.deps_cpp_info["cpython"].rootpath
