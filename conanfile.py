@@ -58,11 +58,12 @@ class ArcusConan(ConanFile):
 
     def configure(self):
         self.options["*"].shared = True
-        if self.settings.os == "Windows":
+        if self.settings.os == "Windows" and self.options.build_python:
             # Needed to compile CPython on Windows with our configuration for Visual Studio
             self.options["mpdecimal"].cxx = True
             self.options["mpdecimal"].shared = False
             self.options["libffi"].shared = False
+            self.options["sip"].python_version = self.deps_cpp_info['cpython'].version
 
     def validate(self):
         if self.settings.compiler.get_safe("cppstd"):
