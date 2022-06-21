@@ -9,14 +9,26 @@ requirements:
         - "protobuf/3.17.1"
 requirements_pyarcus:
     "None":
-        - "cpython/3.10.4@ultimaker/testing"
+        - "cpython/3.10.4"
         - "zlib/1.2.12"
+        - "mpdecimal/2.5.1"
+        - "tcl/8.6.10"
+        - "tk/8.6.10"
     "5.1.0":
-        - "cpython/3.10.4@ultimaker/testing"
+        - "cpython/3.10.4"
         - "zlib/1.2.12"
+        - "mpdecimal/2.5.1"
+        - "tcl/8.6.10"
+        - "tk/8.6.10"
     "5.1.0-beta":
-        - "cpython/3.10.4@ultimaker/testing"
+        - "cpython/3.10.4"
         - "zlib/1.2.12"
+        - "mpdecimal/2.5.1"
+        - "tcl/8.6.10"
+        - "tk/8.6.10"
     "5.1.0-cura_9365":
-        - "cpython/3.10.4@ultimaker/testing"
+        - "cpython/3.10.4"
         - "zlib/1.2.12"
+        - "mpdecimal/2.5.1"
+        - "tcl/8.6.10"
+        - "tk/8.6.10"

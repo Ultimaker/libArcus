@@ -76,6 +76,7 @@ class ArcusConan(ConanFile):
         tc.variables["BUILD_PYTHON"] = self.options.build_python
         if self.options.build_python:
             sip = self.python_requires["sipbuildtool"].module.SipBuildTool(self)
+            # sip.configure(python_interpreter = self.deps_user_info["cpython"].python)
             sip.configure()
             sip.generate("pyArcus")
 
