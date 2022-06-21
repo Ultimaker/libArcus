@@ -31,9 +31,9 @@ on:
         branches:
             - main
             - 'CURA-*'
-            - '[\d]+.[\d]+'
+            - '[1-9]+.[-0-9]+'
         tags:
-            - '[\d]+.[\d]+'
+            - '[1-9]+.[0-9]+.[0-9]+'
 
     pull_request:
         paths:
@@ -49,7 +49,7 @@ on:
             - 'GitVersion.yml'
         branches:
             - main
-            - '[\d]+.[\d]+'
+            - '[1-9]+.[-0-9]+'
 
 jobs:
     conan-recipe-version:
