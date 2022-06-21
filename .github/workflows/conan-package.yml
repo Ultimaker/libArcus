@@ -18,36 +18,37 @@ name: conan-package
 on:
     push:
         paths:
-        - 'src/**'
-        - 'python/**'
-        - 'test_package/**'
-        - 'pyarcus_include/**'
-        - 'cmake/**'
-        - 'acrus_include/**'
-        - 'conanfile.py'
-        - 'CMakeLists.txt'
-        - '.github/workflows/conan-package.yml'
-        - 'GitVersion.yml'
+            - 'src/**'
+            - 'python/**'
+            - 'test_package/**'
+            - 'pyarcus_include/**'
+            - 'cmake/**'
+            - 'acrus_include/**'
+            - 'conanfile.py'
+            - 'CMakeLists.txt'
+            - '.github/workflows/conan-package.yml'
+            - 'GitVersion.yml'
         branches:
-        - main
-        - 'CURA-*'
+            - main
+            - 'CURA-*'
+            - '^[\d]+.[\d]+$'
         tags:
-        - '![1-4].[0-9]+*'
+            - '^[\d]+.[\d]+$'
 
     pull_request:
         paths:
-        - 'src/**'
-        - 'python/**'
-        - 'test_package/**'
-        - 'pyarcus_include/**'
-        - 'cmake/**'
-        - 'acrus_include/**'
-        - 'conanfile.py'
-        - 'CMakeLists.txt'
-        - '.github/workflows/conan-package.yml'
-        - 'GitVersion.yml'
+            - 'src/**'
+            - 'python/**'
+            - 'test_package/**'
+            - 'pyarcus_include/**'
+            - 'cmake/**'
+            - 'acrus_include/**'
+            - 'conanfile.py'
+            - 'CMakeLists.txt'
+            - '.github/workflows/conan-package.yml'
+            - 'GitVersion.yml'
         branches:
-        - main
+            - main
 
 jobs:
     conan-recipe-version:
@@ -79,7 +80,6 @@ jobs:
             python_version: '3.10.4'
             conan_config_branch: 'CURA-9177_Fix_CI_CD'
             conan_logging_level: 'info'
-            conan_clean_local_cache: true
         secrets: inherit
 
     conan-package-create-windows:
@@ -94,7 +94,6 @@ jobs:
             python_version: '3.10.4'
             conan_config_branch: 'CURA-9177_Fix_CI_CD'
             conan_logging_level: 'info'
-            conan_clean_local_cache: true
         secrets: inherit
 
     conan-package-create-linux:
@@ -109,7 +108,6 @@ jobs:
             python_version: '3.10.4'
             conan_config_branch: 'CURA-9177_Fix_CI_CD'
             conan_logging_level: 'info'
-            conan_clean_local_cache: true
         secrets: inherit
 
     notify:
