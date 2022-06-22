@@ -15,8 +15,8 @@ branches:
         pre-release-weight: 55000
     develop:
         regex: ^CURA-.*$
-        mode: alpha
-        tag: useBranchName
+        mode: ContinuousDelivery
+        tag: alpha
         increment: None
         prevent-increment-of-merged-branch-version: false
         track-merge-target: true
