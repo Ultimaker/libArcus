@@ -29,6 +29,7 @@ on:
             - '.github/workflows/conan-package.yml'
             - 'GitVersion.yml'
             - 'conandata.yml'
+            - '.gitattributes'
         branches:
             - main
             - 'CURA-*'
@@ -48,6 +49,7 @@ on:
             - '.github/workflows/conan-package.yml'
             - 'GitVersion.yml'
             - 'conandata.yml'
+            - '.gitattributes'
         branches:
             - main
 
