@@ -117,8 +117,9 @@ jobs:
             failure_body: "Failed to exported ${{ needs.conan-recipe-version.outputs.recipe_id_full }}"
         secrets: inherit
 
-    notify:
-        if: ${{ always() }}
+    notify-create:
+        # FIXME: For release branches: maybe rename the branch to release/**
+        if: ${{ always() && ((github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == '5.1')) || (github.event_name == 'workflow_dispatch' && inputs.create_binaries_linux)) }}
         needs: [ conan-package-create-macos, conan-package-create-windows, conan-package-create-linux ]
 
         uses: ultimaker/cura/.github/workflows/notify.yml@CURA-9365_fix_building_cura_main
