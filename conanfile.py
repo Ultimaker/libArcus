@@ -52,12 +52,7 @@ class ArcusConan(ConanFile):
             del self.options.fPIC
 
     def configure(self):
-        self.options["*"].shared = True
-        if self.settings.os == "Windows" and self.options.build_python:
-            # Needed to compile CPython on Windows with our configuration for Visual Studio
-            self.options["mpdecimal"].cxx = True
-            self.options["mpdecimal"].shared = False
-            self.options["libffi"].shared = False
+        self.options["protobuf"].shared = True
 
     def validate(self):
         if self.settings.compiler.get_safe("cppstd"):
@@ -76,8 +71,7 @@ class ArcusConan(ConanFile):
         tc.variables["BUILD_PYTHON"] = self.options.build_python
         if self.options.build_python:
             sip = self.python_requires["sipbuildtool"].module.SipBuildTool(self)
-            # sip.configure(python_interpreter = self.deps_user_info["cpython"].python)
-            sip.configure()
+            sip.configure(python_interpreter = self.deps_user_info["cpython"].python)
             sip.generate("pyArcus")
 
             tc.variables["Python_EXECUTABLE"] = self.deps_user_info["cpython"].python

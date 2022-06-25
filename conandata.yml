@@ -4,33 +4,21 @@
     requirements_pyarcus:
         - "cpython/3.10.4"
         - "zlib/1.2.12"
-        - "mpdecimal/2.5.0"
-        - "tcl/8.6.10"
-        - "tk/8.6.10"
 "5.1.0":
     requirements:
         - "protobuf/3.17.1"
     requirements_pyarcus:
         - "cpython/3.10.4"
         - "zlib/1.2.12"
-        - "mpdecimal/2.5.0"
-        - "tcl/8.6.10"
-        - "tk/8.6.10"
 "5.1.0-beta":
     requirements:
         - "protobuf/3.17.1"
     requirements_pyarcus:
         - "cpython/3.10.4"
         - "zlib/1.2.12"
-        - "mpdecimal/2.5.0"
-        - "tcl/8.6.10"
-        - "tk/8.6.10"
 "5.1.0-alpha":
     requirements:
         - "protobuf/3.17.1"
     requirements_pyarcus:
         - "cpython/3.10.4"
         - "zlib/1.2.12"
-        - "mpdecimal/2.5.0"
-        - "tcl/8.6.10"
-        - "tk/8.6.10"
