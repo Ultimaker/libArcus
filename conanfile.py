@@ -53,6 +53,7 @@ class ArcusConan(ConanFile):
 
     def configure(self):
         self.options["protobuf"].shared = True
+        self.options["cpython"].shared = True
 
     def validate(self):
         if self.settings.compiler.get_safe("cppstd"):
