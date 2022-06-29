@@ -171,6 +171,6 @@ class ArcusConan(ConanFile):
     def package_info(self):
         if self.options.build_python:
             if self.in_local_cache:
-                self.runenv_info.append_path("PYTHONPATH", self.cpp_info.components["pyarcus"].libdirs[0])
+                self.runenv_info.append_path("PYTHONPATH", self.cpp_info.components["pyarcus"].lib_paths[0])
             else:
                 self.runenv_info.append_path("PYTHONPATH", self.build_folder)
