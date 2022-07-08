@@ -36,42 +36,29 @@ http://www.gnu.org/licenses/agpl.html
 > and pip to manage our dependencies, which are stored on our JFrog Artifactory server and in the pypi.org.
 > At the moment not everything is fully ported yet, so bare with us.
 
-Follow the instructions below setup your development environment.  
-_requirements: Python 3.6+ (3.10.4 is recommended since Cura 5.+ uses that one), gcc 9+ (Linux), VS2019+ (Windows),
-apple-clang 11+ (MacOS), CMake 3.20+ (optional), Ninja 1.10+ (optional), make (Linux, MacOS), nmake (Windows), sip
-(optional)_
+If you want to develop Cura with Arcus see the Cura Wiki: [Running Cura from source](https://github.com/Ultimaker/Cura/wiki/Running-Cura-from-Source)
 
 If you have never used [Conan](https://conan.io/) read their [documentation](https://docs.conan.io/en/latest/index.html)
 which is quite extensive and well maintained. Conan is a Python program and can be installed using pip
 
-```shell
-pip install conan
+```bash
+pip install conan --upgrade
+conan config install https://github.com/ultimaker/conan-config.git
+conan profile new default --detect
 ```
 
-> **IMPORTANT**  
-> Ultimaker has its own Conan config repository; which ensures that the correct compiler
-> settings and Conan remotes are used. Although you could use your own Conan configuration and profiles it might be
-> easier to use the Conan configuration which Ultimaker uses. This can be installed with the following command:
-> ```shell
-> conan profile new default --detect  # This should create a default profile with the system detected standard compiler
-> conan config install https://github.com/ultimaker/conan-config.git  # This will install our profiles, settinsg and remotes
-> ```
-
-As mentioned in the notes above we use our own JFrog Artifactory server, so make sure you add this server tou your Conan
-remotes. **This step is not necessary if you use our supplied Conan configuration.**
-
-```shell
-conan remote add ultimaker https://peer23peer.jfrog.io/artifactory/api/conan/cura-conan True 
+**Community developers would have to remove the Conan `cura` repository because that one requires credentials.**
+```bash
+conan remote remove cura
 ```
 
 ### pyArcus python module (optional)
 
-This repository also contains a Python module named pyArcus. To build it [sip](https://pypi.org/project/sip/)==6.5.1
-needs to be installed in the current `site-packages`. This can be done with:
-
-```shell
-python -m pip install sip==6.5.1
-```
+This repository also contains a Python module named pyArcus. To build it [sip](https://pypi.org/project/sip/) 6.5.1
+needs to be used to generate the C/C++ source code. We created a build tool for this called [sipbuildtool](https://github.com/Ultimaker/conan-ultimaker-index/recipes/sipbuildtool/conanfile.py)
+which is automatically installed when you run the `conan install` command. This will set up a temporary virtual Python environment, install
+sip and generated the C/C++ source code. The virtual Python environment is then removed. Downside of this method is that Conan should be
+installed with the system Python, not the virtual Python environment.
 
 #### usage
 
@@ -89,68 +76,39 @@ install the dependencies for Arcus. Executed in the root directory of Arcus.
 #### Release build type
 
 ```shell
-conan install . -pr:b cura_build.jinja -pr:h cura_release.jinja --build=missing
+conan install . --build=missing --update
 cd cmake-build-release
-cmake --toolchain=generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release ..
-cmake --build .
-```
-
-Conan can also provide the build tools, such as CMake and Ninja. This can handy if your current system package manager
-doesn't have the minimum required versions available. We can use these if we use the
-[VirtualBuildEnv](https://docs.conan.io/en/latest/reference/conanfile/tools/env/virtualbuildenv.html) generator and
-activate that build environement during building
-
-```shell
-# for Linux/MacOS
-conan install . -pr:b cura_build.jinja -pr:h cura_release.jinja --build=missing -g VirtualBuildEnv
-cd cmake-build-release
-. generators/conanbuild.sh
-cmake --toolchain=generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release -G "Ninja" ..
-cmake --build .
-```
-
-```shell
-# for Windows
-conan install . -pr:b cura_build.jinja -pr:h cura_release.jinja --build=missing -g VirtualBuildEnv
-cd cmake-build-release
-generators\conanbuild.bat
-cmake --toolchain=build\generators\conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release -G "Ninja" ..
+cmake --toolchain=conan/conan_toolchain.cmake ..
 cmake --build .
 ```
 
 #### Debug build type
 
-Use the same instructions as above, but replace the host profile with cura_release.jinja for the conan install command
-`-pr:h cura_debug.jinja`
+Use the same instructions as above, but pass the `-s build_type=Debug` flag to the `conan install` command.
 
 ```shell
-conan install . -pr:b cura_build.jinja -pr:h cura_debug.jinja --build=missing
+conan install . --build=missing --update -s build_type=Debug
 cd cmake-build-debug
-cmake --toolchain=generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake --toolchain=conan/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Debug ..
 cmake --build .
 ```
 
-Conan can also provide the build tools, such as CMake and Ninja. This can handy if your current system package manager
-doesn't have the minimum required versions available. We can use these if we use the
-[VirtualBuildEnv](https://docs.conan.io/en/latest/reference/conanfile/tools/env/virtualbuildenv.html) generator and
-activate that build environement during building
+## Creating a new Arcus Conan package
+
+To create a new Arcus Conan package such that it can be used in Cura and CuraEngine, run the following command:
 
 ```shell
-# for Linux/MacOS
-conan install . -pr:b cura_build.jinja -pr:h cura_debug.jinja --build=missing -g VirtualBuildEnv
-cd cmake-build-debug
-. generators/conanbuild.sh
-cmake --toolchain=generators/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Debug -G "Ninja" ..
-cmake --build .
+conan create . arcus/<version>@<username>/<channel> --build=missing --update
 ```
 
+This package will be stored in the local Conan cache (`~/.conan/data` or `C:\Users\username\.conan\data` ) and can be used in downstream
+projects, such as Cura and CuraEngine by adding it as a requirement in the `conanfile.py` or in `conandata.yml` if that project is set up
+in such a way. You can also specify the override at the commandline, to use the newly created package, when you execute the `conan install`
+command in the root of the consuming project, with:
+
+
 ```shell
-# for Windows
-conan install . -pr:b cura_build.jinja -pr:h cura_debug.jinja --build=missing -g VirtualBuildEnv
-cd cmake-build-debug
-generators\conanbuild.bat
-cmake --toolchain=build\generators\conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Debug -G "Ninja" ..
-cmake --build .
+conan install . -build=missing --update --require-override=arcus/<version>@<username>/<channel>
 ```
 
 ## Dependencies
