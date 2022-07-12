@@ -33,6 +33,7 @@ on:
             - 'conanfile.py'
             - 'CMakeLists.txt'
             - '.github/workflows/conan-package.yml'
+            - '.github/workflows/requirements*'
             - 'GitVersion.yml'
             - 'conandata.yml'
             - '.gitattributes'
