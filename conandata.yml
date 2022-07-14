@@ -10,15 +10,3 @@
     requirements_pyarcus:
         - "cpython/3.10.4"
         - "zlib/1.2.12"
-"5.1.0-beta":
-    requirements:
-        - "protobuf/3.17.1"
-    requirements_pyarcus:
-        - "cpython/3.10.4"
-        - "zlib/1.2.12"
-"5.1.0-alpha":
-    requirements:
-        - "protobuf/3.17.1"
-    requirements_pyarcus:
-        - "cpython/3.10.4"
-        - "zlib/1.2.12"
