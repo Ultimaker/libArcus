@@ -41,10 +41,11 @@ class ArcusConan(ConanFile):
     }
 
     def requirements(self):
-        for req in self._um_data(self.version, self.channel)["requirements"]:
+        channel = "" if not self.channel else self.channel
+        for req in self._um_data(self.version, channel)["requirements"]:
             self.requires(req)
         if self.options.build_python:
-            for req in self._um_data(self.version, self.channel)["requirements_pyarcus"]:
+            for req in self._um_data(self.version, channel)["requirements_pyarcus"]:
                 self.requires(req)
 
     def config_options(self):
