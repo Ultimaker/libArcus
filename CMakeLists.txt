@@ -5,7 +5,7 @@ include(cmake/StandardProjectSettings.cmake)
 
 option(BUILD_PYTHON "Build Python bindings for this library" ON)
 
-find_package(Protobuf 3.17.1 REQUIRED)
+find_package(protobuf 3.17.1 REQUIRED)
 
 set(arcus_SRCS
     src/Socket.cpp
