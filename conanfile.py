@@ -81,7 +81,7 @@ class ArcusConan(ConanFile):
         self.cpp.build.bindirs = ["."]
 
         self.cpp.package.includedirs = ["include"]
-        self.cpp.package.libs = ["libArcus"]
+        self.cpp.package.libs = ["Arcus"]
         self.cpp.package.libdirs = ["lib"]
         self.cpp.package.bindirs = ["bin"]
         self.cpp.package.requires = ["protobuf::protobuf"]
