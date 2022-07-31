@@ -144,6 +144,10 @@ bool Arcus::MessageTypeStore::registerMessageType(const google::protobuf::Messag
         return false;
     }
 
+#ifdef ARCUS_DEBUG
+    std::cerr << "'Manually' adding message type: " << message_type->GetTypeName() << " = " << type_id << std::endl;
+#endif // ARCUS_DEBUG
+
     d->message_types[type_id] = message_type;
     d->message_type_mapping[message_type->GetDescriptor()] = type_id;
 
@@ -152,7 +156,9 @@ bool Arcus::MessageTypeStore::registerMessageType(const google::protobuf::Messag
 
 bool Arcus::MessageTypeStore::registerAllMessageTypes(const std::string& file_name)
 {
-    std::cerr << file_name << std::endl;
+#ifdef ARCUS_DEBUG
+    std::cerr << "Reading message prototypes from: " << file_name << std::endl;
+#endif // ARCUS_DEBUG
 
     if(!d->importer)
     {
@@ -177,7 +183,9 @@ bool Arcus::MessageTypeStore::registerAllMessageTypes(const std::string& file_na
     auto descriptor = d->importer->Import(file_name);
     if(d->error_collector->getErrorCount() > 0)
     {
+#ifdef ARCUS_DEBUG
         std::cerr << d->error_collector->getAllErrors() << std::endl;
+#endif // ARCUS_DEBUG
         return false;
     }
 
@@ -189,17 +197,16 @@ bool Arcus::MessageTypeStore::registerAllMessageTypes(const std::string& file_na
     for(int i = 0; i < descriptor->message_type_count(); ++i)
     {
         auto message_type_descriptor = descriptor->message_type(i);
-
         auto message_type = d->message_factory->GetPrototype(message_type_descriptor);
-
         uint32_t type_id = hash(message_type->GetTypeName());
+#ifdef ARCUS_DEBUG
         std::cerr << message_type->GetTypeName() << ": " << type_id << std::endl;
+#endif // ARCUS_DEBUG
 
         d->message_types[type_id] = message_type;
         d->message_type_mapping[message_type_descriptor] = type_id;
     }
 
-    std::cerr << "RETURN" << std::endl;
     return true;
 }
 

@@ -101,9 +101,7 @@ bool Socket::registerAllMessageTypes(const std::string& file_name)
 
 void Socket::dumpMessageTypes()
 {
-    std::cerr << "MESSAGE TYPES:" << std::endl;
     d->message_types.dumpMessageTypes();
-    std::cerr << "---" << std::endl;
 }
 
 void Socket::addListener(SocketListener* listener)
