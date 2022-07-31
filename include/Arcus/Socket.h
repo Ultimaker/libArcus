@@ -80,6 +80,8 @@ namespace Arcus
          */
         virtual bool registerAllMessageTypes(const std::string& file_name);
 
+        virtual void dumpMessageTypes();
+
         /**
          * Add a listener object that will be notified of socket events.
          *

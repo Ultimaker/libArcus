@@ -540,7 +540,7 @@ namespace Arcus
         if(!message_types.hasType(wire_message->type))
         {
             DEBUG(std::string("Received message type: ") + std::to_string(wire_message->type));
-            error(ErrorCode::UnknownMessageTypeError, "Unknown message type");
+            error(ErrorCode::UnknownMessageTypeError, "Unknown message type " + std::to_string(wire_message->type));
             return;
         }
 
