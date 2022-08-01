@@ -13,7 +13,7 @@ on:
             conan_id:
                 required: false
                 type: string
-                description: 'The full conan package ID, e.g. "libnest2d/1.2.3@ultimaker/stable"'
+                description: 'The full conan package ID, e.g. "arcus/1.2.3@ultimaker/stable"'
             create_latest_alias:
                 required: true
                 default: false
@@ -58,7 +58,7 @@ jobs:
     conan-recipe-version:
         uses: ultimaker/cura/.github/workflows/conan-recipe-version.yml@main
         with:
-            project_name: libarcus
+            project_name: arcus
 
     conan-package-export:
         needs: [ conan-recipe-version ]

@@ -10,7 +10,7 @@ required_conan_version = ">=1.46.2"
 
 
 class ArcusConan(ConanFile):
-    name = "libarcus"
+    name = "arcus"
     license = "LGPL-3.0"
     author = "Ultimaker B.V."
     url = "https://github.com/Ultimaker/libArcus"
@@ -66,28 +66,11 @@ class ArcusConan(ConanFile):
         tc.generate()
 
     def layout(self):
-        self.folders.source = "."
-        try:
-            build_type = str(self.settings.build_type)
-        except ConanException:
-            raise ConanException("'build_type' setting not defined, it is necessary for cmake_layout()")
-        self.folders.build = f"cmake-build-{build_type.lower()}"
-        self.folders.generators = os.path.join(self.folders.build, "conan")
-
-        self.cpp.source.includedirs = ["include"]
-
-        self.cpp.build.libs = ["libArcus"]
-        self.cpp.build.libdirs = ["."]
-        self.cpp.build.bindirs = ["."]
-
-        self.cpp.package.includedirs = ["include"]
+        cmake_layout(self)
         self.cpp.package.libs = ["Arcus"]
-        self.cpp.package.libdirs = ["lib"]
-        self.cpp.package.bindirs = ["bin"]
-        self.cpp.package.requires = ["protobuf::protobuf"]
-        self.cpp.package.defines = ["ARCUS"]
+
         if self.settings.build_type == "Debug":
-            self.cpp.package.defines.append("ARCUS_DEBUG")
+            self.cpp.package.defines = ["ARCUS_DEBUG"]
         if self.settings.os in ["Linux", "FreeBSD", "Macos"]:
             self.cpp.package.system_libs = ["pthread"]
         elif self.settings.os == "Windows":
@@ -100,5 +83,4 @@ class ArcusConan(ConanFile):
 
     def package(self):
         packager = files.AutoPackager(self)
-        packager.patterns.build.lib = ["*.so", "*.so.*", "*.a", "*.lib", "*.dylib"]
         packager.run()

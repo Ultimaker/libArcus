@@ -14,28 +14,28 @@ set(arcus_SRCS
 )
 
 if(BUILD_SHARED_LIBS)
-    add_library(libArcus SHARED ${arcus_SRCS})
+    add_library(Arcus SHARED ${arcus_SRCS})
 else()
-    add_library(libArcus STATIC ${arcus_SRCS})
+    add_library(Arcus STATIC ${arcus_SRCS})
 endif()
 
-target_include_directories(libArcus
+target_include_directories(Arcus
         PUBLIC
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
         PRIVATE
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
 )
-target_link_libraries(libArcus PUBLIC protobuf::libprotobuf)
+target_link_libraries(Arcus PUBLIC protobuf::libprotobuf)
 
 if(WIN32)
-    target_compile_definitions(libArcus PRIVATE -D_WIN32_WINNT=0x0600)
+    target_compile_definitions(Arcus PRIVATE -D_WIN32_WINNT=0x0600)
     # Declare we require Vista or higher, this allows us to use IPv6 functions.
 
-    target_link_libraries(libArcus PUBLIC Ws2_32)
-    set_target_properties(libArcus PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    target_link_libraries(Arcus PUBLIC Ws2_32)
+    set_target_properties(Arcus PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
-    target_compile_definitions(libArcus PRIVATE -DARCUS_DEBUG)
+    target_compile_definitions(Arcus PRIVATE -DARCUS_DEBUG)
 endif()

@@ -1,18 +1,11 @@
-import shutil
-
-from io import StringIO
-from pathlib import Path
-
 from conan import ConanFile
 from conan.tools.cmake import CMakeToolchain, CMakeDeps, CMake
 from conan.tools.env import VirtualRunEnv
 from conans import tools
-from conans.errors import ConanException
 
 
 class ArcusTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
-    generators = "VirtualRunEnv"
 
     def generate(self):
         cmake = CMakeDeps(self)
