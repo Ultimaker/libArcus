@@ -19,6 +19,8 @@ else()
     add_library(Arcus STATIC ${arcus_SRCS})
 endif()
 
+use_threads(Arcus)
+
 target_include_directories(Arcus
         PUBLIC
             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>

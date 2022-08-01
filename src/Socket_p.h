@@ -1,6 +1,9 @@
 // Copyright (c) 2022 Ultimaker B.V.
 // libArcus is released under the terms of the LGPLv3 or higher.
 
+#ifndef SOCKET_P_H
+#define SOCKET_P_H
+
 #include <condition_variable>
 #include <deque>
 #include <iostream>
@@ -567,3 +570,5 @@ void Socket::Private::checkConnectionState()
     }
 }
 } // namespace Arcus
+
+#endif // SOCKET_P_H

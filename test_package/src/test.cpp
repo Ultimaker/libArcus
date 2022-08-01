@@ -7,7 +7,7 @@
 
 #include "test.h"
 
-constexpr int sleep_msec{ 25 };
+constexpr int sleep_msec{ 500 };
 constexpr uint16_t port{ 44444 };
 const std::string ip{ "127.0.0.1" };
 
@@ -104,10 +104,10 @@ int main(int argc, char** argv)
     std::cerr << "Connected." << std::endl;
 
     // Send a number of messages.
-    constexpr float total = 100.0;
-    constexpr float inc = 12.5;
-    constexpr int should_receive = static_cast<int>(total / inc);
-    for (float progress = 0.0; progress <= total; progress += inc)
+    constexpr int total = 10;
+    constexpr int inc = 2;
+    constexpr int should_receive = total / inc;
+    for (int progress = 1; progress <= total; progress += inc)
     {
         auto message = std::make_shared<test::proto::Progress>();
         message->set_amount(progress);
@@ -118,5 +118,7 @@ int main(int argc, char** argv)
     }
 
     // Check result.
+    std::cout << num_messages_received << std::endl;
+    std::cout << should_receive << std::endl;
     return num_messages_received == should_receive ? 0 : 1;
 }

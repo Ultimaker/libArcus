@@ -4,5 +4,5 @@ package test.proto;
 
 message Progress
 {
-    float amount = 1;
+    int32 amount = 1;
 }

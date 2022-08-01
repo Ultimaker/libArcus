@@ -1,10 +1,7 @@
-import os
-
 from conan.tools.cmake import CMakeToolchain, CMakeDeps, CMake, cmake_layout
 from conan.tools import files
 from conan import ConanFile
 from conans import tools
-from conans.errors import ConanException
 
 required_conan_version = ">=1.46.2"
 
