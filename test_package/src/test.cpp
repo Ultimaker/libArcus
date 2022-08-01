@@ -7,25 +7,27 @@
 
 #include "test.h"
 
-constexpr int sleep_msec{25};
-constexpr uint16_t port{44444};
-const std::string ip{"127.0.0.1"};
+constexpr int sleep_msec{ 25 };
+constexpr uint16_t port{ 44444 };
+const std::string ip{ "127.0.0.1" };
 
 int num_messages_received = 0;
 
 class Listener : public Arcus::SocketListener
 {
 public:
-	Listener() : Arcus::SocketListener(), id(++PREV_ID) {}
+    Listener() : Arcus::SocketListener(), id(++PREV_ID)
+    {
+    }
 
     void stateChanged(Arcus::SocketState state) override
     {
-        std::cerr << id << " SocketState: " <<  static_cast<int>(state) << std::endl;
+        std::cerr << id << " SocketState: " << static_cast<int>(state) << std::endl;
     }
 
     void messageReceived() override
     {
-		++num_messages_received;
+        ++num_messages_received;
         std::cerr << id << " MesageReceived" << std::endl;
     }
 
@@ -35,19 +37,19 @@ public:
     }
 
 private:
-	int id;
-	inline static int PREV_ID = -1;
+    int id;
+    inline static int PREV_ID = -1;
 };
 
 Arcus::Socket* newSocket()
 {
-	auto socket = new Arcus::Socket;
+    auto socket = new Arcus::Socket;
     socket->registerMessageType(&test::proto::Progress::default_instance());
 #ifdef ARCUS_DEBUG
     socket->dumpMessageTypes();
-#endif //ARCUS_DEBUG
-	socket->addListener(new Listener);
-	return socket;
+#endif // ARCUS_DEBUG
+    socket->addListener(new Listener);
+    return socket;
 }
 
 Arcus::Socket* connectSend()
@@ -62,13 +64,12 @@ Arcus::Socket* connectSend()
         std::this_thread::sleep_for(std::chrono::milliseconds(sleep_msec));
 
         socket_state = socket->getState();
-    }
-    while (socket_state != Arcus::SocketState::Connected && socket_state != Arcus::SocketState::Error);
+    } while (socket_state != Arcus::SocketState::Connected && socket_state != Arcus::SocketState::Error);
 
-    if(socket_state != Arcus::SocketState::Connected)
+    if (socket_state != Arcus::SocketState::Connected)
     {
-		//socket->close();
-		//delete socket;  // --> FIXME?: Something goes wrong here, even when closed.
+        // socket->close();
+        // delete socket;  // --> FIXME?: Something goes wrong here, even when closed.
         return nullptr;
     }
 
@@ -77,9 +78,9 @@ Arcus::Socket* connectSend()
 
 void receive()
 {
-	std::cerr << "Start reviever." << std::endl;
-	auto socket_a = newSocket();
-	socket_a->listen(ip, port);	
+    std::cerr << "Start reviever." << std::endl;
+    auto socket_a = newSocket();
+    socket_a->listen(ip, port);
 }
 
 int main(int argc, char** argv)
@@ -90,10 +91,10 @@ int main(int argc, char** argv)
     std::cerr << "Tests For Arcus -- debug\n";
 #endif
 
-	// Start thread to receive.
-	receive();
+    // Start thread to receive.
+    receive();
 
-	// Send messages to other thread via protobuf.
+    // Send messages to other thread via protobuf.
     auto socket = connectSend();
     if (socket == nullptr)
     {
@@ -102,13 +103,13 @@ int main(int argc, char** argv)
     }
     std::cerr << "Connected." << std::endl;
 
-	// Send a number of messages.
-	constexpr float total = 100.0;
-	constexpr float inc = 12.5;
-	constexpr int should_receive = static_cast<int>(total / inc);
-    for(float progress = 0.0; progress <= total; progress += inc)
+    // Send a number of messages.
+    constexpr float total = 100.0;
+    constexpr float inc = 12.5;
+    constexpr int should_receive = static_cast<int>(total / inc);
+    for (float progress = 0.0; progress <= total; progress += inc)
     {
-		auto message = std::make_shared<test::proto::Progress>();
+        auto message = std::make_shared<test::proto::Progress>();
         message->set_amount(progress);
         socket->sendMessage(message);
 
@@ -116,6 +117,6 @@ int main(int argc, char** argv)
         std::this_thread::sleep_for(std::chrono::milliseconds(sleep_msec));
     }
 
-	// Check result.
+    // Check result.
     return num_messages_received == should_receive ? 0 : 1;
 }

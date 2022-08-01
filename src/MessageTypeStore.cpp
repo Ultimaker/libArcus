@@ -1,29 +1,14 @@
-/*
- * This file is part of libArcus
- *
- * Copyright (C) 2016 Ultimaker b.v. <a.hiemstra@ultimaker.com>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License v3.0 as published
- * by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License v3.0 for more details.
- * You should have received a copy of the GNU Lesser General Public License v3.0
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- */
+// Copyright (c) 2022 Ultimaker B.V.
+// libArcus is released under the terms of the LGPLv3 or higher.
 
 #include "Arcus/MessageTypeStore.h"
 
-#include <unordered_map>
-#include <sstream>
 #include <iostream>
+#include <sstream>
+#include <unordered_map>
 
-#include <google/protobuf/dynamic_message.h>
 #include <google/protobuf/compiler/importer.h>
+#include <google/protobuf/dynamic_message.h>
 
 using namespace Arcus;
 
@@ -39,7 +24,7 @@ uint32_t hash(const std::string& input)
     const char* data = input.c_str();
     uint32_t length = input.size();
     uint32_t result = static_cast<uint32_t>(2166136261UL);
-    for(; length; --length)
+    for (; length; --length)
     {
         result ^= static_cast<uint32_t>(*data++);
         result *= static_cast<uint32_t>(16777619UL);
@@ -50,7 +35,9 @@ uint32_t hash(const std::string& input)
 class ErrorCollector : public google::protobuf::compiler::MultiFileErrorCollector
 {
 public:
-    ErrorCollector() : _error_count(0) { }
+    ErrorCollector() : _error_count(0)
+    {
+    }
 
     void AddError(const std::string& filename, int line, int column, const std::string& message) override
     {
@@ -95,7 +82,7 @@ Arcus::MessageTypeStore::~MessageTypeStore()
 
 bool Arcus::MessageTypeStore::hasType(uint32_t type_id) const
 {
-    if(d->message_types.find(type_id) != d->message_types.end())
+    if (d->message_types.find(type_id) != d->message_types.end())
     {
         return true;
     }
@@ -111,7 +98,7 @@ bool Arcus::MessageTypeStore::hasType(const std::string& type_name) const
 
 MessagePtr Arcus::MessageTypeStore::createMessage(uint32_t type_id) const
 {
-    if(!hasType(type_id))
+    if (! hasType(type_id))
     {
         return MessagePtr();
     }
@@ -139,7 +126,7 @@ bool Arcus::MessageTypeStore::registerMessageType(const google::protobuf::Messag
 {
     uint32_t type_id = hash(message_type->GetTypeName());
 
-    if(hasType(type_id))
+    if (hasType(type_id))
     {
         return false;
     }
@@ -160,28 +147,28 @@ bool Arcus::MessageTypeStore::registerAllMessageTypes(const std::string& file_na
     std::cerr << "Reading message prototypes from: " << file_name << std::endl;
 #endif // ARCUS_DEBUG
 
-    if(!d->importer)
+    if (! d->importer)
     {
         d->error_collector = std::make_shared<ErrorCollector>();
         d->source_tree = std::make_shared<google::protobuf::compiler::DiskSourceTree>();
-        #ifndef _WIN32
-            d->source_tree->MapPath("/", "/");
-        #else
-            // Because of silly DiskSourceTree, we need to make sure absolute paths to
-            // the protocol file are properly mapped.
-            for(auto letter : std::string("abcdefghijklmnopqrstuvwxyz"))
-            {
-                std::string lc(1, letter);
-                std::string uc(1, toupper(letter));
-                d->source_tree->MapPath(lc + ":/", lc + ":\\");
-                d->source_tree->MapPath(uc + ":/", uc + ":\\");
-            }
-        #endif
+#ifndef _WIN32
+        d->source_tree->MapPath("/", "/");
+#else
+        // Because of silly DiskSourceTree, we need to make sure absolute paths to
+        // the protocol file are properly mapped.
+        for (auto letter : std::string("abcdefghijklmnopqrstuvwxyz"))
+        {
+            std::string lc(1, letter);
+            std::string uc(1, toupper(letter));
+            d->source_tree->MapPath(lc + ":/", lc + ":\\");
+            d->source_tree->MapPath(uc + ":/", uc + ":\\");
+        }
+#endif
         d->importer = std::make_shared<google::protobuf::compiler::Importer>(d->source_tree.get(), d->error_collector.get());
     }
 
     auto descriptor = d->importer->Import(file_name);
-    if(d->error_collector->getErrorCount() > 0)
+    if (d->error_collector->getErrorCount() > 0)
     {
 #ifdef ARCUS_DEBUG
         std::cerr << d->error_collector->getAllErrors() << std::endl;
@@ -189,12 +176,12 @@ bool Arcus::MessageTypeStore::registerAllMessageTypes(const std::string& file_na
         return false;
     }
 
-    if(!d->message_factory)
+    if (! d->message_factory)
     {
         d->message_factory = std::make_shared<google::protobuf::DynamicMessageFactory>();
     }
 
-    for(int i = 0; i < descriptor->message_type_count(); ++i)
+    for (int i = 0; i < descriptor->message_type_count(); ++i)
     {
         auto message_type_descriptor = descriptor->message_type(i);
         auto message_type = d->message_factory->GetPrototype(message_type_descriptor);
@@ -212,7 +199,7 @@ bool Arcus::MessageTypeStore::registerAllMessageTypes(const std::string& file_na
 
 void Arcus::MessageTypeStore::dumpMessageTypes()
 {
-    for(auto type : d->message_types)
+    for (auto type : d->message_types)
     {
         std::cout << "Type ID: " << type.first << " Type Name: " << type.second->GetTypeName() << std::endl;
     }
