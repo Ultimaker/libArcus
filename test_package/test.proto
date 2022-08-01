@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package test.proto;
+
+message Progress
+{
+    int32 amount = 1;
+}

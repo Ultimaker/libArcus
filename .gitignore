@@ -79,3 +79,6 @@ nbproject/*
 /conanbuildinfo.txt
 /conaninfo.txt
 /graph_info.json
+
+*.bak
+.vs/

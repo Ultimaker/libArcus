@@ -17,7 +17,7 @@
         <img src="https://img.shields.io/github/license/ultimaker/libarcus?style=flat" /></a>
 </p>
 
-This library contains C++ code and Python bindings for creating a socket in a thread and using this socket to send and receive messages
+This library contains C++ code for creating a socket in a thread and using this socket to send and receive messages
 based on the Protocol Buffers library. It is designed to facilitate the communication between Cura and its backend and similar code.
 
 ## License
@@ -52,22 +52,7 @@ conan profile new default --detect
 conan remote remove cura
 ```
 
-### pyArcus python module (optional)
-
-This repository also contains a Python module named pyArcus. To build it [sip](https://pypi.org/project/sip/) 6.5.1
-needs to be used to generate the C/C++ source code. We created a build tool for this called [sipbuildtool](https://github.com/Ultimaker/conan-ultimaker-index/recipes/sipbuildtool/conanfile.py)
-which is automatically installed when you run the `conan install` command. This will set up a temporary virtual Python environment, install
-sip and generated the C/C++ source code. The virtual Python environment is then removed. Downside of this method is that Conan should be
-installed with the system Python, not the virtual Python environment.
-
-#### usage
-
-```python
-import pyArcus
-socket = pyArcus.Socket()
-```
-
-### Building Arcus and pyArcus
+### Building Arcus
 
 The steps above should be enough to get your system in such a state you can start development on Arcus. If you want
 to use your own system provided CMake and CMake generators, such as: Ninja, Make, NMake use the following steps to
@@ -149,7 +134,7 @@ Declare these generators in your **conanfile.txt** along with your **arcus** dep
 
 ```ini
 [requires]
-arcus/latest6@ultimaker/stable
+arcus/(latest)@ultimaker/stable
 
 [generators]
 CMakeDeps
@@ -209,9 +194,7 @@ $ cmake --build . --config Release
 As the arcus Conan package defines components you can link only that desired part of the library in your project. For example, linking only with the arcus **libarcus** component, through the **arcus::libarcus** target.
 
 ```cmake
-...
-# Link just to arcus libarcus component
-target_link_libraries(${PROJECT_NAME} arcus::libarcus)
+target_link_libraries(${PROJECT_NAME} arcus::arcus)
 ```
 
 <br>
