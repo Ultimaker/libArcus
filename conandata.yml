@@ -1,9 +1,9 @@
 "None":
     requirements:
-        - "protobuf/3.17.1"
+        - "protobuf/3.21.4"
 "5.1.0":
     requirements:
-        - "protobuf/3.17.1"
+        - "protobuf/3.21.4"
 "5.2.0":
     requirements:
-        - "protobuf/3.17.1"
+        - "protobuf/3.21.4"
