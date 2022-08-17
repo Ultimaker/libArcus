@@ -29,66 +29,101 @@ http://www.gnu.org/licenses/agpl.html
 > But in general it boils down to:  
 > **You need to share the source of any Arcus modifications if you make an application with Arcus.**
 
-## How to build
+## System Requirements
+
+### Windows
+- Python 3.6 or higher
+- Ninja 1.10 or higher
+- VS2022 or higher
+- CMake 3.23 or higher
+- nmake
+- protobuf
+- zlib
+
+### MacOs
+- Python 3.6 or higher
+- Ninja 1.10 or higher
+- apply clang 11 or higher
+- CMake 3.23 or higher
+- make
+- protobuf
+- zlib
+
+### Linux
+- Python 3.6 or higher
+- Ninja 1.10 or higher
+- gcc 12 or higher
+- CMake 3.23 or higher
+- make
+- protobuf
+- zlib
+
+
+## How To Build
 
 > **Note:**  
 > We are currently in the process of switch our builds and pipelines to an approach which uses [Conan](https://conan.io/)
 > and pip to manage our dependencies, which are stored on our JFrog Artifactory server and in the pypi.org.
 > At the moment not everything is fully ported yet, so bare with us.
 
-If you want to develop Cura with Arcus see the Cura Wiki: [Running Cura from source](https://github.com/Ultimaker/Cura/wiki/Running-Cura-from-Source)
+If you want to develop Cura with libArcus see the Cura Wiki: [Running Cura from source](https://github.com/Ultimaker/Cura/wiki/Running-Cura-from-Source)
 
 If you have never used [Conan](https://conan.io/) read their [documentation](https://docs.conan.io/en/latest/index.html)
 which is quite extensive and well maintained. Conan is a Python program and can be installed using pip
 
+### 1. Configure Conan
+
 ```bash
 pip install conan --upgrade
 conan config install https://github.com/ultimaker/conan-config.git
-conan profile new default --detect
+conan profile new default --detect --force
 ```
 
-**Community developers would have to remove the Conan `cura` repository because that one requires credentials.**
+Community developers would have to remove the Conan cura repository because it requires credentials. 
+
+Ultimaker developers need to request an account for our JFrog Artifactory server at IT
 ```bash
 conan remote remove cura
 ```
 
-### Building Arcus
-
-The steps above should be enough to get your system in such a state you can start development on Arcus. If you want
-to use your own system provided CMake and CMake generators, such as: Ninja, Make, NMake use the following steps to
-install the dependencies for Arcus. Executed in the root directory of Arcus.
-
-#### Release build type
-
-```shell
-conan install . --build=missing --update
-cd cmake-build-release
-cmake --toolchain=conan/conan_toolchain.cmake ..
-cmake --build .
+### 2. Clone libArcus
+```bash
+git clone https://github.com/Ultimaker/libArcus.git
+cd libArcus
 ```
 
-#### Debug build type
+### 3. Install & Build libArcus (Release OR Debug)
 
-Use the same instructions as above, but pass the `-s build_type=Debug` flag to the `conan install` command.
+#### Release
+```bash
+conan install . --build=missing --update
+# optional for a specific version: conan install . arcus/<version>@<user>/<channel> --build=missing --update
+cmake --preset release
+cmake --build --preset release
+```
 
-```shell
-conan install . --build=missing --update -s build_type=Debug
-cd cmake-build-debug
-cmake --toolchain=conan/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Debug ..
-cmake --build .
+#### Debug
+
+```bash
+conan install . --build=missing --update build_type=Debug
+cmake --preset debug
+cmake --build --preset debug
 ```
 
 ## Creating a new Arcus Conan package
 
-To create a new Arcus Conan package such that it can be used in Cura and CuraEngine, run the following command:
+To create a new Arcus Conan package such that it can be used in Cura and Uranium, run the following command:
 
 ```shell
 conan create . arcus/<version>@<username>/<channel> --build=missing --update
 ```
 
 This package will be stored in the local Conan cache (`~/.conan/data` or `C:\Users\username\.conan\data` ) and can be used in downstream
-projects, such as Cura and CuraEngine by adding it as a requirement in the `conanfile.py` or in `conandata.yml` if that project is set up
-in such a way. You can also specify the override at the commandline, to use the newly created package, when you execute the `conan install`
+projects, such as Cura and Uranium by adding it as a requirement in the `conanfile.py` or in `conandata.yml`.
+
+Note: Make sure that the used `<version>` is present in the conandata.yml in the libArcus root
+
+You can also specify the override at the commandline, to use the newly created package, when you execute the `conan install`
 command in the root of the consuming project, with:
 
 
@@ -96,111 +131,20 @@ command in the root of the consuming project, with:
 conan install . -build=missing --update --require-override=arcus/<version>@<username>/<channel>
 ```
 
-## Dependencies
+## Developing libArcus In Editable Mode
 
-![Dependency graph](docs/assets/deps.png)
+You can use your local development repository downsteam by adding it as an editable mode package.
+This means you can test this in a consuming project without creating a new package for this project every time.
 
-### Runtime dependencies
-- [protobuf](docs/development/protobuf.md)
-- [zlib](docs/development/zlib.md)
-
-### Build dependencies
-- [Python](https://www.python.org/)
-- [Cmake](https://cmake.org/)
-- [Ninja (optional)](https://ninja-build.org/)
-- [GNU-GCC](https://gcc.gnu.org/)
-- [Visual Studio](https://visualstudio.microsoft.com/vs/)
-- [xcode command line tools](https://developer.apple.com/xcode/)
-- [sip](https://pypi.org/project/sip/)
-
-### IDE
-
-If you're using [CLion](https://www.jetbrains.com/clion/) as an IDE be sure to checkout the Conan plugin
-[Conan CLion plugin](https://docs.conan.io/en/latest/integrations/ide/clion.html)
-
-## Using arcus with CMake
-
-<br>
-
-### [Conan CMake generators](https://docs.conan.io/en/latest/reference/conanfile/tools/cmake.html)
-
-<br>
-
-* [CMakeDeps](https://docs.conan.io/en/latest/reference/conanfile/tools/cmake/cmakedeps.html): generates information about where the **arcus** library and its dependencies  ( [protobuf](https://conan.io/center/protobuf),  [zlib](https://conan.io/center/zlib)) are installed together with other information like version, flags, and directory data or configuration. CMake will use this files when you invoke ``find_package()`` in your *CMakeLists.txt*.
-
-* [CMakeToolchain](https://docs.conan.io/en/latest/reference/conanfile/tools/cmake/cmaketoolchain.html): generates a CMake toolchain file the you can later invoke with CMake in the command line using `-DCMAKE_TOOLCHAIN_FILE=conantoolchain.cmake`.
-
-Declare these generators in your **conanfile.txt** along with your **arcus** dependency like:
-
-```ini
-[requires]
-arcus/(latest)@ultimaker/stable
-
-[generators]
-CMakeDeps
-CMakeToolchain
+```bash
+    conan editable add . arcus/<version>@<username>/<channel>
 ```
 
-<br>
-
-To use **arcus** in a simple CMake project with this structure:
+Then in your downsteam projects (Cura) root directory override the package with your editable mode package.  
 
 ```shell
-.
-|-- CMakeLists.txt
-|-- conanfile.txt
-`-- src
-    `-- main..cpp
+conan install . -build=missing --update --require-override=arcus/<version>@<username>/<channel>
 ```
-
-<br>
-
-Your **CMakeLists.txt** could look similar to this, using the global **arcus::arcus** CMake's target:
-
-```cmake
-cmake_minimum_required(VERSION 3.15)
-project(arcus_project CXX)
-
-find_package(arcus)
-
-add_executable(${PROJECT_NAME} src/main.cpp)
-
-# Use the global target
-target_link_libraries(${PROJECT_NAME} arcus::arcus)
-```
-
-<br>
-
-To install **arcus/latest@ultimaker/stable**, its dependencies and build your project, you just have to do:
-
-```shell
-# for Linux/macOS
-$ conan install . --install-folder cmake-build-release --build=missing
-$ cmake . -DCMAKE_TOOLCHAIN_FILE=cmake-build-release/conan_toolchain.cmake
-$ cmake --build .
-
-# for Windows and Visual Studio 2017
-$ conan install . --output-folder cmake-build --build=missing
-$ cmake . -G "Visual Studio 15 2017" -DCMAKE_TOOLCHAIN_FILE=cmake-build/conan_toolchain.cmake
-$ cmake --build . --config Release
-```
-
-
-
-<br>
-
-
-
-As the arcus Conan package defines components you can link only that desired part of the library in your project. For example, linking only with the arcus **libarcus** component, through the **arcus::libarcus** target.
-
-```cmake
-target_link_libraries(${PROJECT_NAME} arcus::arcus)
-```
-
-<br>
-
-To check all the available components for **arcus** Conan package, please check the dedicated section at the end of this document.
-
 
 ## Using the Socket
 
