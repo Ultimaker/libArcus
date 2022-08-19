@@ -3,7 +3,7 @@ from conan.tools import files
 from conan import ConanFile
 from conans import tools
 
-required_conan_version = ">=1.46.2"
+required_conan_version = ">=1.48.0"
 
 
 class ArcusConan(ConanFile):
