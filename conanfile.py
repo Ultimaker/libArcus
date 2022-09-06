@@ -55,11 +55,6 @@ class ArcusConan(ConanFile):
         cmake.generate()
 
         tc = CMakeToolchain(self)
-
-        if self.settings.compiler == "Visual Studio":
-            tc.blocks["generic_system"].values["generator_platform"] = None
-            tc.blocks["generic_system"].values["toolset"] = None
-
         tc.generate()
 
     def layout(self):
