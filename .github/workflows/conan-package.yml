@@ -72,7 +72,7 @@ jobs:
         secrets: inherit
 
     conan-package-create-macos:
-        if: ${{ (github.event_name == 'push' && github.ref_name == 'main') || (github.event_name == 'workflow_dispatch' && inputs.create_binaries_macos) }}
+        if: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
         needs: [ conan-recipe-version, conan-package-export ]
 
         uses: ultimaker/cura/.github/workflows/conan-package-create.yml@main
