@@ -72,7 +72,7 @@ jobs:
         secrets: inherit
 
     conan-package-create-macos:
-        if: ${{ (github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master' || needs.conan-recipe-version.outputs.is_release_branch == 'true')) || (github.event_name == 'workflow_dispatch' && inputs.create_binaries_macos) }}
+        if: ${{ (github.event_name == 'push' && github.ref_name == 'main') || (github.event_name == 'workflow_dispatch' && inputs.create_binaries_macos) }}
         needs: [ conan-recipe-version, conan-package-export ]
 
         uses: ultimaker/cura/.github/workflows/conan-package-create.yml@main
@@ -84,7 +84,7 @@ jobs:
         secrets: inherit
 
     conan-package-create-windows:
-        if: ${{ (github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master' || needs.conan-recipe-version.outputs.is_release_branch == 'true' )) || (github.event_name == 'workflow_dispatch' && inputs.create_binaries_windows) }}
+        if: ${{ (github.event_name == 'push' && github.ref_name == 'main') || (github.event_name == 'workflow_dispatch' && inputs.create_binaries_windows) }}
         needs: [ conan-recipe-version, conan-package-export ]
 
         uses: ultimaker/cura/.github/workflows/conan-package-create.yml@main
@@ -97,7 +97,7 @@ jobs:
         secrets: inherit
 
     conan-package-create-linux:
-        if: ${{ (github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master' || needs.conan-recipe-version.outputs.is_release_branch == 'true')) || (github.event_name == 'workflow_dispatch' && inputs.create_binaries_linux) }}
+        if: ${{ (github.event_name == 'push' && github.ref_name == 'main') || (github.event_name == 'workflow_dispatch' && inputs.create_binaries_linux) }}
         needs: [ conan-recipe-version, conan-package-export ]
 
         uses: ultimaker/cura/.github/workflows/conan-package-create.yml@main
@@ -122,7 +122,7 @@ jobs:
         secrets: inherit
 
     notify-create:
-        if: ${{ always() && ((github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master' || needs.conan-recipe-version.outputs.is_release_branch == 'true')) || (github.event_name == 'workflow_dispatch' && inputs.create_binaries_linux)) }}
+        if: ${{ always() && ((github.event_name == 'push' && github.ref_name == 'main') || (github.event_name == 'workflow_dispatch' && inputs.create_binaries_linux)) }}
         needs: [ conan-recipe-version, conan-package-create-macos, conan-package-create-windows, conan-package-create-linux ]
 
         uses: ultimaker/cura/.github/workflows/notify.yml@main
