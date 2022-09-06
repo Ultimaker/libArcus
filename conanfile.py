@@ -36,6 +36,7 @@ class ArcusConan(ConanFile):
     }
 
     def requirements(self):
+        self.requires("umbase/0.1.6@ultimaker/stable")  # required for the CMake build modules
         for req in self._um_data()["requirements"]:
             self.requires(req)
 
