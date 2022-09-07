@@ -1,0 +1,2 @@
+[MASTER]
+load-plugins=conans.pylint_plugin
