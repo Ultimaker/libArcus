@@ -37,7 +37,3 @@ if(WIN32)
     target_link_libraries(Arcus PUBLIC Ws2_32)
     set_target_properties(Arcus PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
-
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
-    target_compile_definitions(Arcus PRIVATE -DARCUS_DEBUG)
-endif()
