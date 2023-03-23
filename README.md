@@ -20,6 +20,12 @@
 This library contains C++ code for creating a socket in a thread and using this socket to send and receive messages
 based on the Protocol Buffers library. It is designed to facilitate the communication between Cura and its backend and similar code.
 
+<br>
+
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Ultimaker/libArcus/badge)](https://api.securityscorecards.dev/projects/github.com/Ultimaker/libArcus)
+
+<br>
+
 ## License
 
 ![License](https://img.shields.io/github/license/ultimaker/libarcus?style=flat)  
