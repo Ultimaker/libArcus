@@ -45,6 +45,7 @@ http://www.gnu.org/licenses/agpl.html
 - nmake
 - protobuf
 - zlib
+- Conan 1.56.0
 
 ### MacOs
 - Python 3.6 or higher
@@ -54,6 +55,7 @@ http://www.gnu.org/licenses/agpl.html
 - make
 - protobuf
 - zlib
+- Conan 1.56.0
 
 ### Linux
 - Python 3.6 or higher
@@ -63,6 +65,7 @@ http://www.gnu.org/licenses/agpl.html
 - make
 - protobuf
 - zlib
+- Conan 1.56.0
 
 
 ## How To Build
@@ -80,7 +83,7 @@ which is quite extensive and well maintained. Conan is a Python program and can 
 ### 1. Configure Conan
 
 ```bash
-pip install conan --upgrade
+pip install conan==1.56
 conan config install https://github.com/ultimaker/conan-config.git
 conan profile new default --detect --force
 ```
