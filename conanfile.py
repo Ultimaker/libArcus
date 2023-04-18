@@ -3,7 +3,7 @@ from conan.tools.files import AutoPackager
 from conan.tools.build import check_min_cppstd
 from conan import ConanFile
 
-required_conan_version = ">=1.50.0"
+required_conan_version = ">=1.56.0"
 
 
 class ArcusConan(ConanFile):
