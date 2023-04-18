@@ -1,9 +1,7 @@
-cmake_policy(SET CMP0091 NEW)
 project(libarcus)
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.23)
 find_package(standardprojectsettings REQUIRED)
-
-find_package(protobuf 3.17.1 REQUIRED)
+find_package(protobuf REQUIRED)
 
 set(arcus_SRCS
     src/Socket.cpp
@@ -19,6 +17,8 @@ else()
     add_library(Arcus STATIC ${arcus_SRCS})
 endif()
 
+set_project_warnings(Arcus)
+enable_sanitizers(Arcus)
 use_threads(Arcus)
 
 target_include_directories(Arcus
