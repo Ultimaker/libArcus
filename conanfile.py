@@ -62,7 +62,7 @@ class ArcusConan(ConanFile):
             self.cpp.package.system_libs = ["ws2_32"]
 
     def requirements(self):
-        self.requires("protobuf/3.21.4", transitive_headers=True)
+        self.requires("protobuf/3.21.9", transitive_headers=True)
 
     def validate(self):
         if self.settings.compiler.cppstd:
