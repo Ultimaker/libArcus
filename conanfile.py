@@ -50,6 +50,14 @@ class ArcusConan(ConanFile):
         copy(self, "*", path.join(self.recipe_folder, "src"), path.join(self.export_sources_folder, "src"))
         copy(self, "*", path.join(self.recipe_folder, "include"), path.join(self.export_sources_folder, "include"))
 
+    def config_options(self):
+        if self.settings.os == "Windows":
+            del self.options.fPIC
+
+    def configure(self):
+        if self.options.shared:
+            self.options.rm_safe("fPIC")
+
     def layout(self):
         cmake_layout(self)
         self.cpp.package.libs = ["Arcus"]
