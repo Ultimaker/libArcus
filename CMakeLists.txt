@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.23)
 find_package(standardprojectsettings REQUIRED)
 find_package(protobuf REQUIRED)
 
+option(ENABLE_SENTRY "Send crash data via Sentry" OFF)
+
 set(arcus_SRCS
     src/Socket.cpp
     src/SocketListener.cpp
@@ -37,4 +39,7 @@ if(WIN32)
 
     target_link_libraries(Arcus PUBLIC Ws2_32)
     set_target_properties(Arcus PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    if (ENABLE_SENTRY)
+        set_target_properties(CuraEngine PROPERTIES LINK_FLAGS "/DEBUG:FULL")
+    endif ()
 endif()

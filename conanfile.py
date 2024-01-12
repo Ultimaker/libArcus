@@ -103,6 +103,7 @@ class ArcusConan(ConanFile):
 
     def generate(self):
         tc = CMakeToolchain(self)
+        tc.variables["ENABLE_SENTRY"] = self.options.get_safe("enable_sentry", False)
         if is_msvc(self):
             tc.variables["USE_MSVC_RUNTIME_LIBRARY_DLL"] = not is_msvc_static_runtime(self)
         tc.cache_variables["CMAKE_POLICY_DEFAULT_CMP0077"] = "NEW"
@@ -129,8 +130,9 @@ class ArcusConan(ConanFile):
             self.run(f"sentry-cli -V", output=output)
             if "sentry-cli" not in output.getvalue():
                 raise ConanInvalidSystemRequirements("sentry-cli is not installed")
+            build_source_dir = self.build_path.parent.parent.as_posix()
             self.output.info("Uploading debug symbols to sentry")
-            self.run(f"sentry-cli debug-files upload --include-sources -o {sentry_org} -p {sentry_project} .")
+            self.run(f"sentry-cli debug-files upload --include-sources -o {sentry_org} -p {sentry_project} {build_source_dir}")
 
 
     def package(self):
