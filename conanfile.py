@@ -122,14 +122,15 @@ class ArcusConan(ConanFile):
         if self.options.get_safe("enable_sentry", False):
             # Upload debug symbols to sentry
             sentry_project = self.conf.get("user.curaengine:sentry_project", "", check_type=str)
-            if sentry_project == "":
+            sentry_org = self.conf.get("user.curaengine:sentry_org", "", check_type=str)
+            if sentry_project == "" or sentry_org == "":
                 raise ConanInvalidConfiguration("sentry_project is not set")
             output = StringIO()
             self.run(f"sentry-cli -V", output=output)
             if "sentry-cli" not in output.getvalue():
                 raise ConanInvalidSystemRequirements("sentry-cli is not installed")
             self.output.info("Uploading debug symbols to sentry")
-            self.run(f"sentry-cli debug-files upload --include-sources -o {sentry_project} -p curaengine .")
+            self.run(f"sentry-cli debug-files upload --include-sources -o {sentry_org} -p {sentry_project} .")
 
 
     def package(self):
