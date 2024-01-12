@@ -1,3 +1,4 @@
+from io import StringIO
 from os import path
 
 from conan import ConanFile
@@ -5,9 +6,10 @@ from conan.errors import ConanInvalidConfiguration
 from conan.tools.build import check_min_cppstd
 from conan.tools.cmake import CMakeToolchain, CMakeDeps, CMake, cmake_layout
 from conan.tools.env import VirtualBuildEnv
-from conan.tools.files import copy, AutoPackager
+from conan.tools.files import copy, AutoPackager, update_conandata
 from conan.tools.microsoft import check_min_vs, is_msvc, is_msvc_static_runtime
-from conan.tools.scm import Version
+from conan.tools.scm import Version, Git
+from conans.errors import ConanInvalidSystemRequirements
 
 required_conan_version = ">=1.55.0"
 
@@ -24,16 +26,23 @@ class ArcusConan(ConanFile):
 
     options = {
         "shared": [True, False],
-        "fPIC": [True, False]
+        "fPIC": [True, False],
+        "enable_sentry": [True, False],
     }
     default_options = {
         "shared": True,
         "fPIC": True,
+        "enable_sentry": False,
     }
 
     def set_version(self):
         if not self.version:
-            self.version = "5.4.0-alpha"
+            build_meta = "" if self.develop else "+source"
+            self.version = self.conan_data["version"] + build_meta
+
+    def export(self):
+        git = Git(self)
+        update_conandata(self, {"version": self.version, "commit": git.get_commit()})
 
     @property
     def _min_cppstd(self):
@@ -57,6 +66,8 @@ class ArcusConan(ConanFile):
     def config_options(self):
         if self.settings.os == "Windows":
             del self.options.fPIC
+        if self.conf.get("user.curaengine:sentry_url", "", check_type=str) == "":
+            del self.options.enable_sentry
 
     def configure(self):
         if self.options.shared:
@@ -107,6 +118,19 @@ class ArcusConan(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
+
+        if self.options.get_safe("enable_sentry", False):
+            # Upload debug symbols to sentry
+            sentry_project = self.conf.get("user.curaengine:sentry_project", "", check_type=str)
+            if sentry_project == "":
+                raise ConanInvalidConfiguration("sentry_project is not set")
+            output = StringIO()
+            self.run(f"sentry-cli -V", output=output)
+            if "sentry-cli" not in output.getvalue():
+                raise ConanInvalidSystemRequirements("sentry-cli is not installed")
+            self.output.info("Uploading debug symbols to sentry")
+            self.run(f"sentry-cli debug-files upload --include-sources -o {sentry_project} -p curaengine .")
+
 
     def package(self):
         copy(self, pattern="LICENSE*", dst="licenses", src=self.source_folder)
