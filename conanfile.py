@@ -9,7 +9,7 @@ from conan.tools.env import VirtualBuildEnv
 from conan.tools.files import copy, AutoPackager, update_conandata
 from conan.tools.microsoft import check_min_vs, is_msvc, is_msvc_static_runtime
 from conan.tools.scm import Version, Git
-from conans.errors import ConanInvalidSystemRequirements
+from conans.tools import which
 
 required_conan_version = ">=1.55.0"
 
@@ -125,11 +125,18 @@ class ArcusConan(ConanFile):
             sentry_project = self.conf.get("user.curaengine:sentry_project", "", check_type=str)
             sentry_org = self.conf.get("user.curaengine:sentry_org", "", check_type=str)
             if sentry_project == "" or sentry_org == "":
-                raise ConanInvalidConfiguration("sentry_project is not set")
-            output = StringIO()
-            self.run(f"sentry-cli -V", output=output)
-            if "sentry-cli" not in output.getvalue():
-                raise ConanInvalidSystemRequirements("sentry-cli is not installed")
+                raise ConanInvalidConfiguration("sentry_project or sentry_org is not set")
+            if which("sentry-cli") is None:
+                self.output.warn("sentry-cli is not installed, skipping uploading debug symbols")
+                return
+
+            if self.settings.os == "Linux":
+                self.output.info("Stripping debug symbols from binary")
+                ext = ".so" if self.options.shared else ".a"
+                self.run(f"objcopy --only-keep-debug --compress-debug-sections=zlib libArcus{ext} libArcus.debug")
+                self.run(f"objcopy --strip-debug --strip-unneeded libArcus{ext}")
+                self.run("objcopy --add-gnu-debuglink=libArcus.debug libArcus{ext}")
+
             build_source_dir = self.build_path.parent.parent.as_posix()
             self.output.info("Uploading debug symbols to sentry")
             self.run(f"sentry-cli debug-files upload --include-sources -o {sentry_org} -p {sentry_project} {build_source_dir}")
