@@ -126,20 +126,20 @@ class ArcusConan(ConanFile):
             sentry_org = self.conf.get("user.curaengine:sentry_org", "", check_type=str)
             if sentry_project == "" or sentry_org == "":
                 raise ConanInvalidConfiguration("sentry_project or sentry_org is not set")
+            
             if which("sentry-cli") is None:
                 self.output.warn("sentry-cli is not installed, skipping uploading debug symbols")
-                return
+            else:
+                if self.settings.os == "Linux":
+                    self.output.info("Stripping debug symbols from binary")
+                    ext = ".so" if self.options.shared else ".a"
+                    self.run(f"objcopy --only-keep-debug --compress-debug-sections=zlib libArcus{ext} libArcus.debug")
+                    self.run(f"objcopy --strip-debug --strip-unneeded libArcus{ext}")
+                    self.run(f"objcopy --add-gnu-debuglink=libArcus.debug libArcus{ext}")
 
-            if self.settings.os == "Linux":
-                self.output.info("Stripping debug symbols from binary")
-                ext = ".so" if self.options.shared else ".a"
-                self.run(f"objcopy --only-keep-debug --compress-debug-sections=zlib libArcus{ext} libArcus.debug")
-                self.run(f"objcopy --strip-debug --strip-unneeded libArcus{ext}")
-                self.run(f"objcopy --add-gnu-debuglink=libArcus.debug libArcus{ext}")
-
-            build_source_dir = self.build_path.parent.parent.as_posix()
-            self.output.info("Uploading debug symbols to sentry")
-            self.run(f"sentry-cli debug-files upload --include-sources -o {sentry_org} -p {sentry_project} {build_source_dir}")
+                build_source_dir = self.build_path.parent.parent.as_posix()
+                self.output.info("Uploading debug symbols to sentry")
+                self.run(f"sentry-cli debug-files upload --include-sources -o {sentry_org} -p {sentry_project} {build_source_dir}")
 
 
     def package(self):
