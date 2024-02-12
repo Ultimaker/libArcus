@@ -9,10 +9,12 @@ class ArcusTestConan(ConanFile):
     test_type = "explicit"
 
     def build_requirements(self):
-        self.test_requires("standardprojectsettings/[>=0.1.0]@ultimaker/stable")
+        self.test_requires("standardprojectsettings/[>=0.2.0]@ultimaker/cura_11622")  # FIXME: use stable after merge
+        self.tool_requires("protobuf/3.21.12")
+
     def requirements(self):
         self.requires(self.tested_reference_str)
-        self.requires("protobuf/3.21.4")
+        self.requires("protobuf/3.21.12")
 
     def layout(self):
         cmake_layout(self)

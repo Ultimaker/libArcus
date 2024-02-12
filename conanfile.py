@@ -1,6 +1,5 @@
-from io import StringIO
 import os
-from os import path
+from shutil import which
 
 from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
@@ -10,9 +9,9 @@ from conan.tools.env import VirtualBuildEnv
 from conan.tools.files import copy, AutoPackager, update_conandata
 from conan.tools.microsoft import check_min_vs, is_msvc, is_msvc_static_runtime
 from conan.tools.scm import Version, Git
-from conans.tools import which
 
-required_conan_version = ">=1.55.0"
+
+required_conan_version = ">=1.58.0"
 
 
 class ArcusConan(ConanFile):
@@ -24,6 +23,7 @@ class ArcusConan(ConanFile):
     topics = ("conan", "binding", "cura", "protobuf", "c++")
     settings = "os", "compiler", "build_type", "arch"
     exports = "LICENSE*"
+    package_type = "library"
 
     options = {
         "shared": [True, False],
@@ -38,8 +38,7 @@ class ArcusConan(ConanFile):
 
     def set_version(self):
         if not self.version:
-            build_meta = "" if self.develop else "+source"
-            self.version = self.conan_data["version"] + build_meta
+            self.version = self.conan_data["version"]
 
     def export(self):
         git = Git(self)
@@ -61,8 +60,8 @@ class ArcusConan(ConanFile):
 
     def export_sources(self):
         copy(self, "CMakeLists.txt", self.recipe_folder, self.export_sources_folder)
-        copy(self, "*", path.join(self.recipe_folder, "src"), path.join(self.export_sources_folder, "src"))
-        copy(self, "*", path.join(self.recipe_folder, "include"), path.join(self.export_sources_folder, "include"))
+        copy(self, "*", os.path.join(self.recipe_folder, "src"), os.path.join(self.export_sources_folder, "src"))
+        copy(self, "*", os.path.join(self.recipe_folder, "include"), os.path.join(self.export_sources_folder, "include"))
 
     def config_options(self):
         if self.settings.os == "Windows":
@@ -86,7 +85,7 @@ class ArcusConan(ConanFile):
             self.cpp.package.system_libs = ["ws2_32"]
 
     def requirements(self):
-        self.requires("protobuf/3.21.9", transitive_headers=True)
+        self.requires("protobuf/3.21.12", transitive_headers=True)
 
     def validate(self):
         if self.settings.compiler.cppstd:
@@ -100,7 +99,8 @@ class ArcusConan(ConanFile):
                 )
 
     def build_requirements(self):
-        self.test_requires("standardprojectsettings/[>=0.1.0]@ultimaker/stable")
+        self.test_requires("standardprojectsettings/[>=0.2.0]@ultimaker/cura_11622")  # FIXME: use stable after merge
+        self.tool_requires("protobuf/3.21.12")
 
     def generate(self):
         tc = CMakeToolchain(self)
@@ -141,7 +141,6 @@ class ArcusConan(ConanFile):
                 build_source_dir = self.build_path.parent.parent.as_posix()
                 self.output.info("Uploading debug symbols to sentry")
                 self.run(f"sentry-cli --auth-token {os.environ['SENTRY_TOKEN']} debug-files upload --include-sources -o {sentry_org} -p {sentry_project} {build_source_dir}")
-
 
     def package(self):
         copy(self, pattern="LICENSE*", dst="licenses", src=self.source_folder)
