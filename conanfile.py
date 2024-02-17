@@ -121,10 +121,9 @@ class ArcusConan(ConanFile):
         cmake.configure()
         cmake.build()
 
-        if self.options.get_safe("enable_sentry", False):
-            # Upload debug symbols to sentry
-            sentry_project = self.conf.get("user.curaengine:sentry_project", "", check_type=str)
-            sentry_org = self.conf.get("user.curaengine:sentry_org", "", check_type=str)
+        sentry_project = self.conf.get("user.curaengine:sentry_project", "", check_type=str)
+        sentry_org = self.conf.get("user.curaengine:sentry_org", "", check_type=str)
+        if self.options.enable_sentry and os.environ.get('SENTRY_TOKEN', None) and sentry_project != "" and sentry_org != "":
             if sentry_project == "" or sentry_org == "":
                 raise ConanInvalidConfiguration("sentry_project or sentry_org is not set")
             
@@ -141,7 +140,6 @@ class ArcusConan(ConanFile):
                 build_source_dir = self.build_path.parent.parent.as_posix()
                 self.output.info("Uploading debug symbols to sentry")
                 self.run(f"sentry-cli --auth-token {os.environ['SENTRY_TOKEN']} debug-files upload --include-sources -o {sentry_org} -p {sentry_project} {build_source_dir}")
-
 
     def package(self):
         copy(self, pattern="LICENSE*", dst="licenses", src=self.source_folder)
