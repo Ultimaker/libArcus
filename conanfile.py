@@ -123,7 +123,7 @@ class ArcusConan(ConanFile):
 
         sentry_project = self.conf.get("user.curaengine:sentry_project", "", check_type=str)
         sentry_org = self.conf.get("user.curaengine:sentry_org", "", check_type=str)
-        if self.options.enable_sentry and os.environ.get('SENTRY_TOKEN', None) and sentry_project != "" and sentry_org != "":
+        if self.options.get_safe("enable_sentry", False) and os.environ.get('SENTRY_TOKEN', None) and sentry_project != "" and sentry_org != "":
             if sentry_project == "" or sentry_org == "":
                 raise ConanInvalidConfiguration("sentry_project or sentry_org is not set")
             
