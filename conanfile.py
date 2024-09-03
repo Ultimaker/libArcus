@@ -121,10 +121,9 @@ class ArcusConan(ConanFile):
         cmake.configure()
         cmake.build()
 
-        if self.options.get_safe("enable_sentry", False):
-            # Upload debug symbols to sentry
-            sentry_project = self.conf.get("user.curaengine:sentry_project", "", check_type=str)
-            sentry_org = self.conf.get("user.curaengine:sentry_org", "", check_type=str)
+        sentry_project = self.conf.get("user.curaengine:sentry_project", "", check_type=str)
+        sentry_org = self.conf.get("user.curaengine:sentry_org", "", check_type=str)
+        if self.options.get_safe("enable_sentry", False) and os.environ.get('SENTRY_TOKEN', None) and sentry_project != "" and sentry_org != "":
             if sentry_project == "" or sentry_org == "":
                 raise ConanInvalidConfiguration("sentry_project or sentry_org is not set")
             
