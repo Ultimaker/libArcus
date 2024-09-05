@@ -28,7 +28,7 @@ jobs:
       project_name: arcus
 
 # FIXME: Use main once merged
-  conan-package-export:
+  conan-recipe-export:
     needs: [ conan-recipe-version ]
     uses: ultimaker/cura-workflows/.github/workflows/conan-recipe-export.yml@CURA-11622_conan_v2
     with:
