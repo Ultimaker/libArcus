@@ -43,7 +43,7 @@
 #define VERSION_MINOR 0
 
 #define ARCUS_SIGNATURE 0x2BAD
-#define SIG(n) (((n)&0xffff0000) >> 16)
+#define SIG(n) (((n) & 0xffff0000) >> 16)
 
 #define SOCKET_CLOSE 0xf0f0f0f0
 
@@ -360,7 +360,11 @@ void Socket::Private::sendMessage(const MessagePtr& message)
     }
 
     std::string data = message->SerializeAsString();
-    if (platform_socket.writeBytes(data.size(), data.data()) == -1)
+    if (data.size() > message_size_maximum)
+    {
+        error(ErrorCode::SendFailedError, "Message is too big to be sent");
+    }
+    else if (platform_socket.writeBytes(data.size(), data.data()) == -1)
     {
         error(ErrorCode::SendFailedError, "Could not send message data");
     }
