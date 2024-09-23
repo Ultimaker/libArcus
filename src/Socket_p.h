@@ -338,37 +338,41 @@ void Socket::Private::run()
 // Send a message to the connected socket.
 void Socket::Private::sendMessage(const MessagePtr& message)
 {
-    uint32_t header = (ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | (VERSION_MINOR);
+    const uint32_t message_size = message->ByteSizeLong();
+    if (message_size > message_size_maximum)
+    {
+        error(ErrorCode::SendFailedError, "Message is too big to be sent");
+        return;
+    }
+
+    const uint32_t header = (ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | (VERSION_MINOR);
     if (platform_socket.writeUInt32(header) == -1)
     {
         error(ErrorCode::SendFailedError, "Could not send message header");
         return;
     }
 
-    uint32_t message_size = message->ByteSizeLong();
     if (platform_socket.writeUInt32(message_size) == -1)
     {
         error(ErrorCode::SendFailedError, "Could not send message size");
         return;
     }
 
-    uint32_t type_id = message_types.getMessageTypeId(message);
+    const uint32_t type_id = message_types.getMessageTypeId(message);
     if (platform_socket.writeUInt32(type_id) == -1)
     {
         error(ErrorCode::SendFailedError, "Could not send message type");
         return;
     }
 
-    std::string data = message->SerializeAsString();
-    if (data.size() > message_size_maximum)
-    {
-        error(ErrorCode::SendFailedError, "Message is too big to be sent");
-    }
-    else if (platform_socket.writeBytes(data.size(), data.data()) == -1)
+    const std::string data = message->SerializeAsString();
+    if (platform_socket.writeBytes(data.size(), data.data()) == -1)
     {
         error(ErrorCode::SendFailedError, "Could not send message data");
+        return;
     }
-    DEBUG(std::string("Sending message of type ") + std::to_string(type_id) + " and size " + std::to_string(message_size));
+
+    DEBUG(std::string("Sent message of type ") + std::to_string(type_id) + " and size " + std::to_string(message_size));
 }
 
 // Handle receiving data until we have a proper message.
