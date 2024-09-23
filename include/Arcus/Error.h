@@ -19,6 +19,7 @@ enum class ErrorCode
     BindFailedError, ///< Bind to IP and port failed.
     AcceptFailedError, ///< Accepting an incoming connection failed.
     SendFailedError, ///< Sending a message failed.
+    MessageTooBigError, ///< Sending a message failed because it was too big.
     ReceiveFailedError, ///< Receiving a message failed.
     UnknownMessageTypeError, ///< Received a message with an unknown message type.
     ParseFailedError, ///< Parsing the received message failed.

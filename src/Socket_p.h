@@ -341,7 +341,7 @@ void Socket::Private::sendMessage(const MessagePtr& message)
     const uint32_t message_size = message->ByteSizeLong();
     if (message_size > message_size_maximum)
     {
-        error(ErrorCode::SendFailedError, "Message is too big to be sent");
+        error(ErrorCode::MessageTooBigError, "Message is too big to be sent");
         return;
     }
 
