@@ -338,13 +338,6 @@ void Socket::Private::run()
 // Send a message to the connected socket.
 void Socket::Private::sendMessage(const MessagePtr& message)
 {
-    const uint32_t message_size = message->ByteSizeLong();
-    if (message_size > message_size_maximum)
-    {
-        error(ErrorCode::MessageTooBigError, "Message is too big to be sent");
-        return;
-    }
-
     const uint32_t header = (ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | (VERSION_MINOR);
     if (platform_socket.writeUInt32(header) == -1)
     {
@@ -352,6 +345,7 @@ void Socket::Private::sendMessage(const MessagePtr& message)
         return;
     }
 
+    const uint32_t message_size = message->ByteSizeLong();
     if (platform_socket.writeUInt32(message_size) == -1)
     {
         error(ErrorCode::SendFailedError, "Could not send message size");

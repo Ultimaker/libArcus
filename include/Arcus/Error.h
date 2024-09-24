@@ -28,6 +28,8 @@ enum class ErrorCode
     InvalidStateError, ///< Socket is in an invalid state.
     InvalidMessageError, ///< Message being handled is a nullptr or otherwise invalid.
     Debug, // Debug messages
+
+    // When changing this list, don't forget to apply the same changes on pyArcus/python/Error.sip
 };
 
 /**
