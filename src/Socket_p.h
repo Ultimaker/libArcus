@@ -43,7 +43,7 @@
 #define VERSION_MINOR 0
 
 #define ARCUS_SIGNATURE 0x2BAD
-#define SIG(n) (((n)&0xffff0000) >> 16)
+#define SIG(n) (((n) & 0xffff0000) >> 16)
 
 #define SOCKET_CLOSE 0xf0f0f0f0
 
@@ -338,33 +338,35 @@ void Socket::Private::run()
 // Send a message to the connected socket.
 void Socket::Private::sendMessage(const MessagePtr& message)
 {
-    uint32_t header = (ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | (VERSION_MINOR);
+    const uint32_t header = (ARCUS_SIGNATURE << 16) | (VERSION_MAJOR << 8) | (VERSION_MINOR);
     if (platform_socket.writeUInt32(header) == -1)
     {
         error(ErrorCode::SendFailedError, "Could not send message header");
         return;
     }
 
-    uint32_t message_size = message->ByteSizeLong();
+    const uint32_t message_size = message->ByteSizeLong();
     if (platform_socket.writeUInt32(message_size) == -1)
     {
         error(ErrorCode::SendFailedError, "Could not send message size");
         return;
     }
 
-    uint32_t type_id = message_types.getMessageTypeId(message);
+    const uint32_t type_id = message_types.getMessageTypeId(message);
     if (platform_socket.writeUInt32(type_id) == -1)
     {
         error(ErrorCode::SendFailedError, "Could not send message type");
         return;
     }
 
-    std::string data = message->SerializeAsString();
+    const std::string data = message->SerializeAsString();
     if (platform_socket.writeBytes(data.size(), data.data()) == -1)
     {
         error(ErrorCode::SendFailedError, "Could not send message data");
+        return;
     }
-    DEBUG(std::string("Sending message of type ") + std::to_string(type_id) + " and size " + std::to_string(message_size));
+
+    DEBUG(std::string("Sent message of type ") + std::to_string(type_id) + " and size " + std::to_string(message_size));
 }
 
 // Handle receiving data until we have a proper message.
