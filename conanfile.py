@@ -24,7 +24,7 @@ class ArcusConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     exports = "LICENSE*"
     package_type = "library"
-    python_requires = "sentrylibrary/1.0@ultimaker/cura_11622" # FIXME: use main after merge
+    python_requires = "sentrylibrary/1.0.0@ultimaker/cura_11622" # FIXME: use main after merge
     python_requires_extend = "sentrylibrary.SentryLibrary"
 
     options = {
