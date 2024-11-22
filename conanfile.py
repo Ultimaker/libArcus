@@ -24,19 +24,21 @@ class ArcusConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     exports = "LICENSE*"
     package_type = "library"
+    python_requires = "sentrylibrary/1.0@ultimaker/cura_11622" # FIXME: use main after merge
+    python_requires_extend = "sentrylibrary.SentryLibrary"
 
     options = {
         "shared": [True, False],
         "fPIC": [True, False],
-        "enable_sentry": [True, False],
-        "sentry_project": ["ANY"],
     }
     default_options = {
         "shared": True,
         "fPIC": True,
-        "enable_sentry": False,
-        "sentry_project": name,
     }
+
+    def init(self):
+        base = self.python_requires["sentrylibrary"].module.SentryLibrary
+        self.options.update(base.options, base.default_options)
 
     def set_version(self):
         if not self.version:
@@ -66,10 +68,14 @@ class ArcusConan(ConanFile):
         copy(self, "*", os.path.join(self.recipe_folder, "include"), os.path.join(self.export_sources_folder, "include"))
 
     def config_options(self):
+        super().config_options()
+
         if self.settings.os == "Windows":
             del self.options.fPIC
 
     def configure(self):
+        super().configure()
+
         if self.options.shared:
             self.options.rm_safe("fPIC")
 
@@ -85,9 +91,13 @@ class ArcusConan(ConanFile):
             self.cpp.package.system_libs = ["ws2_32"]
 
     def requirements(self):
+        super().requirements()
+
         self.requires("protobuf/3.21.12", transitive_headers=True)
 
     def validate(self):
+        super().validate()
+
         if self.settings.compiler.cppstd:
             check_min_cppstd(self, self._min_cppstd)
         check_min_vs(self, 192)  # TODO: remove in Conan 2.0
@@ -109,10 +119,10 @@ class ArcusConan(ConanFile):
 
     def generate(self):
         tc = CMakeToolchain(self)
-        tc.variables["ENABLE_SENTRY"] = self.options.enable_sentry
         if is_msvc(self):
             tc.variables["USE_MSVC_RUNTIME_LIBRARY_DLL"] = not is_msvc_static_runtime(self)
         tc.cache_variables["CMAKE_POLICY_DEFAULT_CMP0077"] = "NEW"
+        self.setup_cmake_toolchain_sentry(tc)
         tc.generate()
 
         tc = CMakeDeps(self)
@@ -126,24 +136,7 @@ class ArcusConan(ConanFile):
         cmake.configure()
         cmake.build()
 
-        if self.options.enable_sentry:
-            sentry_project = self.options.sentry_project
-            sentry_organization = self.conf.get("user.sentry:organization", "", check_type=str)
-            sentry_token = self.conf.get("user.sentry:token", "", check_type=str)
-
-            if which("sentry-cli") is None:
-                raise ConanException("sentry-cli is not installed, unable to upload debug symbols")
-
-            if self.settings.os == "Linux":
-                self.output.info("Stripping debug symbols from binary")
-                ext = ".so" if self.options.shared else ".a"
-                self.run(f"objcopy --only-keep-debug --compress-debug-sections=zlib libArcus{ext} libArcus.debug")
-                self.run(f"objcopy --strip-debug --strip-unneeded libArcus{ext}")
-                self.run(f"objcopy --add-gnu-debuglink=libArcus.debug libArcus{ext}")
-
-            build_source_dir = self.build_path.parent.parent.as_posix()
-            self.output.info("Uploading debug symbols to sentry")
-            self.run(f"sentry-cli --auth-token {sentry_token} debug-files upload --include-sources -o {sentry_organization} -p {sentry_project} {build_source_dir}")
+        self.send_sentry_debug_files()
 
     def package(self):
         copy(self, pattern="LICENSE*", dst="licenses", src=self.source_folder)
