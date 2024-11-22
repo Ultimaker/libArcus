@@ -29,11 +29,13 @@ class ArcusConan(ConanFile):
         "shared": [True, False],
         "fPIC": [True, False],
         "enable_sentry": [True, False],
+        "sentry_project": ["ANY"],
     }
     default_options = {
         "shared": True,
         "fPIC": True,
         "enable_sentry": False,
+        "sentry_project": name,
     }
 
     def set_version(self):
@@ -66,8 +68,6 @@ class ArcusConan(ConanFile):
     def config_options(self):
         if self.settings.os == "Windows":
             del self.options.fPIC
-        if self.conf.get("user.curaengine:sentry_url", "", check_type=str) == "":
-            del self.options.enable_sentry
 
     def configure(self):
         if self.options.shared:
@@ -98,13 +98,18 @@ class ArcusConan(ConanFile):
                     f"{self.ref} requires C++{self._min_cppstd}, which your compiler does not support."
                 )
 
+        if self.options.enable_sentry:
+            for sentry_setting in ["organization", "token"]:
+                if self.conf.get(f"user.sentry:{sentry_setting}", "", check_type=str) == "":
+                    raise ConanInvalidConfiguration(f"Unable to enable Sentry because no {sentry_setting} was configured")
+
     def build_requirements(self):
         self.test_requires("standardprojectsettings/[>=0.2.0]@ultimaker/cura_11622")  # FIXME: use stable after merge
         self.tool_requires("protobuf/3.21.12")
 
     def generate(self):
         tc = CMakeToolchain(self)
-        tc.variables["ENABLE_SENTRY"] = self.options.get_safe("enable_sentry", False)
+        tc.variables["ENABLE_SENTRY"] = self.options.enable_sentry
         if is_msvc(self):
             tc.variables["USE_MSVC_RUNTIME_LIBRARY_DLL"] = not is_msvc_static_runtime(self)
         tc.cache_variables["CMAKE_POLICY_DEFAULT_CMP0077"] = "NEW"
@@ -121,25 +126,24 @@ class ArcusConan(ConanFile):
         cmake.configure()
         cmake.build()
 
-        sentry_project = self.conf.get("user.curaengine:sentry_project", "", check_type=str)
-        sentry_org = self.conf.get("user.curaengine:sentry_org", "", check_type=str)
-        if self.options.get_safe("enable_sentry", False) and os.environ.get('SENTRY_TOKEN', None) and sentry_project != "" and sentry_org != "":
-            if sentry_project == "" or sentry_org == "":
-                raise ConanInvalidConfiguration("sentry_project or sentry_org is not set")
-            
-            if which("sentry-cli") is None:
-                self.output.warn("sentry-cli is not installed, skipping uploading debug symbols")
-            else:
-                if self.settings.os == "Linux":
-                    self.output.info("Stripping debug symbols from binary")
-                    ext = ".so" if self.options.shared else ".a"
-                    self.run(f"objcopy --only-keep-debug --compress-debug-sections=zlib libArcus{ext} libArcus.debug")
-                    self.run(f"objcopy --strip-debug --strip-unneeded libArcus{ext}")
-                    self.run(f"objcopy --add-gnu-debuglink=libArcus.debug libArcus{ext}")
+        if self.options.enable_sentry:
+            sentry_project = self.options.sentry_project
+            sentry_organization = self.conf.get("user.sentry:organization", "", check_type=str)
+            sentry_token = self.conf.get("user.sentry:token", "", check_type=str)
 
-                build_source_dir = self.build_path.parent.parent.as_posix()
-                self.output.info("Uploading debug symbols to sentry")
-                self.run(f"sentry-cli --auth-token {os.environ['SENTRY_TOKEN']} debug-files upload --include-sources -o {sentry_org} -p {sentry_project} {build_source_dir}")
+            if which("sentry-cli") is None:
+                raise ConanException("sentry-cli is not installed, unable to upload debug symbols")
+
+            if self.settings.os == "Linux":
+                self.output.info("Stripping debug symbols from binary")
+                ext = ".so" if self.options.shared else ".a"
+                self.run(f"objcopy --only-keep-debug --compress-debug-sections=zlib libArcus{ext} libArcus.debug")
+                self.run(f"objcopy --strip-debug --strip-unneeded libArcus{ext}")
+                self.run(f"objcopy --add-gnu-debuglink=libArcus.debug libArcus{ext}")
+
+            build_source_dir = self.build_path.parent.parent.as_posix()
+            self.output.info("Uploading debug symbols to sentry")
+            self.run(f"sentry-cli --auth-token {sentry_token} debug-files upload --include-sources -o {sentry_organization} -p {sentry_project} {build_source_dir}")
 
     def package(self):
         copy(self, pattern="LICENSE*", dst="licenses", src=self.source_folder)
