@@ -136,7 +136,7 @@ class ArcusConan(ConanFile):
         cmake.configure()
         cmake.build()
 
-        self.send_sentry_debug_files()
+        self.send_sentry_debug_files(binary_basename = "libArcus")
 
     def package(self):
         copy(self, pattern="LICENSE*", dst="licenses", src=self.source_folder)
