@@ -114,7 +114,7 @@ public:
     /**
      * Send a message across the socket.
      */
-    virtual void sendMessage(MessagePtr message);
+    virtual bool sendMessage(MessagePtr message);
 
     /**
      * Remove and return the next pending message from the queue with condition blocking.

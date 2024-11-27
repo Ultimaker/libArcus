@@ -203,21 +203,29 @@ void Socket::close()
         delete d->thread;
         d->thread = nullptr;
     }
+
     // Notify all in case of closing because the waiting threads need to know
     // that this socket has been closed and they should not wait any more.
     d->message_received_condition_variable.notify_all();
 }
 
-void Socket::sendMessage(MessagePtr message)
+bool Socket::sendMessage(MessagePtr message)
 {
     if (! message)
     {
         d->error(ErrorCode::InvalidMessageError, "Message cannot be nullptr");
-        return;
+        return false;
+    }
+
+    if (message->ByteSizeLong() > Private::message_size_maximum)
+    {
+        d->error(ErrorCode::MessageTooBigError, "Message is too big to be sent");
+        return false;
     }
 
     std::lock_guard<std::mutex> lock(d->sendQueueMutex);
     d->sendQueue.push_back(message);
+    return true;
 }
 
 MessagePtr Socket::takeNextMessage()
