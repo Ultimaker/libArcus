@@ -24,7 +24,7 @@ class ArcusConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     exports = "LICENSE*"
     package_type = "library"
-    python_requires = "sentrylibrary/1.0.0@ultimaker/cura_11622" # FIXME: use main after merge
+    python_requires = "sentrylibrary/1.0.0@ultimaker/stable"
     python_requires_extend = "sentrylibrary.SentryLibrary"
 
     options = {
@@ -114,7 +114,7 @@ class ArcusConan(ConanFile):
                     raise ConanInvalidConfiguration(f"Unable to enable Sentry because no {sentry_setting} was configured")
 
     def build_requirements(self):
-        self.test_requires("standardprojectsettings/[>=0.2.0]@ultimaker/cura_11622")  # FIXME: use stable after merge
+        self.test_requires("standardprojectsettings/[>=0.2.0]@ultimaker/stable")
         self.tool_requires("protobuf/3.21.12")
 
     def generate(self):

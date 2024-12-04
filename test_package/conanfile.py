@@ -9,7 +9,7 @@ class ArcusTestConan(ConanFile):
     test_type = "explicit"
 
     def build_requirements(self):
-        self.test_requires("standardprojectsettings/[>=0.2.0]@ultimaker/cura_11622")  # FIXME: use stable after merge
+        self.test_requires("standardprojectsettings/[>=0.2.0]@ultimaker/stable")
         self.tool_requires("protobuf/3.21.12")
 
     def requirements(self):
