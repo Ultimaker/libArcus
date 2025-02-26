@@ -47,7 +47,7 @@ sockaddr_in createAddress(const std::string& address, int port)
     sockaddr_in a;
     a.sin_family = AF_INET;
 #ifdef _WIN32
-    InetPton(AF_INET, address.c_str(), &(a.sin_addr)); // Note: Vista and higher only.
+    InetPtonA(AF_INET, address.c_str(), &(a.sin_addr)); // Note: Vista and higher only.
 #else
     ::inet_pton(AF_INET, address.c_str(), &(a.sin_addr));
 #endif
