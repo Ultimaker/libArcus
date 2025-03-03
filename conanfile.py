@@ -115,7 +115,7 @@ class ArcusConan(ConanFile):
 
     def build_requirements(self):
         self.test_requires("standardprojectsettings/[>=0.2.0]")
-        self.tool_requires("protobuf/3.21.12")
+        self.tool_requires("protobuf/3.21.12", transitive_libs = True)
 
     def generate(self):
         tc = CMakeToolchain(self)
