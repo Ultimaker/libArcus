@@ -5,6 +5,7 @@
 #define ARCUS_MESSAGE_TYPE_STORE_H
 
 #include <memory>
+#include <cstdint>
 
 #include "Arcus/Types.h"
 
