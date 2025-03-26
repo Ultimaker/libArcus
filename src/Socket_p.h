@@ -4,6 +4,7 @@
 #ifndef SOCKET_P_H
 #define SOCKET_P_H
 
+#include <chrono>
 #include <condition_variable>
 #include <deque>
 #include <iostream>

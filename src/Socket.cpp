@@ -5,6 +5,7 @@
 #include "Socket_p.h"
 
 #include <algorithm>
+#include <chrono>
 
 using namespace Arcus;
 
