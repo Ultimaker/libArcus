@@ -1,9 +1,10 @@
-// Copyright (c) 2022 Ultimaker B.V.
+// Copyright (c) 2025 UltiMaker
 // libArcus is released under the terms of the LGPLv3 or higher.
 
 #ifndef SOCKET_P_H
 #define SOCKET_P_H
 
+#include <chrono>
 #include <condition_variable>
 #include <deque>
 #include <iostream>
