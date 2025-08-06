@@ -119,6 +119,9 @@ class ArcusConan(ConanFile):
 
     def generate(self):
         tc = CMakeToolchain(self)
+
+        tc.preprocessor_definitions["_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR"] = 1
+
         if is_msvc(self):
             tc.variables["USE_MSVC_RUNTIME_LIBRARY_DLL"] = not is_msvc_static_runtime(self)
         tc.cache_variables["CMAKE_POLICY_DEFAULT_CMP0077"] = "NEW"
@@ -133,6 +136,9 @@ class ArcusConan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
+
+        cmake.definitions["_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR"] = 1
+
         cmake.configure()
         cmake.build()
 
