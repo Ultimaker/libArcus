@@ -50,7 +50,7 @@ class ArcusConan(ConanFile):
 
     @property
     def _min_cppstd(self):
-        return 17
+        return 20
 
     @property
     def _compilers_minimum_version(self):
