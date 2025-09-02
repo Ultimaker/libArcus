@@ -50,7 +50,7 @@ class ArcusConan(ConanFile):
 
     @property
     def _min_cppstd(self):
-        return 20
+        return 20 if self.settings.os != "Macos" else 17
 
     @property
     def _compilers_minimum_version(self):
