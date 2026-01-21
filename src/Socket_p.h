@@ -13,6 +13,7 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <cstdint>
 
 #ifdef _WIN32
 #include <winsock2.h>
