@@ -86,7 +86,7 @@ public:
     bool received_close;
 
     std::string address;
-    uint port;
+    uint16_t port;
 
     std::thread* thread;
 
@@ -346,8 +346,8 @@ void Socket::Private::sendMessage(const MessagePtr& message)
         return;
     }
 
-    const uint32_t message_size = message->ByteSizeLong();
-    if (platform_socket.writeUInt32(message_size) == -1)
+    const size_t message_size = message->ByteSizeLong();
+    if (platform_socket.writeUInt32(static_cast<uint32_t>(message_size)) == -1)
     {
         error(ErrorCode::SendFailedError, "Could not send message size");
         return;
@@ -373,7 +373,7 @@ void Socket::Private::sendMessage(const MessagePtr& message)
 // Handle receiving data until we have a proper message.
 void Socket::Private::receiveNextMessage()
 {
-    int result = 0;
+    socket_size result = 0;
 
     if (! current_message)
     {
@@ -397,9 +397,9 @@ void Socket::Private::receiveNextMessage()
             return;
         }
 
-        int signature = (header & 0xffff0000) >> 16;
-        int major_version = (header & 0x0000ff00) >> 8;
-        int minor_version = header & 0x000000ff;
+        uint32_t signature = (header & 0xffff0000) >> 16;
+        uint32_t major_version = (header & 0x0000ff00) >> 8;
+        uint32_t minor_version = header & 0x000000ff;
 
         if (signature != ARCUS_SIGNATURE)
         {
@@ -496,7 +496,7 @@ void Socket::Private::receiveNextMessage()
         }
         else
         {
-            current_message->received_size = current_message->received_size + result;
+            current_message->received_size = current_message->received_size + static_cast<uint32_t>(result);
 
             DEBUG("Received " + std::to_string(result) + " bytes data");
 
@@ -532,7 +532,7 @@ void Socket::Private::handleMessage(const std::shared_ptr<WireMessage>& wire_mes
 
     MessagePtr message = message_types.createMessage(wire_message->type);
 
-    google::protobuf::io::ArrayInputStream array(wire_message->data, wire_message->size);
+    google::protobuf::io::ArrayInputStream array(wire_message->data, static_cast<int>(wire_message->size));
     google::protobuf::io::CodedInputStream stream(&array);
     stream.SetTotalBytesLimit(message_size_maximum);
     if (! message->ParseFromCodedStream(&stream))
@@ -563,7 +563,7 @@ void Socket::Private::checkConnectionState()
 
     if (diff.count() > keep_alive_rate)
     {
-        int32_t keepalive = 0;
+        constexpr uint32_t keepalive = 0;
         if (platform_socket.writeUInt32(keepalive) == -1)
         {
             error(ErrorCode::ConnectionResetError, "Connection reset by peer");

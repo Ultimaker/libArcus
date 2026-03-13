@@ -42,7 +42,7 @@ void initializeWSA()
 #endif
 
 // Create a sockaddr_in structure from an address and port.
-sockaddr_in createAddress(const std::string& address, int port)
+sockaddr_in createAddress(const std::string& address, uint16_t port)
 {
     sockaddr_in a;
     a.sin_family = AF_INET;
@@ -72,14 +72,14 @@ bool Arcus::Private::PlatformSocket::create()
     return _socket_id != -1;
 }
 
-bool Arcus::Private::PlatformSocket::connect(const std::string& address, int port)
+bool Arcus::Private::PlatformSocket::connect(const std::string& address, uint16_t port)
 {
     auto address_data = createAddress(address, port);
     int result = ::connect(_socket_id, reinterpret_cast<sockaddr*>(&address_data), sizeof(address_data));
     return result == 0;
 }
 
-bool Arcus::Private::PlatformSocket::bind(const std::string& address, int port)
+bool Arcus::Private::PlatformSocket::bind(const std::string& address, uint16_t port)
 {
     auto address_data = createAddress(address, port);
     int result = ::bind(_socket_id, reinterpret_cast<sockaddr*>(&address_data), sizeof(address_data));

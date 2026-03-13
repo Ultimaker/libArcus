@@ -91,7 +91,7 @@ public:
      * \param address The IP address to connect to.
      * \param port The port to connect to.
      */
-    virtual void connect(const std::string& address, int port);
+    virtual void connect(const std::string& address, uint16_t port);
 
     /**
      * Listen for connections on an address and port.
@@ -99,7 +99,7 @@ public:
      * \param address The IP address to listen on.
      * \param port The port to listen on.
      */
-    virtual void listen(const std::string& address, int port);
+    virtual void listen(const std::string& address, uint16_t port);
 
     /**
      * Close the connection and stop handling any messages.

@@ -113,7 +113,7 @@ void Socket::removeListener(SocketListener* listener)
     d->listeners.erase(itr);
 }
 
-void Socket::connect(const std::string& address, int port)
+void Socket::connect(const std::string& address, uint16_t port)
 {
     if (d->state != SocketState::Initial || d->thread != nullptr)
     {
@@ -146,7 +146,7 @@ void Socket::reset()
     clearError();
 }
 
-void Socket::listen(const std::string& address, int port)
+void Socket::listen(const std::string& address, uint16_t port)
 {
     if (d->state != SocketState::Initial || d->thread != nullptr)
     {

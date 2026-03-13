@@ -50,7 +50,7 @@ public:
      *
      * \return true if the connection was successful, false if not.
      */
-    bool connect(const std::string& address, int port);
+    bool connect(const std::string& address, uint16_t port);
     /**
      * Bind the socket to an address and port.
      *
@@ -59,7 +59,7 @@ public:
      *
      * \return true if successful, false if not.
      */
-    bool bind(const std::string& address, int port);
+    bool bind(const std::string& address, uint16_t port);
     /**
      * Mark the socket as listening for new connections.
      *

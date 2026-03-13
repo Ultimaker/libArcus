@@ -19,10 +19,10 @@ using namespace Arcus;
  * of std::hash differs between compilers, we need to make sure we use the same
  * implementation everywhere.
  */
-uint32_t hash(const std::string& input)
+uint32_t hash(const std::string_view& input)
 {
-    const char* data = input.c_str();
-    uint32_t length = input.size();
+    const char* data = input.data();
+    size_t length = input.size();
     uint32_t result = static_cast<uint32_t>(2166136261UL);
     for (; length; --length)
     {
@@ -39,7 +39,8 @@ public:
     {
     }
 
-    void AddError(const std::string& filename, int line, int column, const std::string& message) override
+    void RecordError(absl::string_view filename, int line, int column,
+                           absl::string_view message) override
     {
         _stream << "[" << filename << " (" << line << "," << column << ")] " << message << std::endl;
         _error_count++;
