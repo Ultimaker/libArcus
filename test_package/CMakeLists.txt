@@ -4,7 +4,7 @@ project(PackageTest CXX)
 
 find_package(standardprojectsettings REQUIRED)
 find_package(arcus REQUIRED)
-find_package(protobuf 3.17.1 REQUIRED)
+find_package(protobuf REQUIRED)
 protobuf_generate_cpp(generated_PROTOBUF_SOURCES generated_PROTOBUF_HEADERS test.proto)
 
 add_executable(test "src/test.cpp" ${generated_PROTOBUF_SOURCES})
