@@ -10,11 +10,10 @@ class ArcusTestConan(ConanFile):
 
     def build_requirements(self):
         self.test_requires("standardprojectsettings/[>=0.2.0]@ultimaker/stable")
-        self.tool_requires("protobuf/3.21.12")
 
     def requirements(self):
         self.requires(self.tested_reference_str)
-        self.requires("protobuf/3.21.12")
+        self.requires("protobuf/6.33.5")
 
     def layout(self):
         cmake_layout(self)
