@@ -1,6 +1,8 @@
 // Copyright (c) 2022 Ultimaker B.V.
 // libArcus is released under the terms of the LGPLv3 or higher.
 
+#include <cstdint>
+
 #include "PlatformSocket_p.h"
 
 #ifdef _WIN32
