@@ -180,7 +180,7 @@ bool Arcus::MessageTypeStore::registerAllMessageTypes(const std::string& file_na
 
     if (! d->message_factory)
     {
-        d->message_factory = std::make_shared<google::protobuf::DynamicMessageFactory>();
+        d->message_factory = std::make_shared<google::protobuf::DynamicMessageFactory>(d->importer->pool());
     }
 
     for (int i = 0; i < descriptor->message_type_count(); ++i)
