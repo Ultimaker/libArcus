@@ -20,7 +20,17 @@ Socket::~Socket()
         {
             close();
         }
-        delete d->thread;
+        // close() returns early in Closed/Error state without joining, and deleting a
+        // joinable std::thread calls std::terminate.
+        if (d->thread)
+        {
+            if (d->thread->joinable())
+            {
+                d->thread->join();
+            }
+            delete d->thread;
+            d->thread = nullptr;
+        }
     }
 
     for (SocketListener* listener : d->listeners)
